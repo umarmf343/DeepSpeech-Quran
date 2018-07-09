@@ -1,0 +1,7 @@
+ sed 's/[0-9a-zA-Z|#]//g' quran-uthmani.txt > quran-uthmani-vocab.txt
+>quran-alphabets.txt awk 'BEGIN{FS=""} {for(i=1;i<=NF;i++){chars[$(i)]=$(i);}} END{for(c in chars){print c;} }' quran-uthmani-vocab.txt | sort >/dev/null
+
+#REF:  https://discourse.mozilla.org/t/tutorial-how-i-trained-a-specific-french-model-to-control-my-robot/22830 
+../../kenlm/build/bin/lmplz --text quran-uthmani-vocab.txt --arpa  words.arpa --o 4
+../../kenlm/build/bin/build_binary trie -q 16 -b 7 -a 64 quran.arpa lm.binary
+../../nat_client.0.1.1/generate_trie quran-alphabets.txt lm.binary quran-uthmani-vocab.txt quran.trie
