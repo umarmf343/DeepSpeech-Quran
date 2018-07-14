@@ -72,12 +72,17 @@ def _preprocess_data(args):
             if(len(tokens) == 3):
                 _su = int(tokens[0])
                 _ay = int(tokens[1])
-                qurDict[str(_ay + _su*1000)] = tokens[2]
+                if _ay==1 and _su>1 and _su!=9: #Remove extra Basmala 
+                    qurDict[str(_ay + _su*1000)] = tokens[2].split(' ',4)[4]
+                else:
+                    qurDict[str(_ay + _su*1000)] = tokens[2]
 
     for root, dirnames, filenames in os.walk(target):
         for filename in fnmatch.filter(filenames, "*.wav"):
             full_wav = os.path.join(root, filename)
             wav_filesize = path.getsize(full_wav)
+            if wav_filesize>192000: #<--(<=5sec) 102400(5 samples): #262144(70%): #1048576(30%):
+                continue
             sura_num = int(filename[:-7])
             aya_num  = int(filename[3:-4])
             # need to remove _rif.wav (8chars) then add .TXT

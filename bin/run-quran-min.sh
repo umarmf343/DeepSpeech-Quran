@@ -24,22 +24,23 @@ else
 fi
 
 python -u DeepSpeech.py \
-  --train_files "$COMPUTE_DATA_DIR/quran_train.csv" \
-  --dev_files "$COMPUTE_DATA_DIR/quran_dev.csv" \
-  --test_files "$COMPUTE_DATA_DIR/quran_test.csv" \
+  --train_files "$COMPUTE_DATA_DIR/quran1.csv" \
+  --dev_files "$COMPUTE_DATA_DIR/quran1.csv" \
+  --test_files "$COMPUTE_DATA_DIR/quran1.csv" \
   --alphabet_config_path "$COMPUTE_DATA_DIR/quran-alphabets.txt" \
   --lm_binary_path "$COMPUTE_DATA_DIR/lm.binary" \
   --lm_trie_path "$COMPUTE_DATA_DIR/quran.trie" \
-  --export_dir "$COMPUTE_DATA_DIR/exported.model" \
-  --train_batch_size 16 \
-  --dev_batch_size 8 \
-  --test_batch_size 8 \
-  --epoch 10 \
+  \#--export_dir "$COMPUTE_DATA_DIR/exported.model" \
+  --train_batch_size 1 \
+  --dev_batch_size 1 \
+  --test_batch_size 1 \
+  --epoch 100 \
   --display_step 1 \
   --validation_step 1 \
-  --dropout_rate 0.30 \
-  --default_stddev 0.046875 \
-  --learning_rate 0.0001 \
+  --dropout_rate 0.10 \
+  --n_hidden 1024 \
+  --default_stddev 0.03125 \
+  --learning_rate 0.00001 \
   --checkpoint_dir "$checkpoint_dir" \
   --checkpoint_secs 1800 \
   --summary_secs 1800
