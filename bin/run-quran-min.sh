@@ -34,13 +34,14 @@ python -u DeepSpeech.py \
   --train_batch_size 1 \
   --dev_batch_size 1 \
   --test_batch_size 1 \
+  --early_stop 0 \
   --epoch 100 \
   --display_step 1 \
   --validation_step 1 \
-  --dropout_rate 0.10 \
-  --n_hidden 1024 \
-  --default_stddev 0.03125 \
-  --learning_rate 0.00001 \
+  --dropout_rate 0.1 \
+  --n_hidden 2048 \
+  --default_stddev 0.0222 \
+  --learning_rate 0.0001 \
   --checkpoint_dir "$checkpoint_dir" \
   --checkpoint_secs 1800 \
   --summary_secs 1800
