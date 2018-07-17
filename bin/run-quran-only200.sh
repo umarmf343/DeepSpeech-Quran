@@ -38,6 +38,7 @@ python -u DeepSpeech.py \
   --display_step 1 \
   --validation_step 1 \
   --dropout_rate 0.30 \
+  --n_hidden 1024 \
   --default_stddev 0.046875 \
   --learning_rate 0.001 \
   --checkpoint_dir "$checkpoint_dir" \
