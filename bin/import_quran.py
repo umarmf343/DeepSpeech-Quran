@@ -18,7 +18,9 @@ import fnmatch
 import pandas as pd
 import subprocess
 import wget
-
+import re
+import zipfile
+ 
 def clean(word):
     # LC ALL & strip punctuation which are not required
     new = word.lower().replace('.', '')
@@ -35,17 +37,33 @@ def _download_audio(args):
     # Download Ayat data for Husary
     datapath = args
     target = path.join(datapath, "quran")
+    if len(os.listdir(path.join(target,'wav'))) >= 6236:
+        print("Seems you have downloaded all wav files before .. skipping.")
+        return
     WEBFILE='http://quran.ksu.edu.sa/ayat/?pg=patches'
+    WEBBASE=re.sub("\?.*$","",WEBFILE)
+    RECITOR='Husary_64kbps'
     LOCFILE='index.html'
     INDEX=path.join(target,LOCFILE)
     LINKS='husary.links'
     wget.download(WEBFILE, INDEX)
-    #grep  -i --color husary $LOCFILE | grep -o download.*ayt > "$LINKS"
-    #WEBURL=`echo $WEBFILE | sed 's:/[^/]*$::'`
-    #while IFS='' read -r line || [[ -n "$line" ]]; do
-    #    wget -c "$WEBURL/$line"
-    #done < "$LINKS"
-    #unzip \*.ayt
+    Ayt_links=[]
+    searchLinks = re.compile("download/"+RECITOR+"/"+RECITOR+".*.ayt")
+    for line in open(INDEX, 'r'):
+        slink = re.search(searchLinks, line)
+        if slink:
+            Ayt_links.append(slink.group(0))
+    os.remove(INDEX)
+    for i in range(len(Ayt_links)):
+        print("\nDownloading file {} of {}".format(i + 1, len(Ayt_links)))
+        lfile = re.sub("^.*/","",Ayt_links[i])
+        link_file= path.join(target,lfile)
+        wget.download(WEBBASE+Ayt_links[i], link_file)
+        with zipfile.ZipFile(link_file, "r") as zip_ref:
+            zip_ref.extractall(target)
+        os.remove(link_file)
+    os.rename(target+'/audio/'+RECITOR, target+'/wav')
+    os.remove(target+'/audio/')
 
 def _preprocess_data(args):
     datapath = args
@@ -130,6 +148,6 @@ def _preprocess_data(args):
     df_test.to_csv(target+"/quran_test.csv", sep=',', header=True, index=False)
 
 if __name__ == "__main__":
-    #_download_audio(sys.argv[1])
+    _download_audio(sys.argv[1])
     _preprocess_data(sys.argv[1])
     print("Completed")
