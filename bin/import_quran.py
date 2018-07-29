@@ -63,7 +63,7 @@ def _download_audio(args):
             zip_ref.extractall(target)
         os.remove(link_file)
     os.rename(target+'/audio/'+RECITOR, target+'/wav')
-    os.remove(target+'/audio/')
+    os.rmdir(target+'/audio')
 
 def _preprocess_data(args):
     datapath = args
