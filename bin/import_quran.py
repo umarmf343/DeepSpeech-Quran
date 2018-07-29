@@ -37,7 +37,7 @@ def _download_audio(args):
     # Download Ayat data for Husary
     datapath = args
     target = path.join(datapath, "quran")
-    if len(os.listdir(path.join(target,'wav'))) >= 6236:
+    if os.path.exists(path.join(target,'wav')) && len(os.listdir(path.join(target,'wav'))) >= 6236:
         print("Seems you have downloaded all wav files before .. skipping.")
         return
     WEBFILE='http://quran.ksu.edu.sa/ayat/?pg=patches'
