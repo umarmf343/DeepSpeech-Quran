@@ -21,6 +21,7 @@ import wget
 import re
 import zipfile
 import sox
+import argparse
  
 def clean(word):
     # LC ALL & strip punctuation which are not required
@@ -34,9 +35,9 @@ def clean(word):
     new = new.replace('-', '')
     return new
 
-def _download_audio(args):
+def _download_audio(location):
     # Download Ayat data for different recitors (Husary,Afasy,Sowaid)
-    datapath  = args
+    datapath  = location
     target    = path.join(datapath, "quran")
     targetwav = path.join(target,'wav')
     if os.path.exists(targetwav) and len(os.listdir(targetwav)) >= 6236:
@@ -88,9 +89,10 @@ def _download_audio(args):
                 sys.stdout.flush()
     os.remove(INDEX)
 
-def _preprocess_data(args):
-    datapath = args
+def _preprocess_data(location, amount):
+    datapath = location
     target = path.join(datapath, "quran")
+    targetwav = path.join(target,'wav')
 
     # Assume data is downloaded from Tanzil.net 
     # Uthmani with pause marks and different tanween shapes 
@@ -107,7 +109,14 @@ def _preprocess_data(args):
     test_list_wavs, test_list_trans, test_list_size = [], [], []
     dev_list_wavs, dev_list_trans, dev_list_size = [], [], []
 
-    with open(path.join(args, "quran/quran-uthmani.txt"), "r") as f:
+    # Setting CSV Amount Threasholds
+    amount_thr={
+        '100p': 9999999,
+        '70p':   799000,
+        '30p':   260000,
+        '5sec':  160000
+    }
+    with open(path.join(location, "quran/quran-uthmani.txt"), "r") as f:
         for line in f:
             tokens = line.strip().split('|')
             if(len(tokens) == 3):
@@ -117,12 +126,11 @@ def _preprocess_data(args):
                     qurDict[str(_ay + _su*1000)] = tokens[2].split(' ',4)[4]
                 else:
                     qurDict[str(_ay + _su*1000)] = tokens[2]
-
-    for root, dirnames, filenames in os.walk(target):
+    for root, dirnames, filenames in os.walk(targetwav):
         for filename in fnmatch.filter(filenames, "*.wav"):
             full_wav = os.path.join(root, filename)
             wav_filesize = path.getsize(full_wav)
-            if wav_filesize>799000: #<--799000(70%)  192000(<=5sec) 102400(5 samples) 262000(30%):
+            if wav_filesize>amount_thr[amount]:
                 continue
             sura_num = int(filename[:3])
             aya_num  = int(filename[3:6])
@@ -170,6 +178,10 @@ def _preprocess_data(args):
     df_test.to_csv(target+"/quran_test.csv", sep=',', header=True, index=False)
 
 if __name__ == "__main__":
-    _download_audio(sys.argv[1])
-    _preprocess_data(sys.argv[1])
+    parser = argparse.ArgumentParser()
+    parser.add_argument("location", help="Directory to import to, usually 'data/'")
+    parser.add_argument('--csv_amount', choices=['100p', '70p', '30p', '5sec'], default='70p', help="The amount of verses to include in the CSV. Start with only-short datasets, then include all later. (default: %(default)s)")
+    args = parser.parse_args()
+    _download_audio(args.location)
+    _preprocess_data(args.location, args.csv_amount)
     print("Completed")
