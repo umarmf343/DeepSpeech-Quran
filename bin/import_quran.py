@@ -20,6 +20,8 @@ import subprocess
 import wget
 import re
 import zipfile
+import sox
+import argparse
  
 def clean(word):
     # LC ALL & strip punctuation which are not required
@@ -33,46 +35,69 @@ def clean(word):
     new = new.replace('-', '')
     return new
 
-def _download_audio(args):
-    # Download Ayat data for Husary
-    datapath = args
-    target = path.join(datapath, "quran")
-    if os.path.exists(path.join(target,'wav')) and len(os.listdir(path.join(target,'wav'))) >= 6236:
+def _download_audio(location):
+    # Download Ayat data for different recitors (Husary,Afasy,Sowaid)
+    datapath  = location
+    target    = path.join(datapath, "quran")
+    targetwav = path.join(target,'wav')
+    if os.path.exists(targetwav) and len(os.listdir(targetwav)) >= 6236:
         print("Seems you have downloaded all wav files before .. skipping.")
         return
+    elif not os.path.exists(targetwav):
+        os.makedirs(targetwav)
     WEBFILE='http://quran.ksu.edu.sa/ayat/?pg=patches'
     WEBBASE=re.sub("\?.*$","",WEBFILE)
-    RECITOR='Husary_64kbps'
     LOCFILE='index.html'
     INDEX=path.join(target,LOCFILE)
-    LINKS='husary.links'
     wget.download(WEBFILE, INDEX)
-    Ayt_links=[]
-    searchLinks = re.compile("download/"+RECITOR+"/"+RECITOR+".*.ayt")
-    for line in open(INDEX, 'r'):
-        slink = re.search(searchLinks, line)
-        if slink:
-            Ayt_links.append(slink.group(0))
+    tfm=sox.Transformer()
+    tfm.convert(samplerate=16000,n_channels=1,bitdepth=16)
+    for recitor in ['Husary_64kbps','Alafasy_64kbps','Ayman_Sowaid_64kbps']: #
+        Ayt_links=[]
+        searchLinks = re.compile("download/"+recitor+"/"+recitor+".*.ayt")
+        print("\n===> Downloading MP3 files of: {}".format(recitor))
+        for line in open(INDEX, 'r'):
+            slink = re.search(searchLinks, line)
+            if slink:
+                Ayt_links.append(slink.group(0))
+        for i in range(len(Ayt_links)):
+            print("\n=> Downloading file {} of {}".format(i + 1, len(Ayt_links)))
+            lfile = re.sub("^.*/","",Ayt_links[i])
+            link_file= path.join(target,lfile)
+            wget.download(WEBBASE+Ayt_links[i], link_file)
+            with zipfile.ZipFile(link_file, "r") as zip_ref:
+               zip_ref.extractall(target)
+            os.remove(link_file)
+        for f in os.listdir(target+'/audio/'+recitor):
+            os.rename(target+'/audio/'+recitor+'/'+f, targetwav+'/'+f)
+        if os.path.exists(target+'/audio/'+recitor):
+            os.rmdir(target+'/audio/'+recitor)
+        if os.path.exists(path.join(target,recitor)):
+            os.rmdir(path.join(target,recitor))
+        if os.path.exists(path.join(target,'audio')):
+            os.rmdir(path.join(target,'audio'))
+        print("\n=> Converting all mp3 files to wav, please wait ..")
+        conversion=0
+        for root, dirnames, filenames in os.walk(targetwav):
+            for filename in fnmatch.filter(filenames, "*.mp3"):
+                file_mp3 = os.path.join(root, filename)
+                file_wav = os.path.join(root, filename[:6]+'_'+recitor+'.wav')
+                tfm.build(file_mp3,file_wav)
+                os.remove(file_mp3)
+                conversion +=1
+                sys.stdout.write("\r    %d of 6236" % conversion)
+                sys.stdout.flush()
     os.remove(INDEX)
-    for i in range(len(Ayt_links)):
-        print("\nDownloading file {} of {}".format(i + 1, len(Ayt_links)))
-        lfile = re.sub("^.*/","",Ayt_links[i])
-        link_file= path.join(target,lfile)
-        wget.download(WEBBASE+Ayt_links[i], link_file)
-        with zipfile.ZipFile(link_file, "r") as zip_ref:
-            zip_ref.extractall(target)
-        os.remove(link_file)
-    os.rename(target+'/audio/'+RECITOR, target+'/wav')
-    os.remove(target+'/audio/')
 
-def _preprocess_data(args):
-    datapath = args
+def _preprocess_data(location, amount):
+    datapath = location
     target = path.join(datapath, "quran")
+    targetwav = path.join(target,'wav')
 
-    # Assume data is downloaded from Tanzil.net # Uthmani with pause marks and different tanween shapes # Text with aya numbers
-
+    # Assume data is downloaded from Tanzil.net 
+    # Uthmani with pause marks and different tanween shapes 
+    # Text with aya numbers
    
-
     print("Preprocessing Complete")
     print("Building CSVs")
 
@@ -84,7 +109,14 @@ def _preprocess_data(args):
     test_list_wavs, test_list_trans, test_list_size = [], [], []
     dev_list_wavs, dev_list_trans, dev_list_size = [], [], []
 
-    with open(path.join(args, "quran/quran-uthmani.txt"), "r") as f:
+    # Setting CSV Amount Threasholds
+    amount_thr={
+        '100p': 9999999,
+        '70p':   799000,
+        '30p':   260000,
+        '5sec':  160000
+    }
+    with open(path.join(location, "quran/quran-uthmani.txt"), "r") as f:
         for line in f:
             tokens = line.strip().split('|')
             if(len(tokens) == 3):
@@ -94,16 +126,14 @@ def _preprocess_data(args):
                     qurDict[str(_ay + _su*1000)] = tokens[2].split(' ',4)[4]
                 else:
                     qurDict[str(_ay + _su*1000)] = tokens[2]
-
-    for root, dirnames, filenames in os.walk(target):
+    for root, dirnames, filenames in os.walk(targetwav):
         for filename in fnmatch.filter(filenames, "*.wav"):
             full_wav = os.path.join(root, filename)
             wav_filesize = path.getsize(full_wav)
-            if wav_filesize>192000: #<--(<=5sec) 102400(5 samples): #262144(70%): #1048576(30%):
+            if wav_filesize>amount_thr[amount]:
                 continue
-            sura_num = int(filename[:-7])
-            aya_num  = int(filename[3:-4])
-            # need to remove _rif.wav (8chars) then add .TXT
+            sura_num = int(filename[:3])
+            aya_num  = int(filename[3:6])
             trans = qurDict[str(aya_num + sura_num*1000)]
             
             if aya_num%10 > 1:
@@ -148,6 +178,10 @@ def _preprocess_data(args):
     df_test.to_csv(target+"/quran_test.csv", sep=',', header=True, index=False)
 
 if __name__ == "__main__":
-    _download_audio(sys.argv[1])
-    _preprocess_data(sys.argv[1])
+    parser = argparse.ArgumentParser()
+    parser.add_argument("location", help="Directory to import to, usually 'data/'")
+    parser.add_argument('--csv_amount', choices=['100p', '70p', '30p', '5sec'], default='70p', help="The amount of verses to include in the CSV. Start with only-short datasets, then include all later. (default: %(default)s)")
+    args = parser.parse_args()
+    _download_audio(args.location)
+    _preprocess_data(args.location, args.csv_amount)
     print("Completed")
