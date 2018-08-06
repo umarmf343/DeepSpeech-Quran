@@ -41,8 +41,8 @@ python -u DeepSpeech.py \
   --dropout_rate 0.30 \
   --n_hidden 1024 \
   --default_stddev 0.046875 \
-  --learning_rate 0.001 \
-  --checkpoint_dir "/data/teldeeb/checkpoints" \
+  --learning_rate 0.0001 \
+  --checkpoint_dir "${COMPUTE_DATA_DIR}/../checkpoints" \
   --checkpoint_secs 1800 \
   --summary_secs 180
   "$@"
