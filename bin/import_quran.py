@@ -41,7 +41,7 @@ def _download_audio(args):
     targetwav = path.join(target,'wav')
     if os.path.exists(targetwav) and len(os.listdir(targetwav)) >= 6236:
         print("Seems you have downloaded all wav files before .. skipping.")
-        #return
+        return
     elif not os.path.exists(targetwav):
         os.makedirs(targetwav)
     WEBFILE='http://quran.ksu.edu.sa/ayat/?pg=patches'
@@ -122,7 +122,7 @@ def _preprocess_data(args):
         for filename in fnmatch.filter(filenames, "*.wav"):
             full_wav = os.path.join(root, filename)
             wav_filesize = path.getsize(full_wav)
-            if wav_filesize>192000: #<--(<=5sec) 102400(5 samples): #262144(70%): #1048576(30%):
+            if wav_filesize>799000: #<--799000(70%)  192000(<=5sec) 102400(5 samples) 262000(30%):
                 continue
             sura_num = int(filename[:3])
             aya_num  = int(filename[3:6])
