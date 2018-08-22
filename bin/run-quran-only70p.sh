@@ -24,9 +24,9 @@ else
 fi
 
 python -u DeepSpeech.py \
-  --train_files "$COMPUTE_DATA_DIR/quran70p_train.csv" \
-  --dev_files "$COMPUTE_DATA_DIR/quran70p_dev.csv" \
-  --test_files "$COMPUTE_DATA_DIR/quran70p_test.csv" \
+  --train_files "$COMPUTE_DATA_DIR/quran_train.csv" \
+  --dev_files "$COMPUTE_DATA_DIR/quran_dev.csv" \
+  --test_files "$COMPUTE_DATA_DIR/quran_test.csv" \
   --alphabet_config_path "$COMPUTE_DATA_DIR/quran-alphabets.txt" \
   --lm_binary_path "$COMPUTE_DATA_DIR/lm.binary" \
   --lm_trie_path "$COMPUTE_DATA_DIR/quran.trie" \
