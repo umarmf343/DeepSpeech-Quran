@@ -1,7 +1,7 @@
 pandas
 progressbar2
 python-utils
-tensorflow == 1.6.0
+tensorflow-gpu==1.6
 numpy
 matplotlib
 scipy
@@ -14,3 +14,4 @@ bs4
 six
 requests
 wget
+deepspeech == 0.2.0a9
