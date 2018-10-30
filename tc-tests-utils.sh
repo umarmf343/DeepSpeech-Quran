@@ -28,15 +28,6 @@ export DS_DSDIR=${DS_ROOT_TASK}/DeepSpeech/ds
 
 export BAZEL_CTC_TARGETS="//native_client:libctc_decoder_with_kenlm.so"
 
-export EXTRA_AOT_CFLAGS=""
-export EXTRA_AOT_LDFLAGS=""
-export EXTRA_AOT_LIBS="-ldeepspeech_model"
-
-export BAZEL_AOT_BUILD_FLAGS="--define=DS_NATIVE_MODEL=1 --define=DS_MODEL_TIMESTEPS=64"
-export BAZEL_AOT_TARGETS="
-//native_client:libdeepspeech_model.so
-"
-
 export DS_VERSION="$(cat ${DS_DSDIR}/VERSION)"
 
 model_source="${DEEPSPEECH_TEST_MODEL}"
@@ -47,11 +38,15 @@ model_source_mmap="$(dirname "${model_source}")/${model_name_mmap}"
 SUPPORTED_PYTHON_VERSIONS=${SUPPORTED_PYTHON_VERSIONS:-2.7.14:ucs2 2.7.14:ucs4 3.4.8:ucs4 3.5.5:ucs4 3.6.4:ucs4 3.7.0:ucs4}
 SUPPORTED_NODEJS_VERSIONS=${SUPPORTED_NODEJS_VERSIONS:-4.9.1 5.12.0 6.14.1 7.10.1 8.11.1 9.11.1 10.3.0}
 
+strip() {
+  echo "$(echo $1 | sed -e 's/^[[:space:]]+//' -e 's/[[:space:]]+$//')"
+}
+
 # This verify exact inference result
 assert_correct_inference()
 {
-  phrase=$1
-  expected=$2
+  phrase=$(strip "$1")
+  expected=$(strip "$2")
 
   if [ -z "${phrase}" -o -z "${expected}" ]; then
       echo "One or more empty strings:"
@@ -143,6 +138,11 @@ assert_correct_ldc93s1()
   assert_correct_inference "$1" "she had your dark suit in greasy wash water all year"
 }
 
+assert_correct_ldc93s1_lm()
+{
+  assert_correct_inference "$1" "she had your dark suit in greasy wash water all year"
+}
+
 assert_correct_multi_ldc93s1()
 {
   assert_shows_something "$1" "/LDC93S1.wav%she had your dark suit in greasy wash water all year%"
@@ -151,50 +151,14 @@ assert_correct_multi_ldc93s1()
   # assert_shows_something "$1" "/LDC93S1_pcms16le_1_8000.wav%she hayorasryrtl lyreasy asr watal w water all year%"
 }
 
-assert_correct_ldc93s1_prodmodel_v1()
+assert_correct_ldc93s1_prodmodel()
 {
-  assert_correct_inference "$1" "she had yeduckso in greasy wash for all year"
+  assert_correct_inference "$1" "she hadered or so and greasy wash war or year"
 }
 
-assert_correct_ldc93s1_prodmodel_v2()
+assert_correct_ldc93s1_prodmodel_stereo_44k()
 {
-  assert_correct_inference "$1" "she had a ducsuot in greasy wathorerall year"
-}
-
-assert_working_ldc93s1_prodmodel()
-{
-  assert_working_inference "$1" "she had"
-}
-
-assert_correct_ldc93s1_somodel()
-{
-    somodel_nolm=$1
-    somodel_withlm=$2
-
-    # We want to be able to return non zero value from the function, while not
-    # failing the whole execution
-    set +e
-
-    assert_correct_ldc93s1 "${somodel_nolm}"
-    so_nolm=$?
-
-    assert_correct_ldc93s1 "${somodel_withlm}"
-    so_lm=$?
-
-    set -e
-
-    # We accept that with no LM there may be errors, but we do not accept that
-    # for LM. For now.
-    if [ ${so_lm} -eq 1 ] && [ ${so_nolm} -eq 1 -o ${so_nolm} -eq 0 ];
-    then
-        exit 1
-    elif [ ${so_lm} -eq 0 ] && [ ${so_nolm} -eq 1 -o ${so_nolm} -eq 0 ];
-    then
-        exit 0
-    else
-        echo "Unexpected status"
-        exit 2
-    fi
+  assert_correct_inference "$1" "she had tered or so and greasy wash war or year"
 }
 
 assert_correct_warning_upsampling()
@@ -225,48 +189,31 @@ run_all_inference_tests()
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm}"
 
   phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-  assert_correct_ldc93s1 "${phrase_pbmodel_withlm}"
+  assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm}"
 
   phrase_pbmodel_nolm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
   assert_correct_ldc93s1 "${phrase_pbmodel_nolm_stereo_44k}"
 
   phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
-  assert_correct_ldc93s1 "${phrase_pbmodel_withlm_stereo_44k}"
+  assert_correct_ldc93s1_lm "${phrase_pbmodel_withlm_stereo_44k}"
 
   phrase_pbmodel_nolm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
   assert_correct_warning_upsampling "${phrase_pbmodel_nolm_mono_8k}"
 
   phrase_pbmodel_withlm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
   assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
-
-  if [ "${aot_model}" = "--aot" ]; then
-      phrase_somodel_nolm=$(deepspeech --model "" --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-      phrase_somodel_withlm=$(deepspeech --model "" --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-
-      assert_correct_ldc93s1_somodel "${phrase_somodel_nolm}" "${phrase_somodel_withlm}"
-
-      phrase_somodel_nolm_stereo_44k=$(deepspeech --model "" --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
-      phrase_somodel_withlm_stereo_44k=$(deepspeech --model "" --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
-
-      assert_correct_ldc93s1_somodel "${phrase_somodel_nolm_stereo_44k}" "${phrase_somodel_withlm_stereo_44k}"
-
-      phrase_somodel_nolm_mono_8k=$(deepspeech --model "" --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
-      phrase_somodel_withlm_stereo_44k=$(deepspeech --model "" --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
-
-      assert_correct_warning_upsampling "${phrase_somodel_nolm_mono_8k}" "${phrase_somodel_withlm_mono_8k}"
-  fi;
 }
 
 run_prod_inference_tests()
 {
   phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-  assert_correct_ldc93s1_prodmodel_v1 "${phrase_pbmodel_withlm}"
+  assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}"
 
   phrase_pbmodel_withlm=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1.wav)
-  assert_correct_ldc93s1_prodmodel_v2 "${phrase_pbmodel_withlm}"
+  assert_correct_ldc93s1_prodmodel "${phrase_pbmodel_withlm}"
 
   phrase_pbmodel_withlm_stereo_44k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_2_44100.wav)
-  assert_working_ldc93s1_prodmodel "${phrase_pbmodel_withlm_stereo_44k}"
+  assert_correct_ldc93s1_prodmodel_stereo_44k "${phrase_pbmodel_withlm_stereo_44k}"
 
   phrase_pbmodel_withlm_mono_8k=$(deepspeech --model ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} --alphabet ${TASKCLUSTER_TMP_DIR}/alphabet.txt --lm ${TASKCLUSTER_TMP_DIR}/lm.binary --trie ${TASKCLUSTER_TMP_DIR}/trie --audio ${TASKCLUSTER_TMP_DIR}/LDC93S1_pcms16le_1_8000.wav 2>&1 1>/dev/null)
   assert_correct_warning_upsampling "${phrase_pbmodel_withlm_mono_8k}"
@@ -303,11 +250,6 @@ download_native_client_files()
   generic_download_tarxz "$1" "${DEEPSPEECH_ARTIFACTS_ROOT}/native_client.tar.xz"
 }
 
-download_aot_model_files()
-{
-  generic_download_tarxz "$1" "${DEEPSPEECH_AOT_ARTIFACTS_ROOT}/native_client.tar.xz"
-}
-
 download_ctc_kenlm()
 {
   generic_download_tarxz "$1" "${DEEPSPEECH_LIBCTC}"
@@ -323,17 +265,16 @@ download_data()
   cp ${DS_ROOT_TASK}/DeepSpeech/ds/data/smoke_test/vocab.trie ${TASKCLUSTER_TMP_DIR}/trie
 }
 
+download_for_frozen()
+{
+  wget -O "${TASKCLUSTER_TMP_DIR}/frozen_model.pb" "${DEEPSPEECH_TEST_MODEL}"
+}
+
 download_material()
 {
   target_dir=$1
-  maybe_aot=$2
 
-  if [ "${maybe_aot}" = "--aot" ]; then
-    download_aot_model_files "${target_dir}"
-  else
-    download_native_client_files "${target_dir}"
-  fi
-
+  download_native_client_files "${target_dir}"
   download_data
 
   ls -hal ${TASKCLUSTER_TMP_DIR}/${model_name} ${TASKCLUSTER_TMP_DIR}/${model_name_mmap} ${TASKCLUSTER_TMP_DIR}/LDC93S1*.wav ${TASKCLUSTER_TMP_DIR}/alphabet.txt
@@ -376,30 +317,6 @@ maybe_install_xldd()
   if [ ! -x "${toolchain}ldd" ]; then
     cp "${DS_DSDIR}/native_client/xldd" "${toolchain}ldd" && chmod +x "${toolchain}ldd"
   fi
-}
-
-do_get_model_parameters()
-{
-  local __result=$2
-  model_url=$1
-  model_file=/tmp/$(basename "${model_url}")
-
-  if [ -z "${model_url}" ]; then
-    echo "Empty URL for model"
-    exit 1
-  fi;
-
-  wget "${model_url}" -O "${model_file}"
-  wget -P "/tmp/" "${SUMMARIZE_GRAPH_BINARY}" && chmod +x /tmp/summarize_graph
-
-  if [ ! -f "${model_file}" ]; then
-    echo "No such model: ${model_file}"
-    exit 1
-  fi;
-
-  model_width=$(/tmp/summarize_graph --in_graph="${model_file}" | grep "inputs" | grep -Eo "shape=\[\?,\?,[[:digit:]]+" | cut -d',' -f3)
-
-  eval $__result="'--define=DS_MODEL_FRAMESIZE=${model_width} --define=DS_MODEL_FILE=${model_file}'"
 }
 
 # Checks whether we run a patched version of bazel.
@@ -529,7 +446,8 @@ maybe_ssl102_py37()
                 export PY37_LDPATH="${PY37_OPENSSL_DIR}/usr/lib/"
             fi;
 
-	    export NUMPY_VERSION="1.14.5"
+	    export NUMPY_BUILD_VERSION="==1.14.5"
+	    export NUMPY_DEP_VERSION=">=1.14.5"
         ;;
     esac
 }
@@ -557,7 +475,8 @@ do_deepspeech_python_build()
     pyver=$(echo "${pyver_conf}" | cut -d':' -f1)
     pyconf=$(echo "${pyver_conf}" | cut -d':' -f2)
 
-    export NUMPY_VERSION="1.7.0"
+    export NUMPY_BUILD_VERSION="==1.7.0"
+    export NUMPY_DEP_VERSION=">=1.7.0"
 
     maybe_ssl102_py37 ${pyver}
 
@@ -571,18 +490,19 @@ do_deepspeech_python_build()
     EXTRA_CFLAGS="${EXTRA_LOCAL_CFLAGS}" \
     EXTRA_LDFLAGS="${EXTRA_LOCAL_LDFLAGS}" \
     EXTRA_LIBS="${EXTRA_LOCAL_LIBS}" \
-    make -C native_client/ \
+    make -C native_client/python/ \
         TARGET=${SYSTEM_TARGET} \
         RASPBIAN=${SYSTEM_RASPBIAN} \
         TFDIR=${DS_TFDIR} \
         SETUP_FLAGS="${SETUP_FLAGS}" \
         bindings-clean bindings
 
-    cp native_client/dist/*.whl wheels
+    cp native_client/python/dist/*.whl wheels
 
-    make -C native_client/ bindings-clean
+    make -C native_client/python/ bindings-clean
 
-    unset NUMPY_VERSION
+    unset NUMPY_BUILD_VERSION
+    unset NUMPY_DEP_VERSION
 
     deactivate
     pyenv uninstall --force deepspeech
@@ -659,7 +579,6 @@ package_native_client()
       -C ${tensorflow_dir}/bazel-bin/native_client/ libctc_decoder_with_kenlm.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech_model.so \
-      -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech_utils.so \
       -C ${deepspeech_dir}/ LICENSE \
       -C ${deepspeech_dir}/native_client/ deepspeech \
       -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
@@ -669,7 +588,6 @@ package_native_client()
       -C ${tensorflow_dir}/bazel-bin/native_client/ generate_trie \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libctc_decoder_with_kenlm.so \
       -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
-      -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech_utils.so \
       -C ${deepspeech_dir}/ LICENSE \
       -C ${deepspeech_dir}/native_client/ deepspeech \
       -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
