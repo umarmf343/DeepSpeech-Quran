@@ -30,12 +30,12 @@ python -u DeepSpeech.py \
   --alphabet_config_path "$COMPUTE_DATA_DIR/quran-alphabets.txt" \
   --lm_binary_path "$COMPUTE_DATA_DIR/lm.binary" \
   --lm_trie_path "$COMPUTE_DATA_DIR/quran.trie" \
-  --export_dir "$COMPUTE_DATA_DIR/exported.model" \
+  --export_dir "$COMPUTE_DATA_DIR" \
   --train_batch_size 4 \
   --dev_batch_size 4 \
   --test_batch_size 4 \
   --noearly_stop \
-  --epoch 100 \
+  --epoch 10 \
   --display_step 4 \
   --validation_step 1 \
   --dropout_rate 0.30 \
