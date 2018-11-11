@@ -2,7 +2,7 @@
 
 '''
     NAME    : Quran Dataset
-    URL     : Audio: http://quran.ksu.edu.sa/ayat/?pg=patches 
+    URL     : Audio: http://quran.ksu.edu.sa/ayat/?pg=patches
             : Text:  http://tanzil.net
     HOURS   : TBD
     TYPE    : Recitation - Arabic
@@ -12,7 +12,7 @@
 import errno
 import os
 from os import path
-import sys
+import sys,glob
 import tarfile
 import fnmatch
 import pandas as pd
@@ -22,7 +22,7 @@ import re
 import zipfile
 import sox
 import argparse
- 
+
 def clean(word):
     # LC ALL & strip punctuation which are not required
     new = word.lower().replace('.', '')
@@ -36,11 +36,12 @@ def clean(word):
     return new
 
 def _download_audio(location):
-    # Download Ayat data for different recitors (Husary,Afasy,Sowaid)
+    # Download Ayat data for different recitors (Husary,Afasy,Sowaid, .. etc)
     datapath  = location
     target    = path.join(datapath, "quran")
     targetwav = path.join(target,'wav')
-    if os.path.exists(targetwav) and len(os.listdir(targetwav)) >= 6236:
+    recitors  = ['Husary_64kbps','Alafasy_64kbps','Ayman_Sowaid_64kbps','Ghamadi_40kbps','Maher_AlMuaiqly_64kbps','Abdullah_Basfar_64kbps','Abu_Bakr_Ash-Shaatree_64kbps']
+    if os.path.exists(targetwav) and len(os.listdir(targetwav)) >= (6236*len(recitors)):
         print("Seems you have downloaded all wav files before .. skipping.")
         return
     elif not os.path.exists(targetwav):
@@ -49,10 +50,13 @@ def _download_audio(location):
     WEBBASE=re.sub("\?.*$","",WEBFILE)
     LOCFILE='index.html'
     INDEX=path.join(target,LOCFILE)
-    wget.download(WEBFILE, INDEX)
+    wget.download(WEBFILE, INDEX, bar=None)
     tfm=sox.Transformer()
     tfm.convert(samplerate=16000,n_channels=1,bitdepth=16)
-    for recitor in ['Husary_64kbps','Alafasy_64kbps','Ayman_Sowaid_64kbps']: #
+    for recitor in recitors:
+        if len(glob.glob(targetwav+'/*'+recitor+'.wav')) >= 6236:
+            print("\n===> Skipping Downloading of: {}".format(recitor))
+            continue
         Ayt_links=[]
         searchLinks = re.compile("download/"+recitor+"/"+recitor+".*.ayt")
         print("\n===> Downloading MP3 files of: {}".format(recitor))
@@ -94,8 +98,8 @@ def _preprocess_data(location, amount):
     target = path.join(datapath, "quran")
     targetwav = path.join(target,'wav')
 
-    # Assume data is downloaded from Tanzil.net 
-    # Uthmani with pause marks and different tanween shapes 
+    # Assume data is downloaded from Tanzil.net
+    # Uthmani with pause marks and different tanween shapes
     # Text with aya numbers
    
     print("Preprocessing Complete")
@@ -122,7 +126,7 @@ def _preprocess_data(location, amount):
             if(len(tokens) == 3):
                 _su = int(tokens[0])
                 _ay = int(tokens[1])
-                if _ay==1 and _su>1 and _su!=9: #Remove extra Basmala 
+                if _ay==1 and _su>1 and _su!=9: #Remove extra Basmala
                     qurDict[str(_ay + _su*1000)] = tokens[2].split(' ',4)[4]
                 else:
                     qurDict[str(_ay + _su*1000)] = tokens[2]
@@ -135,7 +139,6 @@ def _preprocess_data(location, amount):
             sura_num = int(filename[:3])
             aya_num  = int(filename[3:6])
             trans = qurDict[str(aya_num + sura_num*1000)]
-            
             if aya_num%10 > 1:
                 train_list_wavs.append(full_wav)
                 train_list_trans.append(trans)
