@@ -35,7 +35,7 @@ python -u DeepSpeech.py \
   --dev_batch_size 4 \
   --test_batch_size 4 \
   --noearly_stop \
-  --epoch 10 \
+  --epoch 15 \
   --display_step 4 \
   --validation_step 1 \
   --dropout_rate 0.30 \

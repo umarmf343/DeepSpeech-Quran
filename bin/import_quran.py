@@ -102,7 +102,7 @@ def _preprocess_data(location, amount):
     # Uthmani with pause marks and different tanween shapes
     # Text with aya numbers
    
-    print("Preprocessing Complete")
+    print("\nPreprocessing Complete")
     print("Building CSVs")
 
     #Build a Quran Dictionary (aya + 1000*sura)
