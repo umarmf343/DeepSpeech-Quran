@@ -31,11 +31,13 @@ python -u DeepSpeech.py \
   --lm_binary_path "$COMPUTE_DATA_DIR/lm.binary" \
   --lm_trie_path "$COMPUTE_DATA_DIR/quran.trie" \
   --export_dir "$COMPUTE_DATA_DIR" \
+  --lm_weight 1.5 \
+  --valid_word_count_weight 10 \
   --train_batch_size 4 \
   --dev_batch_size 4 \
   --test_batch_size 4 \
   --noearly_stop \
-  --epoch 35 \
+  --epoch 70 \
   --display_step 4 \
   --validation_step 1 \
   --dropout_rate 0.30 \
@@ -44,5 +46,5 @@ python -u DeepSpeech.py \
   --learning_rate 0.0001 \
   --checkpoint_dir "${COMPUTE_DATA_DIR}/../checkpoints" \
   --checkpoint_secs 1800 \
-  --summary_secs 180
+  --summary_secs 180 \
   "$@"
