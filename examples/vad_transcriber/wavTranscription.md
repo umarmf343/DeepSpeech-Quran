@@ -5,7 +5,30 @@ They take in a wav file of any duration, use the WebRTC Voice Activity Detector 
 to split it into smaller chunks and finally save a consolidated transcript.
 
 ### 0. Prerequisites
-Setup your environment
+#### 0.1 Install requiered packages
+Install the package which contains rec on the machine:
+
+Fedora:
+
+``` sudo dnf install sox ```
+
+Tested on: 29
+
+Ubuntu/Debian
+
+``` sudo apt install sox ```
+
+A list of distributions where the package is available can be found at: https://pkgs.org/download/sox
+
+#### 0.1 Download Deepspeech 
+Either clone from git via git clone, or Download a version from the release page
+
+For the next steps we assume you have extracted the files to ~/Deepspeech
+
+
+#### 0.2 Setup your environment
+
+Ubuntu/Debian:
 
 ```
 ~/Deepspeech$ sudo apt install virtualenv
@@ -14,6 +37,18 @@ Setup your environment
 ~/Deepspeech/examples/vad_transcriber$ source venv/bin/activate
 (venv) ~/Deepspeech/examples/vad_transcriber$ pip3 install -r requirements.txt
 ```
+
+Fedora
+
+```
+~/Deepspeech$ sudo dnf install python-virtualenv
+~/Deepspeech$ cd examples/vad_transcriber
+~/Deepspeech/examples/vad_transcriber$ virtualenv -p python3 venv
+~/Deepspeech/examples/vad_transcriber$ source venv/bin/activate
+(venv) ~/Deepspeech/examples/vad_transcriber$ pip3 install -r requirements.txt
+```
+
+Tested on: 29
 
 ### 1. Command line tool
 
@@ -26,13 +61,17 @@ Set the aggressiveness mode, to an integer between 0 and 3.
 
 ```
 (venv) ~/Deepspeech/examples/vad_transcriber
-$ python3 audioTranscript_cmd.py --aggressive 1 --audio ./audio/guido-van-rossum.wav --model ./models/0.3.0/
+$ python3 audioTranscript_cmd.py --aggressive 1 --audio ./audio/guido-van-rossum.wav --model ./models/0.4.1/
 
 
 Filename                       Duration(s)          Inference Time(s)    Model Load Time(s)   LM Load Time(s)
 sample_rec.wav                 13.710               20.797               5.593                17.742
 
 ```
+
+**Note:** Only `wav` files with a 16kHz sample rate are supported for now, you can convert your files to the appropriate format with ffmpeg if available on your system.
+
+    ffmpeg -i infile.mp3  -ar 16000 -ac 1  outfile.wav
 
 ### 2. Minimalistic GUI
 
@@ -59,3 +98,10 @@ In such a scenario, the GUI tool will not work. The following steps is known to 
 (venv) ~/Deepspeech/examples/vad_transcriber$ python3 audioTranscript_gui.py
 
 ```
+#### 2.2 Useful Tips
+#####  The GUI programm immediately crashes when you press start recording
+This happens when you don't load the models via the "Browse Models" button, before pressing the "Start recording" button.
+
+#####  What does error XYZ mean?
+You can find a list of error codes and what they mean at https://deepspeech.readthedocs.io/en/latest/Error-Codes.html
+
