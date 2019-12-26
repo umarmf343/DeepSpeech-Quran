@@ -31,14 +31,13 @@ python -u DeepSpeech.py \
   --lm_binary_path "$COMPUTE_DATA_DIR/lm.binary" \
   --lm_trie_path "$COMPUTE_DATA_DIR/quran.trie" \
   --export_dir "$COMPUTE_DATA_DIR" \
-  --export_tflite 'true' \
   --lm_alpha 1.5 \
   --lm_beta 1.85 \
   --train_batch_size 4 \
   --dev_batch_size 4 \
   --test_batch_size 4 \
   --noearly_stop \
-  --epochs 70 \
+  --epochs 60 \
   --export_language "ar" \
   --dropout_rate 0.30 \
   --n_hidden 1024 \
@@ -46,3 +45,6 @@ python -u DeepSpeech.py \
   --checkpoint_dir "${COMPUTE_DATA_DIR}/../checkpoints" \
   --checkpoint_secs 1800 \
   "$@"
+
+#  --export_tflite 'true' \
+
