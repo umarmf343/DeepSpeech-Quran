@@ -37,6 +37,7 @@ def clean(word):
 
 def _download_audio(location):
     # Download Ayat data for different recitors (Husary,Afasy,Sowaid, .. etc)
+    MAX_DOWNLOAD_RETRIES = 5
     datapath  = location
     target    = path.join(datapath, "quran")
     targetwav = path.join(target,'wav')
@@ -50,7 +51,12 @@ def _download_audio(location):
     WEBBASE=re.sub("\?.*$","",WEBFILE)
     LOCFILE='index.html'
     INDEX=path.join(target,LOCFILE)
-    wget.download(WEBFILE, INDEX, bar=None)
+    for j in range(1, MAX_DOWNLOAD_RETRIES):
+        try:
+            wget.download(WEBFILE, INDEX, bar=None)
+            break
+        except:
+            print("fetching index failed, trying again:" + str(j))
     tfm=sox.Transformer()
     tfm.convert(samplerate=16000,n_channels=1,bitdepth=16)
     for recitor in recitors:
@@ -68,7 +74,12 @@ def _download_audio(location):
             print("\n=> Downloading file {} of {}".format(i + 1, len(Ayt_links)))
             lfile = re.sub("^.*/","",Ayt_links[i])
             link_file= path.join(target,lfile)
-            wget.download(WEBBASE+Ayt_links[i], link_file)
+            for j in range(1, MAX_DOWNLOAD_RETRIES):
+                try:
+                    wget.download(WEBBASE+Ayt_links[i], link_file)
+                    break
+                except:
+                    print("download failed, trying again:" + str(j))
             with zipfile.ZipFile(link_file, "r") as zip_ref:
                zip_ref.extractall(target)
             os.remove(link_file)
