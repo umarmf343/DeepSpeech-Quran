@@ -10,7 +10,6 @@ source ${DS_ROOT_TASK}/DeepSpeech/tf/tc-vars.sh
 
 BAZEL_TARGETS="
 //native_client:libdeepspeech.so
-//native_client:generate_trie
 "
 
 if [ "${runtime}" = "tflite" ]; then
@@ -25,7 +24,11 @@ do_bazel_build
 
 do_deepspeech_binary_build
 
-do_deepspeech_python_build
+if [ "${runtime}" = "tflite" ]; then
+  do_deepspeech_python_build "--tflite"
+else
+  do_deepspeech_python_build
+fi
 
 do_deepspeech_nodejs_build
 

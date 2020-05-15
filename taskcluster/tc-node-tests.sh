@@ -11,6 +11,9 @@ if [ -z "${nodever}" ]; then
     exit 1
 fi;
 
+bitrate=$2
+set_ldc_sample_filename "${bitrate}"
+
 download_data
 
 node --version
@@ -26,4 +29,8 @@ npm install --prefix ${NODE_ROOT} --cache ${NODE_CACHE} ${deepspeech_npm_url}
 
 check_runtime_nodejs
 
+ensure_cuda_usage "$3"
+
 run_all_inference_tests
+
+run_js_streaming_inference_tests
