@@ -66,7 +66,7 @@ def _download_audio(location):
         Ayt_links=[]
         searchLinks = re.compile("download/"+recitor+"/"+recitor+".*.ayt")
         print("\n===> Downloading MP3 files of: {}".format(recitor))
-        for line in open(INDEX, 'r'):
+        for line in open(INDEX, encoding="utf8"):
             slink = re.search(searchLinks, line)
             if slink:
                 Ayt_links.append(slink.group(0))
@@ -131,7 +131,7 @@ def _preprocess_data(location, amount):
         '30p':   260000,
         '5sec':  160000
     }
-    with open(path.join(location, "quran/quran-uthmani.txt"), "r") as f:
+    with open(path.join(location, "quran/quran-uthmani.txt"),  encoding="utf8") as f:
         for line in f:
             tokens = line.strip().split('|')
             if(len(tokens) == 3):
