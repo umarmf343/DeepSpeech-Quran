@@ -28,8 +28,7 @@ python -u DeepSpeech.py \
   --dev_files "$COMPUTE_DATA_DIR/quran_dev.csv" \
   --test_files "$COMPUTE_DATA_DIR/quran_test.csv" \
   --alphabet_config_path "$COMPUTE_DATA_DIR/quran-alphabets.txt" \
-  --lm_binary_path "$COMPUTE_DATA_DIR/lm.binary" \
-  --lm_trie_path "$COMPUTE_DATA_DIR/quran.trie" \
+  #--scorer_path "COMPUTE_DATA_DIR/quran_lm.scorer" \
   --export_dir "$COMPUTE_DATA_DIR" \
   --lm_alpha 1.5 \
   --lm_beta 1.85 \
@@ -39,10 +38,10 @@ python -u DeepSpeech.py \
   --noearly_stop \
   --epochs 60 \
   --export_language "ar" \
-  --dropout_rate 0.30 \
   --n_hidden 1024 \
   --learning_rate 0.0001 \
   --checkpoint_dir "${COMPUTE_DATA_DIR}/../checkpoints" \
+  --max_to_keep 2 \
   --checkpoint_secs 1800 \
   "$@"
 

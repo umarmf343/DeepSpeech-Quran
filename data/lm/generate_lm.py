@@ -116,6 +116,7 @@ def build_lm(args, data_lower, vocab_str):
     subprocess.check_call(
         [
             os.path.join(args.kenlm_bins, "build_binary"),
+            "-s",
             "-a",
             str(args.binary_a_bits),
             "-q",
