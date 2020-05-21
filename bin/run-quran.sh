@@ -32,7 +32,6 @@ python3 -u DeepSpeech.py \
   --epochs 60 \
   --export_language "ar" \
   --n_hidden 1024 \
-  --n_steps 16 \
   --dropout_rate 0.3 \
   --learning_rate 0.0001 \
   --checkpoint_dir "${COMPUTE_DATA_DIR}/../checkpoints" \
