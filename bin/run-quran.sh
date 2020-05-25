@@ -29,14 +29,13 @@ python3 -u DeepSpeech.py \
   --test_batch_size 64 \
   --use_allow_growth "true" \
   --noearly_stop \
-  --epochs 60 \
+  --epochs 30 \
   --export_language "ar" \
+#  --export_tflite 'true' \
   --n_hidden 1024 \
-  --dropout_rate 0.3 \
+  --dropout_rate 0.5 \
   --learning_rate 0.0001 \
   --checkpoint_dir "${COMPUTE_DATA_DIR}/../checkpoints" \
   --max_to_keep 2 \ 
-  --checkpoint_secs 1800 \
   "$@"
 
-#  --export_tflite 'true' \
