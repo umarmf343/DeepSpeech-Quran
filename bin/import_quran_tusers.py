@@ -71,11 +71,10 @@ def convert_to_wav(entry, transformer):
     return wav16_file
 
 def _download_audio(location):
-    # Download Ayat data for different recitors (Husary,Afasy,Sowaid, .. etc)
     datapath  = location
     target    = path.join(datapath, "quran_tusers")
     targetwav = path.join(target,'wav')
-    if os.path.exists(targetwav) and len(os.listdir(targetwav)) >= (24900):
+    if os.path.exists(targetwav) and len(os.listdir(targetwav)) >= (24800):
         print("Seems you have downloaded all wav files before .. skipping.")
         return
     elif not os.path.exists(targetwav):
@@ -114,7 +113,7 @@ def _download_audio(location):
 
 def _get_quran_dict():
     qurDict = {}
-    with open("data/quran/quran-uthmani.txt", "r") as f:
+    with open("data/quran/quran-uthmani.txt", encoding="utf8") as f:
         for line in f:
             tokens = line.strip().split('|')
             if(len(tokens) == 3):
@@ -144,15 +143,15 @@ def _eval_audio(location):
         distances = pickle.load(open(distancespath, "rb"))
     for root, dirnames, filenames in os.walk(targetwav):
         for filename in fnmatch.filter(filenames, "*.wav"):
-            sys.stderr.write(f'\rprocessed {i}/{len(filenames)}')
+            sys.stderr.write(f"\rProcessed {i}/{len(filenames)} {'(saving snapshot ..)' if i%100<3 else ' '*20 }")
             i += 1
             if filename in distances:
                 continue
             full_wav = os.path.join(root, filename)
-            sura_num = int(filename[:3])
-            aya_num  = int(filename[3:6])
+            sura_num = int(filename.split('_')[0])
+            aya_num  = int(filename.split('_')[1])
             
-            fin = wave.open(full_wav, 'rb')
+            fin = wave.open(full_wav)
             audio = np.frombuffer(fin.readframes(fin.getnframes()), np.int16)
             fin.close()
             result = model.stt(audio)
@@ -160,20 +159,15 @@ def _eval_audio(location):
             dist = distance(result,reference)
             distances[filename] = dist
             if i % 100 == 0:
-                print("\nsaving distances snapshot")
                 pickle.dump( distances, open( distancespath, "wb" ) )
     pickle.dump(distances, open(distancespath,"wb"))
 
 
 def _preprocess_data(location, amount, dist_threshold):
     datapath = location
-    target = path.join(datapath, "quran")
+    target = path.join(datapath, "quran_tusers")
     targetwav = path.join(target,'wav')
     distancespath = path.join(datapath, "distances.p") 
-
-    # Assume data is downloaded from Tanzil.net
-    # Uthmani with pause marks and different tanween shapes
-    # Text with aya numbers
    
     print("\nPreprocessing Complete")
     print("Building CSVs")
@@ -203,8 +197,8 @@ def _preprocess_data(location, amount, dist_threshold):
                 continue
             if wav_filesize>amount_thr[amount]:
                 continue
-            sura_num = int(filename[:3])
-            aya_num  = int(filename[3:6])
+            sura_num = int(filename.split('_')[0])
+            aya_num  = int(filename.split('_')[1])
             trans = qurDict[str(aya_num + sura_num*1000)]
             if aya_num%10 > 1:
                 train_list_wavs.append(full_wav)
@@ -242,10 +236,10 @@ def _preprocess_data(location, amount, dist_threshold):
     df_dev = pd.DataFrame(b, columns=['wav_filename', 'wav_filesize', 'transcript'], dtype=int)
     df_test = pd.DataFrame(c, columns=['wav_filename', 'wav_filesize', 'transcript'], dtype=int)
 
-    df_all.to_csv(target+"/quran_all.csv", sep=',', header=True, TUSERS_CSV=False)
-    df_train.to_csv(target+"/quran_train.csv", sep=',', header=True, TUSERS_CSV=False)
-    df_dev.to_csv(target+"/quran_dev.csv", sep=',', header=True, TUSERS_CSV=False)
-    df_test.to_csv(target+"/quran_test.csv", sep=',', header=True, TUSERS_CSV=False)
+    df_all.to_csv(target+"/quran_all.csv", sep=',', header=True, index=False)
+    df_train.to_csv(target+"/quran_train.csv", sep=',', header=True, index=False)
+    df_dev.to_csv(target+"/quran_dev.csv", sep=',', header=True, index=False)
+    df_test.to_csv(target+"/quran_test.csv", sep=',', header=True, index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
