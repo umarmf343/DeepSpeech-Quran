@@ -134,18 +134,18 @@ def _eval_audio(location):
     datapath = location
     target = path.join(datapath, "quran_tusers")
     targetwav = path.join(target,'wav')
-    distancespath = path.join(datapath, "distances.p") 
+    tusers_evalpath = path.join(datapath, "tusers_eval.p") 
     qurDict = _get_quran_dict()
     model = _get_model()
     i = 0
-    distances = {}
-    if os.path.exists(distancespath):
-        distances = pickle.load(open(distancespath, "rb"))
+    tusers_eval = {}
+    if os.path.exists(tusers_evalpath):
+        tusers_eval = pickle.load(open(tusers_evalpath, "rb"))
     for root, dirnames, filenames in os.walk(targetwav):
         for filename in fnmatch.filter(filenames, "*.wav"):
             sys.stderr.write(f"\rProcessed {i}/{len(filenames)} {'(saving snapshot ..)' if i%100<3 else ' '*20 }")
             i += 1
-            if filename in distances:
+            if filename in tusers_eval:
                 continue
             full_wav = os.path.join(root, filename)
             sura_num = int(filename.split('_')[0])
@@ -157,24 +157,23 @@ def _eval_audio(location):
             result = model.stt(audio)
             reference = qurDict[str(aya_num + sura_num*1000)]
             dist = distance(result,reference)
-            distances[filename] = dist
+            tusers_eval[filename] = (len(reference)-dist)/len(reference);
             if i % 100 == 0:
-                pickle.dump( distances, open( distancespath, "wb" ) )
-    pickle.dump(distances, open(distancespath,"wb"))
+                pickle.dump( tusers_eval, open( tusers_evalpath, "wb" ) )
+    pickle.dump(tusers_eval, open(tusers_evalpath,"wb"))
 
-
-def _preprocess_data(location, amount, dist_threshold):
+def _preprocess_data(location, amount, eval_threshold):
     datapath = location
     target = path.join(datapath, "quran_tusers")
     targetwav = path.join(target,'wav')
-    distancespath = path.join(datapath, "distances.p") 
+    tusers_evalpath = path.join(datapath, "tusers_eval.p") 
    
     print("\nPreprocessing Complete")
     print("Building CSVs")
 
     #Build a Quran Dictionary (aya + 1000*sura)
     qurDict = _get_quran_dict()
-    distances = pickle.load(open(distancespath, "rb"))
+    tusers_eval = pickle.load(open(tusers_evalpath, "rb"))
     # Lists to build CSV files
     train_list_wavs, train_list_trans, train_list_size = [], [], []
     test_list_wavs, test_list_trans, test_list_size = [], [], []
@@ -193,7 +192,7 @@ def _preprocess_data(location, amount, dist_threshold):
         for filename in fnmatch.filter(filenames, "*.wav"):
             full_wav = os.path.join(root, filename)
             wav_filesize = path.getsize(full_wav)
-            if distances[filename] > dist_threshold:
+            if tusers_eval[filename] < eval_threshold:
                 continue
             if wav_filesize>amount_thr[amount]:
                 continue
@@ -245,10 +244,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("location", help="Directory to import to, usually 'data/'")
     parser.add_argument('--csv_amount', choices=['100p', '70p', '50p', '30p', '5sec'], default='70p', help="The amount of verses to include in the CSV. Start with only-short datasets, then include all later. (default: %(default)s)")
-    parser.add_argument('--dist_threshold', type=int, default='2', help="The max edit distance allowed (default: %(default)s)")
+    parser.add_argument('--eval_threshold', type=float, default='0.7', help="The min eval (0 to 1.0) allowed (default: %(default)s)")
 
     args = parser.parse_args()
     _download_audio(args.location)
     _eval_audio(args.location)
-    _preprocess_data(args.location, args.csv_amount, args.dist_threshold)
+    _preprocess_data(args.location, args.csv_amount, args.eval_threshold)
     print("Completed")
