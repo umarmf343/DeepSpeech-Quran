@@ -24,7 +24,7 @@ This parameter is needed to define the acceptance level for the tarteel users da
 
 ![hist_eval](https://user-images.githubusercontent.com/90985/83154322-481aa880-a100-11ea-882c-e38c6972c635.PNG)
 
-Note that some outliers with negative evaluation are removed. According to manual listing to the below samples, the default threashold is set at 0.15.
+Note that some outliers with negative evaluation are removed. According to manual listing to the below samples, the default threashold is set at 0.15. With this selection, out of 25K user recording, only 18420 are accepted.
 
 | Imam Evaluation  | Sample User Recording |
 | ------------- | ------------- |
