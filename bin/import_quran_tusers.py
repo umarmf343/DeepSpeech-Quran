@@ -244,7 +244,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("location", help="Directory to import to, usually 'data/'")
     parser.add_argument('--csv_amount', choices=['100p', '70p', '50p', '30p', '5sec'], default='70p', help="The amount of verses to include in the CSV. Start with only-short datasets, then include all later. (default: %(default)s)")
-    parser.add_argument('--eval_threshold', type=float, default='0.7', help="The min eval (0 to 1.0) allowed (default: %(default)s)")
+    parser.add_argument('--eval_threshold', type=float, default='0.15', help="The min eval (0 to 1.0) allowed (default: %(default)s)")
 
     args = parser.parse_args()
     _download_audio(args.location)
