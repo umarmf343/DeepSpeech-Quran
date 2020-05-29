@@ -23,7 +23,9 @@
 /native_client/javascript/deepspeech_wrap.cxx
 #Data
 data/quran/wav/*
-data/quran/tusers/quran_tusers/*
+data/quran/quran_tusers/wav/*
+data/quran/checkpoints/
+data/quran_tusers/checkpoints/
 data/TIMIT/*
 /doc/.build/
 /doc/xml-c/
