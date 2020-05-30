@@ -148,7 +148,7 @@ def _eval_audio(location):
             if filename in tusers_eval:
                 continue
             full_wav = os.path.join(root, filename)
-			sura_num = int(filename[:3])
+            sura_num = int(filename[:3])
             aya_num  = int(filename[3:6])
             
             fin = wave.open(full_wav)
@@ -196,7 +196,7 @@ def _preprocess_data(location, amount, eval_threshold):
                 continue
             if wav_filesize>amount_thr[amount]:
                 continue
-			sura_num = int(filename[:3])
+            sura_num = int(filename[:3])
             aya_num  = int(filename[3:6])
             trans = qurDict[str(aya_num + sura_num*1000)]
             if aya_num%10 > 1:
