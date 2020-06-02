@@ -54,11 +54,13 @@ def fetch_url(entry):
             try:
                 r = requests.get(uri, stream=True)
             except:
-                pass # retry
+                continue
+                
             if r.status_code == 200:
                 with open(link_file, 'wb') as f:
                     for chunk in r:
                         f.write(chunk)
+                continue
     return wav16_file
 
 def convert_to_wav(entry, transformer):
