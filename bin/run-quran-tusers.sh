@@ -6,7 +6,7 @@ if [ ! -f DeepSpeech.py ]; then
 fi;
 
 if [ ! -d "${COMPUTE_DATA_DIR}" ]; then
-    COMPUTE_DATA_DIR="data/quran_tusers"
+    COMPUTE_DATA_DIR="data/quran/tusers"
 fi;
 
 # Warn if we can't find the train files
@@ -21,17 +21,16 @@ python3 -u DeepSpeech.py \
   --train_files "$COMPUTE_DATA_DIR/quran_train.csv" \
   --dev_files "$COMPUTE_DATA_DIR/quran_dev.csv" \
   --test_files "$COMPUTE_DATA_DIR/quran_test.csv" \
-  --alphabet_config_path "$COMPUTE_DATA_DIR/../quran/quran-alphabets.txt" \
-  --scorer "$COMPUTE_DATA_DIR/../quran/lm/quran.scorer" \
+  --alphabet_config_path "$COMPUTE_DATA_DIR/../quran-alphabets.txt" \
+  --scorer "$COMPUTE_DATA_DIR/../lm/quran.scorer" \
   --export_dir "$COMPUTE_DATA_DIR" \
-  --train_batch_size 64 \
-  --dev_batch_size 64 \
-  --test_batch_size 64 \
+  --train_batch_size 32 \
+  --dev_batch_size 32 \
+  --test_batch_size 32 \
   --use_allow_growth "true" \
   --noearly_stop \
   --epochs 30 \
   --export_language "ar" \
-#  --export_tflite 'true' \
   --n_hidden 1024 \
   --dropout_rate 0.5 \
   --learning_rate 0.0001 \
