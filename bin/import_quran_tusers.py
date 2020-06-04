@@ -22,6 +22,7 @@ import wget
 import re
 import zipfile
 import sox
+import ffmpeg
 import argparse
 import csv
 from tempfile import NamedTemporaryFile
@@ -69,7 +70,9 @@ def convert_to_wav(entry, transformer):
         try:
             transformer.build(link_file, wav16_file)
         except:
-            pass #ignore failures
+            # FIXME: ffmpeg-python gives missing headers.
+            #(_,_)=ffmpeg.input(link_file).output(wav16_file, format='s16le', acodec='pcm_s16le', ac=1, ar='16k').run(quiet=True)      
+            os.system('ffmpeg -i {filein} -hide_banner -loglevel warning -vn -acodec pcm_s16le -ar 16000 -ac 1 -y {fileout}.wav'.format(filein=link_file, fileout=wav16_file))
     return wav16_file
 
 def _download_audio(location):
