@@ -1,23 +1,19 @@
-Project DeepSpeech
-==================
+Project DeepSpeech Quran
+========================
 
 
 .. image:: https://readthedocs.org/projects/deepspeech/badge/?version=latest
-   :target: http://deepspeech.readthedocs.io/?badge=latest
+   :target: https://deepspeech.readthedocs.io/en/v0.7.4/
    :alt: Documentation
-
-
-.. image:: https://community-tc.services.mozilla.com/api/github/v1/repository/mozilla/DeepSpeech/master/badge.svg
-   :target: https://community-tc.services.mozilla.com/api/github/v1/repository/mozilla/DeepSpeech/master/latest
-   :alt: Task Status
 
 
 DeepSpeech is an open source Speech-To-Text engine, using a model trained by machine learning techniques based on `Baidu's Deep Speech research paper <https://arxiv.org/abs/1412.5567>`_. Project DeepSpeech uses Google's `TensorFlow <https://www.tensorflow.org/>`_ to make the implementation easier.
 
 Documentation for installation, usage, and training models is available on `deepspeech.readthedocs.io <http://deepspeech.readthedocs.io/?badge=latest>`_.
 
-For the latest release, including pre-trained models and checkpoints, `see the latest release on GitHub <https://github.com/mozilla/DeepSpeech/releases/latest>`_.
+For the Quran Workflow, dataset and model release, see the folder `data/quran <https://github.com/tarekeldeeb/DeepSpeech-Quran/tree/master/data/quran>`_
 
-For contribution guidelines, see `CONTRIBUTING.rst <CONTRIBUTING.rst>`_.
-
-For contact and support information, see `SUPPORT.rst <SUPPORT.rst>`_.
+Quick Demo
+==========
+.. image::  http://img.youtube.com/vi/RlfIkoV3hMg/0.jpg
+   :target: http://www.youtube.com/watch?v=RlfIkoV3hMg
