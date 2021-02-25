@@ -15,5 +15,5 @@ For the Quran Workflow, dataset and model release, see the folder `data/quran <h
 
 Quick Demo
 ==========
-.. image::  http://img.youtube.com/vi/RlfIkoV3hMg/0.jpg
+.. image:: http://img.youtube.com/vi/RlfIkoV3hMg/0.jpg
    :target: http://www.youtube.com/watch?v=RlfIkoV3hMg
