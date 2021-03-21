@@ -15,7 +15,7 @@ For the Quran Workflow, dataset and model release, see the folder `data/quran <h
 
 Reproducing with Google Colab
 -----------------------------
-Thanks to `Omar Asif <https://github.com/omerasif57>`_ , a nice `ipynb <https://colab.research.google.com/drive/1HO57B7ZA4-vn5bm-vL1zRnmuFV99g_n4?usp=sharing>`_ is shared on colab. Feel free to tune, reproduce our work and reshare. 
+Thanks to `Omer Asif <https://github.com/omerasif57>`_ , a nice `ipynb <https://colab.research.google.com/drive/1HO57B7ZA4-vn5bm-vL1zRnmuFV99g_n4?usp=sharing>`_ is shared on colab. Feel free to tune, reproduce our work and reshare. 
 
 Results
 =======
