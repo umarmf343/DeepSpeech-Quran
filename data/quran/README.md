@@ -40,3 +40,5 @@ Note that some outliers with negative evaluation are removed. According to manua
 | 0.1 | [sample](https://rawcdn.githack.com/tarekeldeeb/DeepSpeech-Quran/5c19fe62d0353e2b13e4ccdf45ca47244cb3e447/data/quran_tusers/samples/eval0.10_8_14_3524780292.wav)  |
 | 0.05 | [sample](https://rawcdn.githack.com/tarekeldeeb/DeepSpeech-Quran/5c19fe62d0353e2b13e4ccdf45ca47244cb3e447/data/quran_tusers/samples/eval0.05_2_179_1044022222.wav)  |
 
+## Latest Checkpoint
+You can download and reuse [this checkpoint](https://drive.google.com/drive/folders/1Uzcljj1yPin9QPuNTxliOSu8haHP9Xb2?usp=sharing) to save a lot of training time.
