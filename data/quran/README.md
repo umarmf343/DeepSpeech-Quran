@@ -50,4 +50,5 @@ Content:
    - csv contains the Text info for 11k subset short wav file
 * Tarteel.io user dataset ~25k wav files
    - csv contains the Text info for 18k subset of the accepted user quality
+
 [Download link](https://archive.org/details/quran-speech-dataset)
