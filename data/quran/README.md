@@ -42,3 +42,12 @@ Note that some outliers with negative evaluation are removed. According to manua
 
 ## Latest Checkpoint
 You can download and reuse [this checkpoint](https://drive.google.com/drive/folders/1Uzcljj1yPin9QPuNTxliOSu8haHP9Xb2?usp=sharing) to save a lot of training time.
+
+## Download Dataset
+Although there's a download script for the training dataset, some users may prefer to download the dataset as a whole.
+Content: 
+* 7 Imam Full Quran Recitation: 7*6236 wav files
+   - csv contains the Text info for 11k subset short wav file
+* Tarteel.io user dataset ~25k wav files
+   - csv contains the Text info for 18k subset of the accepted user quality
+[Download link](https://archive.org/details/quran-speech-dataset)
