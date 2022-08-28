@@ -11,7 +11,8 @@ DeepSpeech is an open source Speech-To-Text engine, using a model trained by mac
 
 Documentation for installation, usage, and training models is available on `deepspeech.readthedocs.io <http://deepspeech.readthedocs.io/?badge=latest>`_.
 
-For the Quran Workflow, dataset and model release, see the folder `data/quran <https://github.com/tarekeldeeb/DeepSpeech-Quran/tree/master/data/quran>`_
+For the Quran Workflow and model release, see the folder `data/quran <https://github.com/tarekeldeeb/DeepSpeech-Quran/tree/master/data/quran>`_.
+To skip the importer script and directly download the dataset, goto the `archive <https://archive.org/details/quran-speech-dataset>`_
 
 Reproducing with Google Colab
 -----------------------------
