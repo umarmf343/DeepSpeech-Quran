@@ -3,20 +3,33 @@ Project DeepSpeech Quran
 
 
 .. image:: https://readthedocs.org/projects/deepspeech/badge/?version=latest
-   :target: https://deepspeech.readthedocs.io/en/v0.7.4/
+Deepspeech is an open source Speech-To-Text engine, using a model trained by machine learning techniques based on `Baidu's Deep Speech research paper <https://arxiv.org/abs/1412.5567>`_. Project DeepSpeech uses Google's `TensorFlow <https://www.tensorflow.org/>`_ to make the implementation easier.
+   :target: https://deepspeech.readthedocs.io/?badge=latest
    :alt: Documentation
 
+.. image:: https://github.com/mozilla/DeepSpeech/actions/workflows/macOS-amd64.yml/badge.svg
+   :target: https://github.com/mozilla/DeepSpeech/actions/workflows/macOS-amd64.yml
+   :alt: macOS builds
 
-DeepSpeech is an open source Speech-To-Text engine, using a model trained by machine learning techniques based on `Baidu's Deep Speech research paper <https://arxiv.org/abs/1412.5567>`_. Project DeepSpeech uses Google's `TensorFlow <https://www.tensorflow.org/>`_ to make the implementation easier.
+.. image:: https://github.com/mozilla/DeepSpeech/actions/workflows/lint.yml/badge.svg
+   :target: https://github.com/mozilla/DeepSpeech/actions/workflows/lint.yml
+   :alt: Linters
 
-Documentation for installation, usage, and training models is available on `deepspeech.readthedocs.io <http://deepspeech.readthedocs.io/?badge=latest>`_.
+.. image:: https://github.com/mozilla/DeepSpeech/actions/workflows/docker.yml/badge.svg
+   :target: https://github.com/mozilla/DeepSpeech/actions/workflows/docker.yml
+   :alt: Docker Images
+
+
+DeepSpeech is an open-source Speech-To-Text engine, using a model trained by machine learning techniques based on `Baidu's Deep Speech research paper <https://arxiv.org/abs/1412.5567>`_. Project DeepSpeech uses Google's `TensorFlow <https://www.tensorflow.org/>`_ to make the implementation easier.
+
+Documentation for installation, usage, and training models are available on `deepspeech.readthedocs.io <https://deepspeech.readthedocs.io/?badge=latest>`_.
 
 For the Quran Workflow and model release, see the folder `data/quran <https://github.com/tarekeldeeb/DeepSpeech-Quran/tree/master/data/quran>`_.
 To skip the importer script and directly download the dataset, goto the `archive <https://archive.org/details/quran-speech-dataset>`_
 
 Reproducing with Google Colab
 -----------------------------
-Thanks to `Omer Asif <https://github.com/omerasif57>`_ , a nice `ipynb <https://colab.research.google.com/drive/1HO57B7ZA4-vn5bm-vL1zRnmuFV99g_n4?usp=sharing>`_ is shared on colab. Feel free to tune, reproduce our work and reshare. 
+Thanks to `Omer Asif <https://github.com/omerasif57>`_ , a nice `ipynb <https://colab.research.google.com/drive/1HO57B7ZA4-vn5bm-vL1zRnmuFV99g_n4?usp=sharing>`_ is shared on colab. Feel free to tune, reproduce our work and reshare.
 
 Results
 =======

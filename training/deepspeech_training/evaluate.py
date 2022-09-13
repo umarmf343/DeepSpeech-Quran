@@ -40,7 +40,7 @@ def sparse_tuple_to_texts(sp_tuple, alphabet):
     for i, index in enumerate(indices):
         results[index[0]].append(values[i])
     # List of strings
-    return [alphabet.decode(res) for res in results]
+    return [alphabet.Decode(res) for res in results]
 
 
 def evaluate(test_csvs, create_model):
@@ -50,8 +50,11 @@ def evaluate(test_csvs, create_model):
     else:
         scorer = None
 
-    test_csvs = FLAGS.test_files.split(',')
-    test_sets = [create_dataset([csv], batch_size=FLAGS.test_batch_size, train_phase=False) for csv in test_csvs]
+    test_sets = [create_dataset([csv],
+                                batch_size=FLAGS.test_batch_size,
+                                train_phase=False,
+                                reverse=FLAGS.reverse_test,
+                                limit=FLAGS.limit_test) for csv in test_csvs]
     iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(test_sets[0]),
                                                  tfv1.data.get_output_shapes(test_sets[0]),
                                                  output_classes=tfv1.data.get_output_classes(test_sets[0]))
@@ -62,7 +65,6 @@ def evaluate(test_csvs, create_model):
     # One rate per layer
     no_dropout = [None] * 6
     logits, _ = create_model(batch_x=batch_x,
-                             batch_size=FLAGS.test_batch_size,
                              seq_length=batch_x_len,
                              dropout=no_dropout)
 

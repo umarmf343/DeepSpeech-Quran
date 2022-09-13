@@ -3,7 +3,7 @@
 // This is required for process.versions.electron below
 /// <reference types="electron" />
 
-import Ds from "./index";
+import * as Ds from "./index";
 import * as Fs from "fs";
 import Sox from "sox-stream";
 import * as argparse from "argparse";
@@ -31,6 +31,7 @@ parser.addArgument(['--audio'], {required: true, help: 'Path to the audio file t
 parser.addArgument(['--version'], {action: VersionAction, nargs: 0, help: 'Print version and exits'});
 parser.addArgument(['--extended'], {action: 'storeTrue', help: 'Output string from extended metadata'});
 parser.addArgument(['--stream'], {action: 'storeTrue', help: 'Use streaming code path (for tests)'});
+parser.addArgument(['--hot_words'], {help: 'Hot-words and their boosts. Word:Boost pairs are comma-separated'});
 let args = parser.parseArgs();
 
 function totalTime(hrtimeValue: number[]): string {
@@ -71,6 +72,14 @@ if (args['scorer']) {
   }
 }
 
+if (args['hot_words']) {
+	console.error('Adding hot-words %s', args['hot_words']);
+	for (let word_boost of args['hot_words'].split(',')) {
+		let word = word_boost.split(':');
+		model.addHotWord(word[0], parseFloat(word[1]));
+	}
+}
+
 const buffer = Fs.readFileSync(args['audio']);
 const result = Wav.decode(buffer);
 
@@ -78,6 +87,15 @@ if (result.sampleRate < desired_sample_rate) {
   console.error(`Warning: original sample rate ( ${result.sampleRate})` +
                 `is lower than ${desired_sample_rate} Hz. ` +
                 `Up-sampling might produce erratic speech recognition.`);
+}
+
+function handleExit() {
+  if (process.versions.electron) {
+    const { app } = require("electron");
+    app.quit();
+  } else {
+    process.exit(0);
+  }
 }
 
 function bufferToStream(buffer: Buffer) {
@@ -126,12 +144,25 @@ if (!args['stream']) {
     const inference_stop = process.hrtime(inference_start);
     console.error('Inference took %ds for %ds audio file.', totalTime(inference_stop), audioLength.toPrecision(4));
     Ds.FreeModel(model);
-    process.exit(0);
+    // Allow some time for resources to exhaust and ensure we finish the
+    // process anyway
+    setTimeout(() => {
+      handleExit();
+    }, 1*1000);
+  });
+  audioStream.on('close', () => {
+    handleExit();
   });
 } else {
   let stream  = model.createStream();
   conversionStream.on('data', (chunk: Buffer) => {
     stream.feedAudioContent(chunk);
+    if (args['extended']) {
+      let metadata = stream.intermediateDecodeWithMetadata();
+      console.error('intermediate: ' + candidateTranscriptToString(metadata.transcripts[0]));
+    } else {
+      console.error('intermediate: ' + stream.intermediateDecode());
+    }
   });
   conversionStream.on('end', () => {
     if (args['extended']) {

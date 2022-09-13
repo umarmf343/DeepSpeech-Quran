@@ -95,6 +95,47 @@ class Model(object):
         """
         return deepspeech.impl.DisableExternalScorer(self._impl)
 
+    def addHotWord(self, word, boost):
+        """
+        Add a word and its boost for decoding.
+        
+        Words that don't occur in the scorer (e.g. proper nouns) or strings that contain spaces won't be taken into account.
+
+        :param word: the hot-word
+        :type word: str
+
+        :param boost: Positive boost value increases and negative reduces chance of a word occuring in a transcription. Excessive positive boost might lead to splitting up of letters of the word following the hot-word.
+        :type boost: float
+
+        :throws: RuntimeError on error
+        """
+        status = deepspeech.impl.AddHotWord(self._impl, word, boost)
+        if status != 0:
+            raise RuntimeError("AddHotWord failed with '{}' (0x{:X})".format(deepspeech.impl.ErrorCodeToErrorMessage(status),status))
+
+    def eraseHotWord(self, word):
+        """
+        Remove entry for word from hot-words dict.
+
+        :param word: the hot-word
+        :type word: str
+
+        :throws: RuntimeError on error
+        """
+        status = deepspeech.impl.EraseHotWord(self._impl, word)
+        if status != 0:
+            raise RuntimeError("EraseHotWord failed with '{}' (0x{:X})".format(deepspeech.impl.ErrorCodeToErrorMessage(status),status))
+
+    def clearHotWords(self):
+        """
+        Remove all entries from hot-words dict.
+
+        :throws: RuntimeError on error
+        """
+        status = deepspeech.impl.ClearHotWords(self._impl)
+        if status != 0:
+            raise RuntimeError("ClearHotWords failed with '{}' (0x{:X})".format(deepspeech.impl.ErrorCodeToErrorMessage(status),status))
+
     def setScorerAlphaBeta(self, alpha, beta):
         """
         Set hyperparameters alpha and beta of the external scorer.

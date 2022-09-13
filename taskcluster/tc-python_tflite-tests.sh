@@ -12,11 +12,6 @@ set_ldc_sample_filename "${bitrate}"
 model_source=${DEEPSPEECH_TEST_MODEL//.pb/.tflite}
 model_name=$(basename "${model_source}")
 model_name_mmap=$(basename "${model_source}")
-model_source_mmap=${DEEPSPEECH_PROD_MODEL_MMAP//.pbmm/.tflite}
-
-if [ ! -z "${DEEPSPEECH_ARTIFACTS_TFLITE_ROOT}" ]; then
-    export DEEPSPEECH_ARTIFACTS_ROOT=${DEEPSPEECH_ARTIFACTS_TFLITE_ROOT}
-fi;
 
 download_data
 
@@ -32,5 +27,7 @@ which deepspeech
 deepspeech --version
 
 run_all_inference_tests
+
+run_hotword_tests
 
 virtualenv_deactivate "${pyalias}" "deepspeech"

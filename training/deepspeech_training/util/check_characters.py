@@ -1,8 +1,11 @@
 """
-Usage: $ python3 check_characters.py "INFILE"
- e.g.  $ python3 check_characters.py -csv /home/data/french.csv
- e.g.  $ python3 check_characters.py -csv ../train.csv,../test.csv
- e.g.  $ python3 check_characters.py -alpha -csv ../train.csv
+Usage:
+ From within the training/ directory, call this script as a module:
+
+       $ python3 -m deepspeech_training.util.check_characters "INFILE"
+ e.g.  $ python3 -m deepspeech_training.util.check_characters -csv /home/data/french.csv
+ e.g.  $ python3 -m deepspeech_training.util.check_characters -csv ../train.csv,../test.csv
+ e.g.  $ python3 -m deepspeech_training.util.check_characters -alpha -csv ../train.csv
 
 Point this script to your transcripts, and it returns
 to the terminal the unique set of characters in those
@@ -19,6 +22,7 @@ import csv
 import os
 import sys
 import unicodedata
+from .io import open_remote
 
 def main():
     parser = argparse.ArgumentParser()
@@ -27,14 +31,14 @@ def main():
     parser.add_argument("-alpha", "--alphabet-format", help="Bool. Print in format for alphabet.txt", action="store_true")
     parser.add_argument("-unicode", "--disable-unicode-variants", help="Bool. DISABLE check for unicode consistency (use with --alphabet-format)", action="store_true")
     args = parser.parse_args()
-    in_files = [os.path.abspath(i) for i in args.csv_files.split(",")]
+    in_files = args.csv_files.split(",")
 
     print("### Reading in the following transcript files: ###")
     print("### {} ###".format(in_files))
 
     all_text = set()
     for in_file in in_files:
-        with open(in_file, "r") as csv_file:
+        with open_remote(in_file, "r") as csv_file:
             reader = csv.reader(csv_file)
             try:
                 next(reader, None)  # skip the file header (i.e. "transcript")

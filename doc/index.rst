@@ -20,15 +20,15 @@ To install and use DeepSpeech all you have to do is:
    pip3 install deepspeech
 
    # Download pre-trained English model files
-   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.7.0/deepspeech-0.7.0-models.pbmm
-   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.7.0/deepspeech-0.7.0-models.scorer
+   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.9.3/deepspeech-0.9.3-models.pbmm
+   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.9.3/deepspeech-0.9.3-models.scorer
 
    # Download example audio files
-   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.7.0/audio-0.7.0.tar.gz
-   tar xvf audio-0.7.0.tar.gz
+   curl -LO https://github.com/mozilla/DeepSpeech/releases/download/v0.9.3/audio-0.9.3.tar.gz
+   tar xvf audio-0.9.3.tar.gz
 
    # Transcribe an audio file
-   deepspeech --model deepspeech-0.7.0-models.pbmm --scorer deepspeech-0.7.0-models.scorer --audio audio/2830-3980-0043.wav
+   deepspeech --model deepspeech-0.9.3-models.pbmm --scorer deepspeech-0.9.3-models.scorer --audio audio/2830-3980-0043.wav
 
 A pre-trained English model is available for use and can be downloaded following the instructions in :ref:`the usage docs <usage-docs>`. For the latest release, including pre-trained models and checkpoints, `see the GitHub releases page <https://github.com/mozilla/DeepSpeech/releases/latest>`_.
 
@@ -44,9 +44,9 @@ Quicker inference can be performed using a supported NVIDIA GPU on Linux. See th
    pip3 install deepspeech-gpu
 
    # Transcribe an audio file.
-   deepspeech --model deepspeech-0.7.0-models.pbmm --scorer deepspeech-0.7.0-models.scorer --audio audio/2830-3980-0043.wav
+   deepspeech --model deepspeech-0.9.3-models.pbmm --scorer deepspeech-0.9.3-models.scorer --audio audio/2830-3980-0043.wav
 
-Please ensure you have the required :ref:`CUDA dependencies <cuda-deps>`.
+Please ensure you have the required :ref:`CUDA dependencies <cuda-inference-deps>`.
 
 See the output of ``deepspeech -h`` for more information on the use of ``deepspeech``. (If you experience problems running ``deepspeech``, please check :ref:`required runtime dependencies <runtime-deps>`).
 
@@ -58,11 +58,25 @@ See the output of ``deepspeech -h`` for more information on the use of ``deepspe
 
    TRAINING
 
-   Decoder
+   SUPPORTED_PLATFORMS
+
+   BUILDING
+
+   BUILDING_DotNet
+
+.. include:: ../SUPPORT.rst
 
 .. toctree::
    :maxdepth: 2
-   :caption: DeepSpeech Model
+   :caption: Decoder and scorer
+
+   Decoder
+
+   Scorer
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Architecture and training
 
    DeepSpeech
 
@@ -71,16 +85,10 @@ See the output of ``deepspeech -h`` for more information on the use of ``deepspe
    ParallelOptimization
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Enums and structs
+   :maxdepth: 3
+   :caption: API Reference
 
    Error-Codes
-
-   Structs
-
-.. toctree::
-   :maxdepth: 2
-   :caption: API Reference
 
    C-API
 
@@ -105,16 +113,10 @@ See the output of ``deepspeech -h`` for more information on the use of ``deepspe
    NodeJS-Examples
 
    Python-Examples
+   
+   HotWordBoosting-Examples
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contributed examples
-
-   DotNet-contrib-examples
-
-   NodeJS-contrib-Examples
-
-   Python-contrib-Examples
+   Contributed-Examples
 
 Indices and tables
 ==================

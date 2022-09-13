@@ -2,7 +2,7 @@ $if: 'event.event in build.allowed'
 then:
   taskId: ${taskcluster.taskId}
   provisionerId: ${taskcluster.docker.provisionerId}
-  workerType: ${taskcluster.docker.workerType}
+  workerType: ${build.workerType}
   taskGroupId: ${taskcluster.taskGroupId}
   schedulerId: ${taskcluster.schedulerId}
   dependencies:
@@ -18,10 +18,6 @@ then:
 
   extra:
     nc_asset_name: { $eval: build.nc_asset_name }
-    github:
-      $if: '(event.event == "push") || (event.event == "tag")'
-      then: { $eval: taskcluster.github_events.merge }
-      else: { $eval: taskcluster.github_events.pull_request }
 
   routes:
     $if: '(event.event == "push") || (event.event == "tag")'

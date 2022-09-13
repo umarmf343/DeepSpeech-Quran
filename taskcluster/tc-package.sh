@@ -21,9 +21,15 @@ package_native_client()
     echo "Please specify artifact name."
   fi;
 
+  win_lib=""
+  if [ -f "${tensorflow_dir}/bazel-bin/native_client/libdeepspeech.so.if.lib" ]; then
+    win_lib="-C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so.if.lib"
+  fi;
+
   ${TAR} -cf - \
     -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so \
-    -C ${tensorflow_dir}/bazel-bin/native_client/ libdeepspeech.so.if.lib \
+    ${win_lib} \
+    -C ${tensorflow_dir}/bazel-bin/native_client/ generate_scorer_package \
     -C ${deepspeech_dir}/ LICENSE \
     -C ${deepspeech_dir}/native_client/ deepspeech${PLATFORM_EXE_SUFFIX} \
     -C ${deepspeech_dir}/native_client/ deepspeech.h \
@@ -34,6 +40,7 @@ package_native_client()
 package_native_client_ndk()
 {
   deepspeech_dir=${DS_DSDIR}
+  tensorflow_dir=${DS_TFDIR}
   artifacts_dir=${TASKCLUSTER_ARTIFACTS}
   artifact_name=$1
   arch_abi=$2
@@ -53,14 +60,15 @@ package_native_client_ndk()
     echo "Please specify arch abi."
   fi;
 
-  tar -cf - \
+  ${TAR} -cf - \
     -C ${deepspeech_dir}/native_client/libs/${arch_abi}/ deepspeech \
     -C ${deepspeech_dir}/native_client/libs/${arch_abi}/ libdeepspeech.so \
+    -C ${tensorflow_dir}/bazel-bin/native_client/ generate_scorer_package \
     -C ${deepspeech_dir}/native_client/libs/${arch_abi}/ libc++_shared.so \
     -C ${deepspeech_dir}/native_client/ deepspeech.h \
     -C ${deepspeech_dir}/ LICENSE \
     -C ${deepspeech_dir}/native_client/kenlm/ README.mozilla \
-    | pixz -9 > "${artifacts_dir}/${artifact_name}"
+    | ${XZ} > "${artifacts_dir}/${artifact_name}"
 }
 
 package_libdeepspeech_as_zip()
@@ -80,5 +88,5 @@ package_libdeepspeech_as_zip()
     echo "Please specify artifact name."
   fi;
 
-  zip -r9 --junk-paths "${artifacts_dir}/${artifact_name}" ${tensorflow_dir}/bazel-bin/native_client/libdeepspeech.so
+  ${ZIP} -r9 --junk-paths "${artifacts_dir}/${artifact_name}" ${tensorflow_dir}/bazel-bin/native_client/libdeepspeech.so
 }

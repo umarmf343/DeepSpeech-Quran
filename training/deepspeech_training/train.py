@@ -10,7 +10,6 @@ DESIRED_LOG_LEVEL = sys.argv[LOG_LEVEL_INDEX] if 0 < LOG_LEVEL_INDEX < len(sys.a
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = DESIRED_LOG_LEVEL
 
 import absl.app
-import json
 import numpy as np
 import progressbar
 import shutil
@@ -30,12 +29,13 @@ from ds_ctcdecoder import ctc_beam_search_decoder, Scorer
 from .evaluate import evaluate
 from six.moves import zip, range
 from .util.config import Config, initialize_globals
-from .util.checkpoints import load_or_init_graph_for_training, load_graph_for_evaluation
+from .util.checkpoints import load_or_init_graph_for_training, load_graph_for_evaluation, reload_best_checkpoint
 from .util.evaluate_tools import save_samples_json
-from .util.feeding import create_dataset, samples_to_mfccs, audiofile_to_features
+from .util.feeding import create_dataset, audio_to_features, audiofile_to_features
 from .util.flags import create_flags, FLAGS
 from .util.helpers import check_ctcdecoder_version, ExceptionBox
 from .util.logging import create_progressbar, log_debug, log_error, log_info, log_progress, log_warn
+from .util.io import open_remote, remove_remote, listdir_remote, is_remote_path, isdir_remote
 
 check_ctcdecoder_version()
 
@@ -75,7 +75,7 @@ def create_overlapping_windows(batch_x):
     return batch_x
 
 
-def dense(name, x, units, dropout_rate=None, relu=True):
+def dense(name, x, units, dropout_rate=None, relu=True, layer_norm=False):
     with tfv1.variable_scope(name):
         bias = variable_on_cpu('bias', [units], tfv1.zeros_initializer())
         weights = variable_on_cpu('weights', [x.shape[-1], units], tfv1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform"))
@@ -84,6 +84,10 @@ def dense(name, x, units, dropout_rate=None, relu=True):
 
     if relu:
         output = tf.minimum(tf.nn.relu(output), FLAGS.relu_clip)
+
+    if layer_norm:
+        with tfv1.variable_scope(name):
+            output = tf.contrib.layers.layer_norm(output)
 
     if dropout_rate is not None:
         output = tf.nn.dropout(output, rate=dropout_rate)
@@ -178,9 +182,9 @@ def create_model(batch_x, seq_length, dropout, reuse=False, batch_size=None, pre
 
     # The next three blocks will pass `batch_x` through three hidden layers with
     # clipped RELU activation and dropout.
-    layers['layer_1'] = layer_1 = dense('layer_1', batch_x, Config.n_hidden_1, dropout_rate=dropout[0])
-    layers['layer_2'] = layer_2 = dense('layer_2', layer_1, Config.n_hidden_2, dropout_rate=dropout[1])
-    layers['layer_3'] = layer_3 = dense('layer_3', layer_2, Config.n_hidden_3, dropout_rate=dropout[2])
+    layers['layer_1'] = layer_1 = dense('layer_1', batch_x, Config.n_hidden_1, dropout_rate=dropout[0], layer_norm=FLAGS.layer_norm)
+    layers['layer_2'] = layer_2 = dense('layer_2', layer_1, Config.n_hidden_2, dropout_rate=dropout[1], layer_norm=FLAGS.layer_norm)
+    layers['layer_3'] = layer_3 = dense('layer_3', layer_2, Config.n_hidden_3, dropout_rate=dropout[2], layer_norm=FLAGS.layer_norm)
 
     # `layer_3` is now reshaped into `[n_steps, batch_size, 2*n_cell_dim]`,
     # as the LSTM RNN expects its input to be of shape `[max_time, batch_size, input_size]`.
@@ -197,7 +201,7 @@ def create_model(batch_x, seq_length, dropout, reuse=False, batch_size=None, pre
     layers['rnn_output_state'] = output_state
 
     # Now we feed `output` to the fifth hidden layer with clipped RELU activation
-    layers['layer_5'] = layer_5 = dense('layer_5', output, Config.n_hidden_5, dropout_rate=dropout[5])
+    layers['layer_5'] = layer_5 = dense('layer_5', output, Config.n_hidden_5, dropout_rate=dropout[5], layer_norm=FLAGS.layer_norm)
 
     # Now we apply a final linear layer creating `n_classes` dimensional vectors, the logits.
     layers['layer_6'] = layer_6 = dense('layer_6', layer_5, Config.n_hidden_6, relu=False)
@@ -407,29 +411,26 @@ def log_grads_and_vars(grads_and_vars):
 
 
 def train():
-    do_cache_dataset = True
-
-    # pylint: disable=too-many-boolean-expressions
-    if (FLAGS.data_aug_features_multiplicative > 0 or
-            FLAGS.data_aug_features_additive > 0 or
-            FLAGS.augmentation_spec_dropout_keeprate < 1 or
-            FLAGS.augmentation_freq_and_time_masking or
-            FLAGS.augmentation_pitch_and_tempo_scaling or
-            FLAGS.augmentation_speed_up_std > 0 or
-            FLAGS.augmentation_sparse_warp):
-        do_cache_dataset = False
-
     exception_box = ExceptionBox()
 
+    if FLAGS.horovod:
+        import horovod.tensorflow as hvd
+
     # Create training and validation datasets
+    split_dataset = FLAGS.horovod
+
     train_set = create_dataset(FLAGS.train_files.split(','),
                                batch_size=FLAGS.train_batch_size,
-                               enable_cache=FLAGS.feature_cache and do_cache_dataset,
+                               epochs=FLAGS.epochs,
+                               augmentations=Config.augmentations,
                                cache_path=FLAGS.feature_cache,
                                train_phase=True,
                                exception_box=exception_box,
-                               process_ahead=len(Config.available_devices) * FLAGS.train_batch_size * 2,
-                               buffering=FLAGS.read_buffer)
+                               process_ahead=Config.num_devices * FLAGS.train_batch_size * 2,
+                               reverse=FLAGS.reverse_train,
+                               limit=FLAGS.limit_train,
+                               buffering=FLAGS.read_buffer,
+                               split_dataset=split_dataset)
 
     iterator = tfv1.data.Iterator.from_structure(tfv1.data.get_output_types(train_set),
                                                  tfv1.data.get_output_shapes(train_set),
@@ -444,9 +445,25 @@ def train():
                                    batch_size=FLAGS.dev_batch_size,
                                    train_phase=False,
                                    exception_box=exception_box,
-                                   process_ahead=len(Config.available_devices) * FLAGS.dev_batch_size * 2,
-                                   buffering=FLAGS.read_buffer) for source in dev_sources]
+                                   process_ahead=Config.num_devices * FLAGS.dev_batch_size * 2,
+                                   reverse=FLAGS.reverse_dev,
+                                   limit=FLAGS.limit_dev,
+                                   buffering=FLAGS.read_buffer,
+                                   split_dataset=split_dataset) for source in dev_sources]
         dev_init_ops = [iterator.make_initializer(dev_set) for dev_set in dev_sets]
+
+    if FLAGS.metrics_files:
+        metrics_sources = FLAGS.metrics_files.split(',')
+        metrics_sets = [create_dataset([source],
+                                       batch_size=FLAGS.dev_batch_size,
+                                       train_phase=False,
+                                       exception_box=exception_box,
+                                       process_ahead=Config.num_devices * FLAGS.dev_batch_size * 2,
+                                       reverse=FLAGS.reverse_dev,
+                                       limit=FLAGS.limit_dev,
+                                       buffering=FLAGS.read_buffer,
+                                       split_dataset=split_dataset) for source in metrics_sources]
+        metrics_init_ops = [iterator.make_initializer(metrics_set) for metrics_set in metrics_sets]
 
     # Dropout
     dropout_rates = [tfv1.placeholder(tf.float32, name='dropout_{}'.format(i)) for i in range(6)]
@@ -465,42 +482,70 @@ def train():
     # Building the graph
     learning_rate_var = tfv1.get_variable('learning_rate', initializer=FLAGS.learning_rate, trainable=False)
     reduce_learning_rate_op = learning_rate_var.assign(tf.multiply(learning_rate_var, FLAGS.plateau_reduction))
-    optimizer = create_optimizer(learning_rate_var)
+    if FLAGS.horovod:
+        # Effective batch size in synchronous distributed training is scaled by the number of workers. An increase in learning rate compensates for the increased batch size.
+        optimizer = create_optimizer(learning_rate_var * hvd.size())
+        optimizer = hvd.DistributedOptimizer(optimizer)
+    else:
+        optimizer = create_optimizer(learning_rate_var)
 
     # Enable mixed precision training
     if FLAGS.automatic_mixed_precision:
         log_info('Enabling automatic mixed precision training.')
         optimizer = tfv1.train.experimental.enable_mixed_precision_graph_rewrite(optimizer)
 
-    gradients, loss, non_finite_files = get_tower_results(iterator, optimizer, dropout_rates)
+    if FLAGS.horovod:
+        loss, non_finite_files = calculate_mean_edit_distance_and_loss(iterator, dropout_rates, reuse=False)
+        gradients = optimizer.compute_gradients(loss)
 
-    # Average tower gradients across GPUs
-    avg_tower_gradients = average_gradients(gradients)
-    log_grads_and_vars(avg_tower_gradients)
+        tfv1.summary.scalar(name='step_loss', tensor=loss, collections=['step_summaries'])
+        log_grads_and_vars(gradients)
 
-    # global_step is automagically incremented by the optimizer
-    global_step = tfv1.train.get_or_create_global_step()
-    apply_gradient_op = optimizer.apply_gradients(avg_tower_gradients, global_step=global_step)
+        # global_step is automagically incremented by the optimizer
+        global_step = tfv1.train.get_or_create_global_step()
+        apply_gradient_op = optimizer.apply_gradients(gradients, global_step=global_step)
+    else:
+        gradients, loss, non_finite_files = get_tower_results(iterator, optimizer, dropout_rates)
+
+        # Average tower gradients across GPUs
+        avg_tower_gradients = average_gradients(gradients)
+        log_grads_and_vars(avg_tower_gradients)
+
+        # global_step is automagically incremented by the optimizer
+        global_step = tfv1.train.get_or_create_global_step()
+        apply_gradient_op = optimizer.apply_gradients(avg_tower_gradients, global_step=global_step)
 
     # Summaries
     step_summaries_op = tfv1.summary.merge_all('step_summaries')
     step_summary_writers = {
         'train': tfv1.summary.FileWriter(os.path.join(FLAGS.summary_dir, 'train'), max_queue=120),
-        'dev': tfv1.summary.FileWriter(os.path.join(FLAGS.summary_dir, 'dev'), max_queue=120)
+        'dev': tfv1.summary.FileWriter(os.path.join(FLAGS.summary_dir, 'dev'), max_queue=120),
+        'metrics': tfv1.summary.FileWriter(os.path.join(FLAGS.summary_dir, 'metrics'), max_queue=120),
+    }
+
+    human_readable_set_names = {
+        'train': 'Training',
+        'dev': 'Validation',
+        'metrics': 'Metrics',
     }
 
     # Checkpointing
-    checkpoint_saver = tfv1.train.Saver(max_to_keep=FLAGS.max_to_keep)
-    checkpoint_path = os.path.join(FLAGS.save_checkpoint_dir, 'train')
+    if Config.is_master_process:
+        checkpoint_saver = tfv1.train.Saver(max_to_keep=FLAGS.max_to_keep)
+        checkpoint_path = os.path.join(FLAGS.save_checkpoint_dir, 'train')
 
-    best_dev_saver = tfv1.train.Saver(max_to_keep=1)
-    best_dev_path = os.path.join(FLAGS.save_checkpoint_dir, 'best_dev')
+        best_dev_saver = tfv1.train.Saver(max_to_keep=1)
+        best_dev_path = os.path.join(FLAGS.save_checkpoint_dir, 'best_dev')
 
-    # Save flags next to checkpoints
-    os.makedirs(FLAGS.save_checkpoint_dir, exist_ok=True)
-    flags_file = os.path.join(FLAGS.save_checkpoint_dir, 'flags.txt')
-    with open(flags_file, 'w') as fout:
-        fout.write(FLAGS.flags_into_string())
+        # Save flags next to checkpoints
+        if not is_remote_path(FLAGS.save_checkpoint_dir):
+            os.makedirs(FLAGS.save_checkpoint_dir, exist_ok=True)
+        flags_file = os.path.join(FLAGS.save_checkpoint_dir, 'flags.txt')
+        with open_remote(flags_file, 'w') as fout:
+            fout.write(FLAGS.flags_into_string())
+
+    if FLAGS.horovod:
+        bcast = hvd.broadcast_global_variables(0)
 
     with tfv1.Session(config=Config.session_config) as session:
         log_debug('Session opened.')
@@ -510,6 +555,8 @@ def train():
 
         # Load checkpoint or initialize variables
         load_or_init_graph_for_training(session)
+        if FLAGS.horovod:
+            bcast.run()
 
         def run_set(set_name, epoch, init_op, dataset=None):
             is_train = set_name == 'train'
@@ -522,6 +569,12 @@ def train():
             step_summary_writer = step_summary_writers.get(set_name)
             checkpoint_time = time.time()
 
+            if is_train and FLAGS.cache_for_epochs > 0 and FLAGS.feature_cache:
+                feature_cache_index = FLAGS.feature_cache + '.index'
+                if epoch % FLAGS.cache_for_epochs == 0 and os.path.isfile(feature_cache_index):
+                    log_info('Invalidating feature cache')
+                    remove_remote(feature_cache_index)  # this will let TF also overwrite the related cache data files
+
             # Setup progress bar
             class LossWidget(progressbar.widgets.FormatLabel):
                 def __init__(self):
@@ -531,12 +584,13 @@ def train():
                     data['mean_loss'] = total_loss / step_count if step_count else 0.0
                     return progressbar.widgets.FormatLabel.__call__(self, progress, data, **kwargs)
 
-            prefix = 'Epoch {} | {:>10}'.format(epoch, 'Training' if is_train else 'Validation')
-            widgets = [' | ', progressbar.widgets.Timer(),
-                       ' | Steps: ', progressbar.widgets.Counter(),
-                       ' | ', LossWidget()]
-            suffix = ' | Dataset: {}'.format(dataset) if dataset else None
-            pbar = create_progressbar(prefix=prefix, widgets=widgets, suffix=suffix).start()
+            if Config.is_master_process:
+                prefix = 'Epoch {} | {:>10}'.format(epoch, human_readable_set_names[set_name])
+                widgets = [' | ', progressbar.widgets.Timer(),
+                           ' | Steps: ', progressbar.widgets.Counter(),
+                           ' | ', LossWidget()]
+                suffix = ' | Dataset: {}'.format(dataset) if dataset else None
+                pbar = create_progressbar(prefix=prefix, widgets=widgets, suffix=suffix).start()
 
             # Initialize iterator to the appropriate dataset
             session.run(init_op)
@@ -548,11 +602,6 @@ def train():
                         session.run([train_op, global_step, loss, non_finite_files, step_summaries_op],
                                     feed_dict=feed_dict)
                     exception_box.raise_if_set()
-                except tf.errors.InvalidArgumentError as err:
-                    if FLAGS.augmentation_sparse_warp:
-                        log_info("Ignoring sparse warp error: {}".format(err))
-                        continue
-                    raise
                 except tf.errors.OutOfRangeError:
                     exception_box.raise_if_set()
                     break
@@ -565,15 +614,17 @@ def train():
                 total_loss += batch_loss
                 step_count += 1
 
-                pbar.update(step_count)
+                if Config.is_master_process:
+                    pbar.update(step_count)
 
-                step_summary_writer.add_summary(step_summary, current_step)
+                    step_summary_writer.add_summary(step_summary, current_step)
 
-                if is_train and FLAGS.checkpoint_secs > 0 and time.time() - checkpoint_time > FLAGS.checkpoint_secs:
-                    checkpoint_saver.save(session, checkpoint_path, global_step=current_step)
-                    checkpoint_time = time.time()
+                    if is_train and FLAGS.checkpoint_secs > 0 and time.time() - checkpoint_time > FLAGS.checkpoint_secs:
+                        checkpoint_saver.save(session, checkpoint_path, global_step=current_step)
+                        checkpoint_time = time.time()
 
-            pbar.finish()
+            if Config.is_master_process:
+                pbar.finish()
             mean_loss = total_loss / step_count if step_count > 0 else 0.0
             return mean_loss, step_count
 
@@ -585,21 +636,25 @@ def train():
         try:
             for epoch in range(FLAGS.epochs):
                 # Training
-                log_progress('Training epoch %d...' % epoch)
+                if Config.is_master_process:
+                    log_progress('Training epoch %d...' % epoch)
                 train_loss, _ = run_set('train', epoch, train_init_op)
-                log_progress('Finished training epoch %d - loss: %f' % (epoch, train_loss))
-                checkpoint_saver.save(session, checkpoint_path, global_step=global_step)
+                if Config.is_master_process:
+                    log_progress('Finished training epoch %d - loss: %f' % (epoch, train_loss))
+                    checkpoint_saver.save(session, checkpoint_path, global_step=global_step)
 
                 if FLAGS.dev_files:
                     # Validation
                     dev_loss = 0.0
                     total_steps = 0
                     for source, init_op in zip(dev_sources, dev_init_ops):
-                        log_progress('Validating epoch %d on %s...' % (epoch, source))
+                        if Config.is_master_process:
+                            log_progress('Validating epoch %d on %s...' % (epoch, source))
                         set_loss, steps = run_set('dev', epoch, init_op, dataset=source)
                         dev_loss += set_loss * steps
                         total_steps += steps
-                        log_progress('Finished validating epoch %d on %s - loss: %f' % (epoch, source, set_loss))
+                        if Config.is_master_process:
+                            log_progress('Finished validating epoch %d on %s - loss: %f' % (epoch, source, set_loss))
 
                     dev_loss = dev_loss / total_steps
                     dev_losses.append(dev_loss)
@@ -611,31 +666,60 @@ def train():
                     else:
                         epochs_without_improvement = 0
 
-                    # Save new best model
-                    if dev_loss < best_dev_loss:
-                        best_dev_loss = dev_loss
-                        save_path = best_dev_saver.save(session, best_dev_path, global_step=global_step, latest_filename='best_dev_checkpoint')
-                        log_info("Saved new best validating model with loss %f to: %s" % (best_dev_loss, save_path))
+                    if Config.is_master_process:
+                        # Save new best model
+                        if dev_loss < best_dev_loss:
+                            best_dev_loss = dev_loss
+                            save_path = best_dev_saver.save(session, best_dev_path, global_step=global_step,
+                                                            latest_filename='best_dev_checkpoint')
+                            log_info("Saved new best validating model with loss %f to: %s" % (best_dev_loss, save_path))
 
                     # Early stopping
                     if FLAGS.early_stop and epochs_without_improvement == FLAGS.es_epochs:
-                        log_info('Early stop triggered as the loss did not improve the last {} epochs'.format(
-                            epochs_without_improvement))
+                        if Config.is_master_process:
+                            log_info('Early stop triggered as the loss did not improve the last {} epochs'.format(
+                                epochs_without_improvement))
                         break
 
                     # Reduce learning rate on plateau
-                    if (FLAGS.reduce_lr_on_plateau and
-                            epochs_without_improvement % FLAGS.plateau_epochs == 0 and epochs_without_improvement > 0):
-                        # If the learning rate was reduced and there is still no improvement
-                        # wait FLAGS.plateau_epochs before the learning rate is reduced again
+                    # If the learning rate was reduced and there is still no improvement
+                    # wait FLAGS.plateau_epochs before the learning rate is reduced again
+                    if (
+                        FLAGS.reduce_lr_on_plateau
+                        and epochs_without_improvement > 0
+                        and epochs_without_improvement % FLAGS.plateau_epochs == 0
+                    ):
+                        # Reload checkpoint that we use the best_dev weights again
+                        reload_best_checkpoint(session)
+
+                        # Reduce learning rate
                         session.run(reduce_learning_rate_op)
                         current_learning_rate = learning_rate_var.eval()
-                        log_info('Encountered a plateau, reducing learning rate to {}'.format(
-                            current_learning_rate))
+                        if Config.is_master_process:
+                            log_info('Encountered a plateau, reducing learning rate to {}'.format(
+                                current_learning_rate))
+
+                            # Overwrite best checkpoint with new learning rate value
+                            save_path = best_dev_saver.save(session, best_dev_path, global_step=global_step,
+                                                            latest_filename='best_dev_checkpoint')
+                            log_info("Saved best validating model with reduced learning rate to: %s" % (save_path))
+
+                if FLAGS.metrics_files:
+                    # Read only metrics, not affecting best validation loss tracking
+                    for source, init_op in zip(metrics_sources, metrics_init_ops):
+                        if Config.is_master_process:
+                            log_progress('Metrics for epoch %d on %s...' % (epoch, source))
+                        set_loss, _ = run_set('metrics', epoch, init_op, dataset=source)
+                        if Config.is_master_process:
+                            log_progress('Metrics for epoch %d on %s - loss: %f' % (epoch, source, set_loss))
+
+                print('-' * 80)
+
 
         except KeyboardInterrupt:
             pass
-        log_info('FINISHED optimization in {}'.format(datetime.utcnow() - train_start_time))
+        if Config.is_master_process:
+            log_info('FINISHED optimization in {}'.format(datetime.utcnow() - train_start_time))
     log_debug('Session closed.')
 
 
@@ -651,7 +735,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
     # Create feature computation graph
     input_samples = tfv1.placeholder(tf.float32, [Config.audio_window_samples], 'input_samples')
     samples = tf.expand_dims(input_samples, -1)
-    mfccs, _ = samples_to_mfccs(samples, FLAGS.audio_sample_rate)
+    mfccs, _ = audio_to_features(samples, FLAGS.audio_sample_rate)
     mfccs = tf.identity(mfccs, name='mfccs')
 
     # Input tensor will be of shape [batch_size, n_steps, 2*n_context+1, n_input]
@@ -693,7 +777,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         logits = tf.squeeze(logits, [1])
 
     # Apply softmax for CTC decoder
-    logits = tf.nn.softmax(logits, name='logits')
+    probs = tf.nn.softmax(logits, name='logits')
 
     if batch_size <= 0:
         if tflite:
@@ -706,7 +790,7 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
                 'input_lengths': seq_length,
             },
             {
-                'outputs': logits,
+                'outputs': probs,
             },
             layers
         )
@@ -726,10 +810,14 @@ def create_inference_graph(batch_size=1, n_steps=16, tflite=False):
         inputs['input_lengths'] = seq_length
 
     outputs = {
-        'outputs': logits,
+        'outputs': probs,
         'new_state_c': new_state_c,
         'new_state_h': new_state_h,
         'mfccs': mfccs,
+
+        # Expose internal layers for downstream applications
+        'layer_3': layers['layer_3'],
+        'layer_5': layers['layer_5']
     }
 
     return inputs, outputs, layers
@@ -755,7 +843,7 @@ def export():
     outputs['metadata_feature_win_len'] = tf.constant([FLAGS.feature_win_len], name='metadata_feature_win_len')
     outputs['metadata_feature_win_step'] = tf.constant([FLAGS.feature_win_step], name='metadata_feature_win_step')
     outputs['metadata_beam_width'] = tf.constant([FLAGS.export_beam_width], name='metadata_beam_width')
-    outputs['metadata_alphabet'] = tf.constant([Config.alphabet.serialize()], name='metadata_alphabet')
+    outputs['metadata_alphabet'] = tf.constant([Config.alphabet.Serialize()], name='metadata_alphabet')
 
     if FLAGS.export_language:
         outputs['metadata_language'] = tf.constant([FLAGS.export_language.encode('utf-8')], name='metadata_language')
@@ -773,13 +861,13 @@ def export():
 
         output_filename = FLAGS.export_file_name + '.pb'
         if FLAGS.remove_export:
-            if os.path.isdir(FLAGS.export_dir):
+            if isdir_remote(FLAGS.export_dir):
                 log_info('Removing old export')
-                shutil.rmtree(FLAGS.export_dir)
+                remove_remote(FLAGS.export_dir)
 
         output_graph_path = os.path.join(FLAGS.export_dir, output_filename)
 
-        if not os.path.isdir(FLAGS.export_dir):
+        if not is_remote_path(FLAGS.export_dir) and not os.path.isdir(FLAGS.export_dir):
             os.makedirs(FLAGS.export_dir)
 
         frozen_graph = tfv1.graph_util.convert_variables_to_constants(
@@ -792,7 +880,7 @@ def export():
             dest_nodes=output_names)
 
         if not FLAGS.export_tflite:
-            with open(output_graph_path, 'wb') as fout:
+            with open_remote(output_graph_path, 'wb') as fout:
                 fout.write(frozen_graph.SerializeToString())
         else:
             output_tflite_path = os.path.join(FLAGS.export_dir, output_filename.replace('.pb', '.tflite'))
@@ -803,7 +891,7 @@ def export():
             converter.allow_custom_ops = True
             tflite_model = converter.convert()
 
-            with open(output_tflite_path, 'wb') as fout:
+            with open_remote(output_tflite_path, 'wb') as fout:
                 fout.write(tflite_model)
 
         log_info('Models exported at %s' % (FLAGS.export_dir))
@@ -814,7 +902,7 @@ def export():
         FLAGS.export_model_version))
 
     model_runtime = 'tflite' if FLAGS.export_tflite else 'tensorflow'
-    with open(metadata_fname, 'w') as f:
+    with open_remote(metadata_fname, 'w') as f:
         f.write('---\n')
         f.write('author: {}\n'.format(FLAGS.export_author_id))
         f.write('model_name: {}\n'.format(FLAGS.export_model_name))
@@ -836,8 +924,12 @@ def export():
 def package_zip():
     # --export_dir path/to/export/LANG_CODE/ => path/to/export/LANG_CODE.zip
     export_dir = os.path.join(os.path.abspath(FLAGS.export_dir), '') # Force ending '/'
-    zip_filename = os.path.dirname(export_dir)
+    if is_remote_path(export_dir):
+        log_error("Cannot package remote path zip %s. Please do this manually." % export_dir)
+        return
 
+    zip_filename = os.path.dirname(export_dir)
+    
     shutil.copy(FLAGS.scorer_path, export_dir)
 
     archive = shutil.make_archive(zip_filename, 'zip', export_dir)
@@ -863,21 +955,21 @@ def do_single_file_inference(input_file_path):
         features = create_overlapping_windows(features).eval(session=session)
         features_len = features_len.eval(session=session)
 
-        logits = outputs['outputs'].eval(feed_dict={
+        probs = outputs['outputs'].eval(feed_dict={
             inputs['input']: features,
             inputs['input_lengths']: features_len,
             inputs['previous_state_c']: previous_state_c,
             inputs['previous_state_h']: previous_state_h,
         }, session=session)
 
-        logits = np.squeeze(logits)
+        probs = np.squeeze(probs)
 
         if FLAGS.scorer_path:
             scorer = Scorer(FLAGS.lm_alpha, FLAGS.lm_beta,
                             FLAGS.scorer_path, Config.alphabet)
         else:
             scorer = None
-        decoded = ctc_beam_search_decoder(logits, Config.alphabet, FLAGS.beam_width,
+        decoded = ctc_beam_search_decoder(probs, Config.alphabet, FLAGS.beam_width,
                                           scorer=scorer, cutoff_prob=FLAGS.cutoff_prob,
                                           cutoff_top_n=FLAGS.cutoff_top_n)
         # Print highest probability result
@@ -908,30 +1000,32 @@ def main(_):
     if FLAGS.train_files:
         tfv1.reset_default_graph()
         tfv1.set_random_seed(FLAGS.random_seed)
+
         train()
 
-    if FLAGS.test_files:
-        tfv1.reset_default_graph()
-        test()
+    if Config.is_master_process:
+        if FLAGS.test_files:
+            tfv1.reset_default_graph()
+            test()
 
-    if FLAGS.export_dir and not FLAGS.export_zip:
-        tfv1.reset_default_graph()
-        export()
+        if FLAGS.export_dir and not FLAGS.export_zip:
+            tfv1.reset_default_graph()
+            export()
 
-    if FLAGS.export_zip:
-        tfv1.reset_default_graph()
-        FLAGS.export_tflite = True
+        if FLAGS.export_zip:
+            tfv1.reset_default_graph()
+            FLAGS.export_tflite = True
 
-        if os.listdir(FLAGS.export_dir):
-            log_error('Directory {} is not empty, please fix this.'.format(FLAGS.export_dir))
-            sys.exit(1)
+            if listdir_remote(FLAGS.export_dir):
+                log_error('Directory {} is not empty, please fix this.'.format(FLAGS.export_dir))
+                sys.exit(1)
 
-        export()
-        package_zip()
+            export()
+            package_zip()
 
-    if FLAGS.one_shot_infer:
-        tfv1.reset_default_graph()
-        do_single_file_inference(FLAGS.one_shot_infer)
+        if FLAGS.one_shot_infer:
+            tfv1.reset_default_graph()
+            do_single_file_inference(FLAGS.one_shot_infer)
 
 
 def run_script():

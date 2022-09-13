@@ -9,7 +9,7 @@ using DeepSpeechClient.Models;
 namespace DeepSpeechClient
 {
     /// <summary>
-    /// Client of the Mozilla's deepspeech implementation.
+    /// Concrete implementation of <see cref="DeepSpeechClient.Interfaces.IDeepSpeech"/>.
     /// </summary>
     public class DeepSpeech : IDeepSpeech
     {
@@ -71,6 +71,41 @@ namespace DeepSpeechClient
         public unsafe void SetModelBeamWidth(uint aBeamWidth)
         {
             var resultCode = NativeImp.DS_SetModelBeamWidth(_modelStatePP, aBeamWidth);
+            EvaluateResultCode(resultCode);
+        }
+
+        /// <summary>
+        /// Add a hot-word.
+        /// 
+        /// Words that don't occur in the scorer (e.g. proper nouns) or strings that contain spaces won't be taken into account.
+        /// </summary>
+        /// <param name="aWord">Some word</param>
+        /// <param name="aBoost">Some boost. Positive value increases and negative reduces chance of a word occuring in a transcription. Excessive positive boost might lead to splitting up of letters of the word following the hot-word.</param>
+        /// <exception cref="ArgumentException">Thrown on failure.</exception>
+        public unsafe void AddHotWord(string aWord, float aBoost)
+        {
+            var resultCode = NativeImp.DS_AddHotWord(_modelStatePP, aWord, aBoost);
+            EvaluateResultCode(resultCode);
+        }
+
+        /// <summary>
+        /// Erase entry for a hot-word.
+        /// </summary>
+        /// <param name="aWord">Some word</param>
+        /// <exception cref="ArgumentException">Thrown on failure.</exception>
+        public unsafe void EraseHotWord(string aWord)
+        {
+            var resultCode = NativeImp.DS_EraseHotWord(_modelStatePP, aWord);
+            EvaluateResultCode(resultCode);
+        }
+
+        /// <summary>
+        /// Clear all hot-words.
+        /// </summary>
+        /// <exception cref="ArgumentException">Thrown on failure.</exception>
+        public unsafe void ClearHotWords()
+        {
+            var resultCode = NativeImp.DS_ClearHotWords(_modelStatePP);
             EvaluateResultCode(resultCode);
         }
 
