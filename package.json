@@ -95,6 +95,8 @@
     "vitest": "^1.6.0"
   },
   "overrides": {
-    "rimraf": "^6.0.1"
+    "rimraf": "^6.0.1",
+    "node-pre-gyp": "npm:@mapbox/node-pre-gyp@^2.0.0",
+    "uuid": "^8.3.2"
   }
 }
