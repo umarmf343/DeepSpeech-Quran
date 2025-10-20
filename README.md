@@ -89,6 +89,56 @@ npm -v
    npm run lint
    ```
 
+### Windows setup quickstart
+
+If you are setting up the project on a Windows 10/11 machine for local testing, follow the checklist below. The commands are
+shown for **PowerShell**; run them from a terminal with developer privileges when prompted.
+
+1. **Install required tooling**
+   - [Node.js 18 LTS](https://nodejs.org/en/) or install it via [nvm-windows](https://github.com/coreybutler/nvm-windows) so you
+     can switch versions easily: `nvm install 18.18.0` then `nvm use 18.18.0`.
+   - [Git for Windows](https://git-scm.com/download/win).
+   - (Optional but recommended) [Visual Studio Build Tools 2022](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+     with the "Desktop development with C++" workload. Native dependencies such as `better-sqlite3` rely on these tools if a
+     prebuilt binary is not available for your Node version.
+   - Ensure the **Long Paths** setting is enabled in Git if you encounter path length issues:
+     `git config --system core.longpaths true`.
+
+2. **Clone the repository** (PowerShell)
+   ```powershell
+   git clone https://github.com/<your-org>/Alfawz-4.git
+   Set-Location Alfawz-4
+   ```
+
+3. **Copy the environment template**
+   ```powershell
+   Copy-Item .env.example .env.local
+   ```
+   Update `.env.local` with the required keys from [Environment variables](#environment-variables).
+
+4. **Install dependencies**
+   ```powershell
+   npm install
+   ```
+   If npm prompts for additional tools (e.g., to build native modules), accept the installation so the setup can continue.
+
+5. **Start the development server**
+   ```powershell
+   npm run dev    # or npm run rundev (alias)
+   ```
+   Open `http://localhost:3001` in your browser to verify the app is running. Use `Ctrl+C` in the terminal to stop the server
+   when you are finished testing.
+
+6. **Optional commands**
+   ```powershell
+   npm run lint   # static analysis
+   npm run build  # production build output
+   npm start      # build + start Next.js in production mode
+   ```
+
+These steps mirror the cross-platform instructions above but highlight Windows-specific tooling so you can get a working dev
+environment quickly.
+
 ### Mushaf font assets (from `quran-ttx`)
 
 High-fidelity Madinah Mushaf outlines are not stored in the repository. Fetch and convert them locally before running the reader:
