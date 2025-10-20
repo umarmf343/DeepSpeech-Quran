@@ -1,0 +1,56 @@
+at student dashboar,  check the recitation panel and see if there are unfinished tasks are complete them all make sure it is fully ready and complete, production ready and fully functional.
+
+fix them all, make sure they are tracked to the teacher adatabase, admin
+
+if  there missing backend datasets (teacher database, student goals, activity feeds, leaderboards, etc.) 
+and wide product/design decisions that are not present in the repository.
+then create all the missing folders, files, snippets
+
+
+
+Student Dashboard TODOs
+
+
+Replace the hard-coded recentActivity array with data loaded from the student’s activity feed so the timeline reflects real progress.
+
+Swap the static upcomingGoals list for real user goals pulled from storage to make the Current Goals sidebar accurate.
+
+Enable inline editing or completion toggles for each goal entry so students can update progress directly from the dashboard.
+
+Wire the “Set New Goal” button to a goal-creation flow instead of leaving it as an inert outline button.
+
+Populate the Continue Your Journey card with the learner’s actual last-read surah/ayah rather than the fixed Surah Al-Baqarah example.
+
+Hook the “View Habit” button to a real habit-detail route so it navigates somewhere meaningful instead of doing nothing.
+
+Make the “Start New Surah” card clickable (e.g., wrap it in a <Link> or button) to open the surah selector instead of acting as a passive card.
+
+Do the same for the “Audio Sessions” card so students can jump directly into audio-based practice from the dashboard.
+
+Connect the Premium Gate CTA (“Start Premium Session”) to the actual premium upgrade or AI coach session start flow rather than leaving it as a dead button.
+
+Feed dynamic data (e.g., personalized XP boost, session availability) into the premium promo block instead of the fixed “Earn +120 bonus XP” copy.
+
+Swap the static achievements (“Week Warrior”, “Perfect Reciter”) for the student’s real badge history from their profile.
+
+Convert the “View All Achievements” button into a link that routes to the /achievements page so users can browse their full badge collection.
+
+Replace the sample leaderboard array with live rankings (class and global) fetched from the leaderboard API.
+
+Add controls to toggle leaderboard scope (class/global) and time range (weekly/monthly) per the gamification requirements.
+
+Move goal, activity, and leaderboard data sourcing into the useUser context so the dashboard stops defining placeholder arrays locally.
+
+Provide loading and error states around dashboard metrics; the component currently assumes synchronous data from useUser and will flash incorrect UI if the context ever becomes async.
+
+Replace the fixed LEVEL_TARGET = 500 constant with a value supplied by the user’s progression model so XP progress reflects reality.
+
+Populate the “Daily Power-Up” value with the platform’s actual daily bonus instead of deriving it from the first habit entry.
+
+Let students choose which habit appears as the featured quest in Continue Your Journey instead of always defaulting to habits[0].
+
+Add empty-state messaging (and alternative actions) for scenarios where the user has no habits yet, avoiding the fallback to level 1 placeholders seen in the current markup.
+
+Introduce a Teacher Feedback Center block that surfaces the latest annotated notes and audio feedback, which is called out in the specification but absent from the current dashboard layout.
+
+Surface quick links to profile goals, badges, or journal entries to align the dashboard with the profile overview expectations in the spec.
