@@ -1,20 +1,57 @@
+import { promises as fs } from "fs"
+import { createRequire } from "module"
 import path from "path"
-import Database from "better-sqlite3"
+import initSqlJs from "sql.js"
 import type { MorphologyResponse, MorphologyWord } from "@/types/morphology"
+
+const require = createRequire(import.meta.url)
 
 const baseDir = path.join(process.cwd(), "Quranic Grammar and Morphology")
 
-function openDatabase(filename: string) {
-  return new Database(path.join(baseDir, filename), { readonly: true })
+type SqlJs = Awaited<ReturnType<typeof initSqlJs>>
+
+type LoadedDatabases = {
+  lemmaDb: SqlJs["Database"]
+  rootDb: SqlJs["Database"]
+  stemDb: SqlJs["Database"]
 }
 
-const ayahLemmaDb = openDatabase("ayah-lemma.db")
-const ayahRootDb = openDatabase("ayah-root.db")
-const ayahStemDb = openDatabase("ayah-stem.db")
+let databasesPromise: Promise<LoadedDatabases> | null = null
 
-const lemmaStatement = ayahLemmaDb.prepare("SELECT text FROM lemmas WHERE verse_key = ?")
-const rootStatement = ayahRootDb.prepare("SELECT text FROM roots WHERE verse_key = ?")
-const stemStatement = ayahStemDb.prepare("SELECT text FROM stems WHERE verse_key = ?")
+async function loadSqlJs(): Promise<SqlJs> {
+  const wasmPath = path.join(
+    path.dirname(require.resolve("sql.js/package.json")),
+    "dist",
+    "sql-wasm.wasm",
+  )
+  const wasmBinary = await fs.readFile(wasmPath)
+
+  return initSqlJs({ wasmBinary })
+}
+
+async function loadDatabase(SQL: SqlJs, filename: string) {
+  const filePath = path.join(baseDir, filename)
+  const buffer = await fs.readFile(filePath)
+  return new SQL.Database(buffer)
+}
+
+async function getDatabases(): Promise<LoadedDatabases> {
+  if (!databasesPromise) {
+    databasesPromise = (async () => {
+      const SQL = await loadSqlJs()
+
+      const [lemmaDb, rootDb, stemDb] = await Promise.all([
+        loadDatabase(SQL, "ayah-lemma.db"),
+        loadDatabase(SQL, "ayah-root.db"),
+        loadDatabase(SQL, "ayah-stem.db"),
+      ])
+
+      return { lemmaDb, rootDb, stemDb }
+    })()
+  }
+
+  return databasesPromise
+}
 
 function splitWords(value: string | null | undefined): string[] {
   if (!value) return []
@@ -25,18 +62,27 @@ function splitWords(value: string | null | undefined): string[] {
     .filter(Boolean)
 }
 
-export function getMorphologyForAyah(reference: string, fallbackAyahText?: string): MorphologyResponse | null {
-  const lemmaRow = lemmaStatement.get(reference) as { text: string } | undefined
-  const rootRow = rootStatement.get(reference) as { text: string } | undefined
-  const stemRow = stemStatement.get(reference) as { text: string } | undefined
+export async function getMorphologyForAyah(
+  reference: string,
+  fallbackAyahText?: string,
+): Promise<MorphologyResponse | null> {
+  const { lemmaDb, rootDb, stemDb } = await getDatabases()
 
-  if (!lemmaRow && !rootRow && !stemRow) {
+  const lemmaRow = lemmaDb.exec("SELECT text FROM lemmas WHERE verse_key = $ref", { $ref: reference })
+  const rootRow = rootDb.exec("SELECT text FROM roots WHERE verse_key = $ref", { $ref: reference })
+  const stemRow = stemDb.exec("SELECT text FROM stems WHERE verse_key = $ref", { $ref: reference })
+
+  const lemmaText = lemmaRow[0]?.values?.[0]?.[0] as string | undefined
+  const rootText = rootRow[0]?.values?.[0]?.[0] as string | undefined
+  const stemText = stemRow[0]?.values?.[0]?.[0] as string | undefined
+
+  if (!lemmaText && !rootText && !stemText) {
     return null
   }
 
-  const lemmaWords = splitWords(lemmaRow?.text)
-  const rootWords = splitWords(rootRow?.text)
-  const stemWords = splitWords(stemRow?.text)
+  const lemmaWords = splitWords(lemmaText)
+  const rootWords = splitWords(rootText)
+  const stemWords = splitWords(stemText)
 
   const arabicWords = fallbackAyahText ? splitWords(fallbackAyahText) : stemWords
 
@@ -57,9 +103,9 @@ export function getMorphologyForAyah(reference: string, fallbackAyahText?: strin
     ayah: reference,
     words,
     summary: {
-      lemmas: lemmaRow?.text ?? null,
-      roots: rootRow?.text ?? null,
-      stems: stemRow?.text ?? null,
+      lemmas: lemmaText ?? null,
+      roots: rootText ?? null,
+      stems: stemText ?? null,
     },
   }
 }

@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Missing ayah reference" }, { status: 400 })
   }
 
-  const morphology = getMorphologyForAyah(reference, ayahText)
+  const morphology = await getMorphologyForAyah(reference, ayahText)
 
   if (!morphology) {
     return NextResponse.json({ error: "No morphology data found" }, { status: 404 })
