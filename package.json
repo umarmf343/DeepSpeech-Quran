@@ -1,13 +1,14 @@
 {
   "name": "my-v0-project",
   "version": "0.1.0",
+  "packageManager": "pnpm@10.5.2",
   "private": true,
   "scripts": {
     "build": "next build",
-    "build:standalone": "npm run build",
+    "build:standalone": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "rundev": "npm run dev",
+    "rundev": "next dev",
     "start": "next start",
     "start:standalone": "node .next/standalone/server.js"
   },
