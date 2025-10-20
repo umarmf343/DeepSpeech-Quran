@@ -7,61 +7,75 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useUser } from "@/hooks/use-user"
 import {
+  BadgeCheck,
+  Bell,
   BookOpen,
-  Users,
-  Trophy,
-  CreditCard,
-  Settings,
-  BarChart3,
-  User,
+  ClipboardList,
+  Crown,
+  Home,
   LogOut,
   Menu,
-  X,
-  Home,
-  Target,
-  Crown,
+  Settings,
   Shield,
-  Bell,
-  Gamepad2,
   Sparkles,
-  LayoutGrid,
+  Target,
+  Trophy,
+  User,
+  Users,
+  X,
 } from "lucide-react"
+
+const iconForSlug = (slug: string) => {
+  switch (slug) {
+    case "dashboard":
+      return Home
+    case "reader":
+      return BookOpen
+    case "practice":
+      return Sparkles
+    case "memorization":
+      return Target
+    case "progress":
+      return BadgeCheck
+    case "achievements":
+      return Trophy
+    case "leaderboard":
+      return Crown
+    case "teacher-dashboard":
+      return Users
+    case "assignments":
+      return ClipboardList
+    case "admin":
+      return Shield
+    case "billing":
+      return Settings
+    case "profile":
+    default:
+      return User
+  }
+}
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
-  const { profile, isPremium } = useUser()
-
-  const navigation = [
-    { name: "Dashboard", href: "/dashboard", icon: Home },
-    { name: "Habit Quest", href: "/habits", icon: Gamepad2 },
-    { name: "Qur'an Reader", href: "/reader", icon: BookOpen },
-    { name: "Mushaf Studio", href: "/reader/layouts", icon: LayoutGrid },
-    { name: "AI Tajweed Lab", href: "/practice", icon: Sparkles },
-    { name: "Memorization", href: "/memorization", icon: Target },
-    { name: "Progress", href: "/progress", icon: BarChart3 },
-    { name: "Achievements", href: "/achievements", icon: Trophy },
-    { name: "Leaderboard", href: "/leaderboard", icon: Crown },
-    { name: "Billing", href: "/billing", icon: CreditCard },
-  ]
-
-  const teacherNavigation = [
-    { name: "Teacher Dashboard", href: "/teacher/dashboard", icon: Users },
-    { name: "Create Assignment", href: "/teacher/assignments/create", icon: Settings },
-  ]
-
-  const adminNavigation = [
-    { name: "Admin Panel", href: "/admin", icon: Shield },
-    { name: "System Settings", href: "/admin/settings", icon: Settings },
-  ]
-
-  const isActive = (href: string) => pathname === href
+  const { profile, isPremium, navigation, notifications, setActiveNav, activeNav } = useUser()
 
   const planLabel = useMemo(() => {
     const roleLabel = profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
     const planName = isPremium ? "Premium" : "Free"
     return `${planName} ${roleLabel}`
   }, [profile.role, isPremium])
+
+  const segmentedNavigation = useMemo(() => {
+    const teacher = navigation.filter((item) => item.slug.startsWith("teacher"))
+    const admin = navigation.filter((item) => item.slug === "admin")
+    const primary = navigation.filter((item) => !teacher.includes(item) && !admin.includes(item))
+    return { primary, teacher, admin }
+  }, [navigation])
+
+  const unreadCount = useMemo(() => notifications.filter((notification) => !notification.read).length, [notifications])
+
+  const checkActive = (href: string, slug: string) => pathname.startsWith(href) || activeNav === slug
 
   return (
     <>
@@ -91,89 +105,98 @@ export default function Navigation() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2">
-            {/* Main Navigation */}
+          <nav className="flex-1 p-4 space-y-4">
             <div className="space-y-1">
-              {navigation.map((item) => {
-                const Icon = item.icon
+              {segmentedNavigation.primary.map((item) => {
+                const Icon = iconForSlug(item.slug)
+                const active = checkActive(item.href, item.slug)
                 return (
                   <Link
-                    key={item.name}
+                    key={item.slug}
                     href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      isActive(item.href) ? "bg-maroon-100 text-maroon-900" : "text-gray-700 hover:bg-gray-100"
+                    data-current={active}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      active ? "bg-maroon-100 text-maroon-900 shadow-inner" : "text-gray-700 hover:bg-gray-100"
                     }`}
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => {
+                      setIsOpen(false)
+                      setActiveNav(item.slug)
+                    }}
                   >
                     <Icon className="h-4 w-4" />
-                    {item.name}
-                    {item.name === "Habit Quest" && !isPremium && (
-                      <Badge className="ml-auto bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 flex items-center gap-1">
+                    {item.label}
+                    {item.slug === "achievements" && unreadCount > 0 && (
+                      <Badge className="ml-auto bg-yellow-100 text-yellow-800 border-yellow-200 flex items-center gap-1">
                         <Sparkles className="h-3 w-3" />
-                        New
+                        {unreadCount}
                       </Badge>
-                    )}
-                    {item.name === "Achievements" && (
-                      <Badge className="ml-auto bg-yellow-100 text-yellow-800 border-yellow-200">3</Badge>
                     )}
                   </Link>
                 )
               })}
             </div>
 
-            {/* Teacher Section */}
-            <div className="pt-4">
-              <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Teaching</h3>
+            {segmentedNavigation.teacher.length > 0 && (
               <div className="space-y-1">
-                {teacherNavigation.map((item) => {
-                  const Icon = item.icon
+                <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Teaching</h3>
+                {segmentedNavigation.teacher.map((item) => {
+                  const Icon = iconForSlug(item.slug)
+                  const active = checkActive(item.href, item.slug)
                   return (
                     <Link
-                      key={item.name}
+                      key={item.slug}
                       href={item.href}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        isActive(item.href) ? "bg-maroon-100 text-maroon-900" : "text-gray-700 hover:bg-gray-100"
+                      data-current={active}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        active ? "bg-maroon-100 text-maroon-900 shadow-inner" : "text-gray-700 hover:bg-gray-100"
                       }`}
-                      onClick={() => setIsOpen(false)}
+                      onClick={() => {
+                        setIsOpen(false)
+                        setActiveNav(item.slug)
+                      }}
                     >
                       <Icon className="h-4 w-4" />
-                      {item.name}
+                      {item.label}
                     </Link>
                   )
                 })}
               </div>
-            </div>
+            )}
 
-            {/* Admin Section */}
-            <div className="pt-4">
-              <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Administration</h3>
+            {segmentedNavigation.admin.length > 0 && (
               <div className="space-y-1">
-                {adminNavigation.map((item) => {
-                  const Icon = item.icon
+                <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Administration</h3>
+                {segmentedNavigation.admin.map((item) => {
+                  const Icon = iconForSlug(item.slug)
+                  const active = checkActive(item.href, item.slug)
                   return (
                     <Link
-                      key={item.name}
+                      key={item.slug}
                       href={item.href}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        isActive(item.href) ? "bg-maroon-100 text-maroon-900" : "text-gray-700 hover:bg-gray-100"
+                      data-current={active}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        active ? "bg-maroon-100 text-maroon-900 shadow-inner" : "text-gray-700 hover:bg-gray-100"
                       }`}
-                      onClick={() => setIsOpen(false)}
+                      onClick={() => {
+                        setIsOpen(false)
+                        setActiveNav(item.slug)
+                      }}
                     >
                       <Icon className="h-4 w-4" />
-                      {item.name}
-                      {item.name === "Admin Panel" && (
-                        <Badge className="ml-auto bg-red-100 text-red-800 border-red-200">2</Badge>
+                      {item.label}
+                      {item.slug === "admin" && (
+                        <Badge className="ml-auto bg-red-100 text-red-800 border-red-200">Live</Badge>
                       )}
                     </Link>
                   )
                 })}
               </div>
-            </div>
+            )}
           </nav>
 
           {/* User Profile */}
-          <div className="p-4 border-t">
-            <div className="flex items-center gap-3 mb-3">
+          <div className="p-4 border-t space-y-3">
+            <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-maroon-100 rounded-full flex items-center justify-center">
                 <User className="h-4 w-4 text-maroon-600" />
               </div>
@@ -181,8 +204,13 @@ export default function Navigation() {
                 <p className="text-sm font-medium text-gray-900 truncate">{profile.name}</p>
                 <p className="text-xs text-gray-500">{planLabel}</p>
               </div>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="relative">
                 <Bell className="h-4 w-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white">
+                    {unreadCount}
+                  </span>
+                )}
               </Button>
             </div>
             <Button
@@ -191,7 +219,6 @@ export default function Navigation() {
               className="w-full justify-start text-gray-700 bg-transparent"
               onClick={() => {
                 console.log("[v0] User logging out")
-                // In a real implementation, this would handle logout
               }}
             >
               <LogOut className="h-4 w-4 mr-2" />
@@ -202,9 +229,7 @@ export default function Navigation() {
       </div>
 
       {/* Overlay for mobile */}
-      {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden" onClick={() => setIsOpen(false)} />
-      )}
+      {isOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden" onClick={() => setIsOpen(false)} />}
     </>
   )
 }

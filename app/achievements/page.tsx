@@ -1,294 +1,153 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Badge as UiBadge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Trophy, Star, Target, BookOpen, Users, Zap, Crown, Award, Gift, TrendingUp } from "lucide-react"
+import { useUser } from "@/hooks/use-user"
+import { Award, Crown, Sparkles, Star, Target, Trophy } from "lucide-react"
+
+const rarityColors: Record<string, string> = {
+  common: "bg-gray-100 text-gray-800 border-gray-200",
+  uncommon: "bg-green-100 text-green-800 border-green-200",
+  rare: "bg-blue-100 text-blue-800 border-blue-200",
+  epic: "bg-purple-100 text-purple-800 border-purple-200",
+  legendary: "bg-gradient-to-r from-yellow-100 to-orange-100 text-orange-800 border-orange-200",
+}
 
 export default function AchievementsPage() {
-  const [selectedCategory, setSelectedCategory] = useState("all")
+  const { stats, gamification, badges, challenges } = useUser()
+  const [selectedCategory, setSelectedCategory] = useState<string>("all")
 
-  const userStats = {
-    totalHasanat: 2847,
-    level: 12,
-    nextLevelHasanat: 3000,
-    streak: 15,
-    rank: 23,
-  }
+  const badgeCategories = useMemo(() => {
+    const categories = new Set<string>(["all"])
+    badges.forEach((badge) => {
+      categories.add(badge.rarity)
+    })
+    return Array.from(categories)
+  }, [badges])
 
-  const achievements = [
-    {
-      id: 1,
-      title: "First Steps",
-      description: "Complete your first Qur'an reading session",
-      category: "reading",
-      hasanat: 50,
-      unlocked: true,
-      progress: 100,
-      icon: BookOpen,
-      rarity: "common",
-    },
-    {
-      id: 2,
-      title: "Consistent Reader",
-      description: "Read Qur'an for 7 consecutive days",
-      category: "reading",
-      hasanat: 200,
-      unlocked: true,
-      progress: 100,
-      icon: Target,
-      rarity: "uncommon",
-    },
-    {
-      id: 3,
-      title: "Memorization Master",
-      description: "Memorize 10 complete Surahs",
-      category: "memorization",
-      hasanat: 500,
-      unlocked: false,
-      progress: 60,
-      icon: Star,
-      rarity: "rare",
-    },
-    {
-      id: 4,
-      title: "Community Helper",
-      description: "Help 5 fellow students with their studies",
-      category: "community",
-      hasanat: 300,
-      unlocked: true,
-      progress: 100,
-      icon: Users,
-      rarity: "uncommon",
-    },
-    {
-      id: 5,
-      title: "Lightning Fast",
-      description: "Complete 50 SRS reviews in under 10 minutes",
-      category: "speed",
-      hasanat: 150,
-      unlocked: false,
-      progress: 32,
-      icon: Zap,
-      rarity: "common",
-    },
-    {
-      id: 6,
-      title: "Hafiz Champion",
-      description: "Complete memorization of the entire Qur'an",
-      category: "memorization",
-      hasanat: 5000,
-      unlocked: false,
-      progress: 15,
-      icon: Crown,
-      rarity: "legendary",
-    },
-  ]
-
-  const categories = [
-    { id: "all", label: "All Achievements", icon: Trophy },
-    { id: "reading", label: "Reading", icon: BookOpen },
-    { id: "memorization", label: "Memorization", icon: Star },
-    { id: "community", label: "Community", icon: Users },
-    { id: "speed", label: "Speed", icon: Zap },
-  ]
-
-  const getRarityColor = (rarity: string) => {
-    switch (rarity) {
-      case "common":
-        return "bg-gray-100 text-gray-800 border-gray-200"
-      case "uncommon":
-        return "bg-green-100 text-green-800 border-green-200"
-      case "rare":
-        return "bg-blue-100 text-blue-800 border-blue-200"
-      case "epic":
-        return "bg-purple-100 text-purple-800 border-purple-200"
-      case "legendary":
-        return "bg-gradient-to-r from-yellow-100 to-orange-100 text-orange-800 border-orange-200"
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
-    }
-  }
-
-  const filteredAchievements =
-    selectedCategory === "all"
-      ? achievements
-      : achievements.filter((achievement) => achievement.category === selectedCategory)
+  const filteredBadges = useMemo(() => {
+    if (selectedCategory === "all") return badges
+    return badges.filter((badge) => badge.rarity === selectedCategory)
+  }, [badges, selectedCategory])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream-50 to-maroon-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-maroon-900 mb-4">Achievements & Hasanat</h1>
-          <p className="text-lg text-maroon-700 max-w-2xl mx-auto">
-            Track your spiritual journey and earn Hasanat points for your dedication to learning the Qur'an
-          </p>
+      <div className="mx-auto max-w-7xl space-y-8">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-maroon-600 via-maroon-500 to-amber-500 p-8 text-white shadow-xl">
+          <div className="absolute -top-20 right-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" aria-hidden />
+          <div className="relative z-10 space-y-4">
+            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-widest">
+              <Sparkles className="h-4 w-4" />
+              Celebration Spotlight
+            </p>
+            <h1 className="text-4xl font-bold">Achievements & Hasanat</h1>
+            <p className="max-w-2xl text-white/90">
+              Your dedication has earned <span className="font-semibold">{stats.hasanat.toLocaleString()} Hasanat</span> and brought you to level {stats.level}. Keep nurturing your spiritual growth to unlock new celebrations.
+            </p>
+            <div className="flex flex-wrap items-center gap-4">
+              <UiBadge className="border-none bg-gradient-to-r from-amber-300 to-amber-400 text-maroon-900">
+                <Star className="mr-2 h-4 w-4" /> Level {stats.level}
+              </UiBadge>
+              <UiBadge className="border-none bg-white/20 text-white">
+                <Target className="mr-2 h-4 w-4" /> {gamification.streak} day streak
+              </UiBadge>
+              <UiBadge className="border-none bg-white/20 text-white">
+                <Crown className="mr-2 h-4 w-4" /> {gamification.milestones.filter((milestone) => milestone.status === "completed").length} milestones
+              </UiBadge>
+            </div>
+          </div>
         </div>
 
-        {/* User Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gradient-to-br from-maroon-600 to-maroon-700 text-white border-0">
-            <CardContent className="p-6 text-center">
-              <Trophy className="h-8 w-8 mx-auto mb-2 text-yellow-300" />
-              <div className="text-2xl font-bold">{userStats.totalHasanat.toLocaleString()}</div>
-              <div className="text-maroon-100">Total Hasanat</div>
+        <div className="grid gap-6 md:grid-cols-4">
+          <Card className="border-0 bg-gradient-to-br from-maroon-600 to-amber-500 text-white shadow-xl">
+            <CardContent className="space-y-4 p-6">
+              <div className="flex items-center gap-3">
+                <Trophy className="h-8 w-8" />
+                <div>
+                  <p className="text-sm text-white/80">Total Hasanat</p>
+                  <p className="text-2xl font-bold">{stats.hasanat.toLocaleString()}</p>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-white/80">Progress to next level</p>
+                <Progress value={(gamification.xp / (gamification.xp + gamification.xpToNext)) * 100} className="mt-2 h-2 bg-white/20" />
+              </div>
             </CardContent>
           </Card>
-
-          <Card className="bg-gradient-to-br from-yellow-500 to-orange-500 text-white border-0">
-            <CardContent className="p-6 text-center">
-              <Star className="h-8 w-8 mx-auto mb-2" />
-              <div className="text-2xl font-bold">Level {userStats.level}</div>
-              <div className="text-yellow-100">Current Level</div>
-              <Progress value={(userStats.totalHasanat / userStats.nextLevelHasanat) * 100} className="mt-2 h-2" />
+          <Card className="shadow-lg">
+            <CardContent className="space-y-2 p-6 text-maroon-900">
+              <p className="text-sm text-maroon-600">Current level</p>
+              <p className="text-2xl font-bold">Level {gamification.level}</p>
+              <p className="text-xs text-maroon-500">{gamification.xpToNext} XP to level up</p>
             </CardContent>
           </Card>
-
-          <Card className="bg-gradient-to-br from-green-500 to-emerald-600 text-white border-0">
-            <CardContent className="p-6 text-center">
-              <Target className="h-8 w-8 mx-auto mb-2" />
-              <div className="text-2xl font-bold">{userStats.streak} days</div>
-              <div className="text-green-100">Current Streak</div>
+          <Card className="shadow-lg">
+            <CardContent className="space-y-2 p-6 text-maroon-900">
+              <p className="text-sm text-maroon-600">Completed milestones</p>
+              <p className="text-2xl font-bold">{gamification.milestones.filter((milestone) => milestone.status === "completed").length}</p>
+              <p className="text-xs text-maroon-500">New celebrations unlock at 100%</p>
             </CardContent>
           </Card>
-
-          <Card className="bg-gradient-to-br from-purple-500 to-indigo-600 text-white border-0">
-            <CardContent className="p-6 text-center">
-              <Award className="h-8 w-8 mx-auto mb-2" />
-              <div className="text-2xl font-bold">#{userStats.rank}</div>
-              <div className="text-purple-100">Global Rank</div>
+          <Card className="shadow-lg">
+            <CardContent className="space-y-2 p-6 text-maroon-900">
+              <p className="text-sm text-maroon-600">Active challenges</p>
+              <p className="text-2xl font-bold">{challenges.length}</p>
+              <p className="text-xs text-maroon-500">Stay consistent to earn bonus Hasanat</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Achievement Categories */}
-        <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="mb-8">
-          <TabsList className="grid w-full grid-cols-5 bg-white/50 backdrop-blur-sm">
-            {categories.map((category) => (
+        <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
+          <TabsList className="flex flex-wrap gap-2 rounded-full bg-white/70 p-2 shadow">
+            {badgeCategories.map((category) => (
               <TabsTrigger
-                key={category.id}
-                value={category.id}
-                className="flex items-center gap-2 data-[state=active]:bg-maroon-600 data-[state=active]:text-white"
+                key={category}
+                value={category}
+                className="rounded-full px-4 py-1 text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-maroon-600 data-[state=active]:to-amber-500 data-[state=active]:text-white"
               >
-                <category.icon className="h-4 w-4" />
-                <span className="hidden sm:inline">{category.label}</span>
+                {category === "all" ? "All Badges" : category.charAt(0).toUpperCase() + category.slice(1)}
               </TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
 
-        {/* Achievements Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAchievements.map((achievement) => {
-            const IconComponent = achievement.icon
-            return (
-              <Card
-                key={achievement.id}
-                className={`relative overflow-hidden transition-all duration-300 hover:shadow-lg ${
-                  achievement.unlocked
-                    ? "bg-white border-maroon-200 shadow-md"
-                    : "bg-gray-50 border-gray-200 opacity-75"
-                }`}
-              >
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                    <div
-                      className={`p-3 rounded-full ${
-                        achievement.unlocked ? "bg-maroon-100 text-maroon-600" : "bg-gray-100 text-gray-400"
-                      }`}
-                    >
-                      <IconComponent className="h-6 w-6" />
-                    </div>
-                    <Badge className={`${getRarityColor(achievement.rarity)} capitalize`}>{achievement.rarity}</Badge>
-                  </div>
-                  <CardTitle className={`text-lg ${achievement.unlocked ? "text-maroon-900" : "text-gray-500"}`}>
-                    {achievement.title}
-                  </CardTitle>
-                  <CardDescription className="text-sm">{achievement.description}</CardDescription>
-                </CardHeader>
-
-                <CardContent>
-                  <div className="space-y-4">
-                    {/* Progress Bar */}
-                    {!achievement.unlocked && (
-                      <div>
-                        <div className="flex justify-between text-sm text-gray-600 mb-1">
-                          <span>Progress</span>
-                          <span>{achievement.progress}%</span>
-                        </div>
-                        <Progress value={achievement.progress} className="h-2" />
-                      </div>
-                    )}
-
-                    {/* Hasanat Reward */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Gift className="h-4 w-4 text-yellow-600" />
-                        <span className="text-sm font-medium text-gray-700">
-                          {achievement.hasanat.toLocaleString()} Hasanat
-                        </span>
-                      </div>
-                      {achievement.unlocked && (
-                        <Badge className="bg-green-100 text-green-800 border-green-200">Unlocked</Badge>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-
-                {/* Unlock Effect */}
-                {achievement.unlocked && (
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-yellow-400 to-transparent opacity-20" />
-                )}
-              </Card>
-            )
-          })}
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {filteredBadges.map((badge) => (
+            <Card key={badge.id} className="border border-maroon-100 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl">
+              <CardHeader className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-maroon-200 to-amber-200 text-maroon-800">
+                  <Award className="h-6 w-6" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">{badge.title}</CardTitle>
+                  <CardDescription>{badge.description}</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-maroon-700">Progress</span>
+                  <span className="font-semibold text-maroon-900">
+                    {Math.round((badge.progress / badge.goal) * 100)}%
+                  </span>
+                </div>
+                <Progress value={(badge.progress / badge.goal) * 100} className="h-2" />
+                <div className="flex items-center justify-between text-xs text-maroon-600">
+                  <span>
+                    {badge.progress}/{badge.goal} milestone{badge.goal > 1 ? "s" : ""}
+                  </span>
+                  <UiBadge className={rarityColors[badge.rarity] ?? rarityColors.common}>{badge.rarity}</UiBadge>
+                </div>
+                <div className="flex items-center justify-between text-xs text-maroon-600">
+                  <span>Last earned</span>
+                  <span>{badge.unlockedAt ? new Date(badge.unlockedAt).toLocaleDateString() : "Locked"}</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-
-        {/* Daily Challenges */}
-        <Card className="mt-8 bg-gradient-to-r from-maroon-600 to-maroon-700 text-white border-0">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <TrendingUp className="h-6 w-6 text-yellow-300" />
-              Daily Challenges
-            </CardTitle>
-            <CardDescription className="text-maroon-100">
-              Complete these challenges to earn bonus Hasanat points
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <BookOpen className="h-5 w-5 text-yellow-300" />
-                  <span className="font-medium">Read 5 Pages</span>
-                </div>
-                <Progress value={60} className="h-2 mb-2" />
-                <div className="text-sm text-maroon-100">3/5 pages • +100 Hasanat</div>
-              </div>
-
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <Star className="h-5 w-5 text-yellow-300" />
-                  <span className="font-medium">Review 20 Cards</span>
-                </div>
-                <Progress value={85} className="h-2 mb-2" />
-                <div className="text-sm text-maroon-100">17/20 cards • +150 Hasanat</div>
-              </div>
-
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <Users className="h-5 w-5 text-yellow-300" />
-                  <span className="font-medium">Help a Student</span>
-                </div>
-                <Progress value={0} className="h-2 mb-2" />
-                <div className="text-sm text-maroon-100">0/1 helped • +200 Hasanat</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   )

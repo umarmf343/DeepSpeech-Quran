@@ -10,22 +10,35 @@ import AppLayout from "@/components/app-layout"
 import { PremiumGate } from "@/components/premium-gate"
 import { useUser } from "@/hooks/use-user"
 import {
+  Award,
   BookOpen,
-  Play,
-  Trophy,
   Calendar,
   Clock,
-  Star,
-  TrendingUp,
-  Target,
-  Award,
-  Mic,
   HeadphonesIcon,
+  Mic,
+  Play,
   Sparkles,
+  Star,
+  Target,
+  TrendingUp,
+  Trophy,
 } from "lucide-react"
 
+function formatDuration(deadline: string) {
+  const expires = new Date(deadline).getTime()
+  const now = Date.now()
+  const diff = Math.max(0, expires - now)
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24)
+  if (days > 0) {
+    return `${days}d ${hours}h`
+  }
+  const minutes = Math.floor((diff / (1000 * 60)) % 60)
+  return `${hours}h ${minutes}m`
+}
+
 export default function DashboardPage() {
-  const { profile, stats, habits } = useUser()
+  const { profile, stats, habits, gamification, challenges, recommendations, localization, preferences } = useUser()
 
   const LEVEL_TARGET = 500
   const firstName = useMemo(() => profile.name.split(" ")[0] ?? profile.name, [profile.name])
@@ -36,6 +49,8 @@ export default function DashboardPage() {
   const xpProgress = Math.max(0, Math.min(100, Math.round(((LEVEL_TARGET - stats.xpToNext) / LEVEL_TARGET) * 100)))
   const weeklyXpTotal = stats.weeklyXP.reduce((total, value) => total + value, 0)
   const featuredHabit = habits[0]
+  const heroCopy = gamification.heroCopy
+  const heroTitleClass = preferences.heroAnimation ? "animate-pulse" : ""
 
   const recentActivity = [
     { type: "reading", surah: "Al-Fatiha", ayahs: 7, time: "2 hours ago" },
@@ -43,90 +58,119 @@ export default function DashboardPage() {
     { type: "recitation", surah: "Al-Nas", score: 92, time: "2 days ago" },
   ]
 
-  const upcomingGoals = [
-    { title: "Complete Al-Mulk", progress: 65, deadline: "3 days" },
-    { title: "Memorize 5 new Ayahs", progress: 40, deadline: "1 week" },
-    { title: "Perfect Tajweed practice", progress: 80, deadline: "2 weeks" },
-  ]
-
   return (
     <AppLayout>
-      <div className="p-6">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-maroon-900 mb-2">Assalamu Alaikum, {firstName}</h2>
-          <p className="text-lg text-maroon-700">Continue your journey of Qur'anic excellence</p>
-          <div className="flex items-center mt-4">
-            <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white border-0 px-3 py-1">
-              <Star className="w-3 h-3 mr-1" />
-              {stats.hasanat.toLocaleString()} Hasanat Points
-            </Badge>
+      <div className="space-y-8 p-6">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-maroon-600 via-maroon-500 to-amber-500 p-6 text-white shadow-xl">
+          <div className="absolute -top-32 -right-32 h-64 w-64 rounded-full bg-white/10 blur-3xl" aria-hidden />
+          <div className="relative z-10 grid gap-6 md:grid-cols-[2fr,1fr] md:items-center">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-widest">
+                <Sparkles className="h-4 w-4" />
+                {localization.hero.title}
+              </div>
+              <h2 className={`text-3xl font-bold md:text-4xl ${heroTitleClass}`}>Assalamu Alaikum, {firstName}</h2>
+              <p className="text-white/90 md:text-lg">{heroCopy.subtitle}</p>
+              <div className="flex flex-wrap items-center gap-3">
+                <Badge className="border-white/30 bg-white/20 text-white">
+                  <Star className="mr-1 h-3 w-3" />
+                  {stats.hasanat.toLocaleString()} Hasanat
+                </Badge>
+                <Badge className="border-0 bg-gradient-to-r from-amber-300 to-amber-400 text-maroon-900 shadow-lg">
+                  {gamification.streak} day streak
+                </Badge>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Button className="rounded-full bg-white text-maroon-700 hover:bg-amber-100">
+                  <Play className="mr-2 h-4 w-4" />
+                  {localization.hero.action}
+                </Button>
+                <Button variant="outline" className="rounded-full border-white/40 text-white hover:bg-white/20">
+                  View celebration feed
+                </Button>
+              </div>
+            </div>
+            <div className="rounded-3xl bg-white/10 p-4 text-sm shadow-lg backdrop-blur">
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/70">Dynamic Highlights</p>
+              <div className="mt-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span>XP to next level</span>
+                  <span className="font-semibold">{gamification.xpToNext} XP</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Weekly Hasanat</span>
+                  <span className="font-semibold">{weeklyXpTotal} XP</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Current celebration</span>
+                  <span className="font-semibold">{heroCopy.title}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gradient-to-br from-blue-600 to-blue-700 text-white border-0">
-            <CardContent className="p-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4" data-animate="stagger">
+          <Card className="border-0 bg-gradient-to-br from-blue-600 to-blue-700 text-white transition-transform duration-300 hover:-translate-y-1 hover:shadow-2xl">
+            <CardContent className="p-6" data-animate="fade-in">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-blue-100 text-sm">Daily Streak</p>
+                  <p className="text-sm text-blue-100">Daily Streak</p>
                   <p className="text-2xl font-bold">{stats.streak} days</p>
                 </div>
-                <Calendar className="w-8 h-8 text-blue-200" />
+                <Calendar className="h-8 w-8 text-blue-200" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-600 to-green-700 text-white border-0">
-            <CardContent className="p-6">
+          <Card className="border-0 bg-gradient-to-br from-green-600 to-green-700 text-white transition-transform duration-300 hover:-translate-y-1 hover:shadow-2xl">
+            <CardContent className="p-6" data-animate="fade-in" style={{ animationDelay: "80ms" }}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-100 text-sm">Ayahs Read</p>
+                  <p className="text-sm text-green-100">Ayahs Read</p>
                   <p className="text-2xl font-bold">{stats.ayahsRead.toLocaleString()}</p>
                 </div>
-                <BookOpen className="w-8 h-8 text-green-200" />
+                <BookOpen className="h-8 w-8 text-green-200" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-600 to-purple-700 text-white border-0">
-            <CardContent className="p-6">
+          <Card className="border-0 bg-gradient-to-br from-purple-600 to-purple-700 text-white transition-transform duration-300 hover:-translate-y-1 hover:shadow-2xl">
+            <CardContent className="p-6" data-animate="fade-in" style={{ animationDelay: "160ms" }}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-100 text-sm">Study Time</p>
+                  <p className="text-sm text-purple-100">Study Time</p>
                   <p className="text-2xl font-bold">{formattedStudyTime}</p>
                 </div>
-                <Clock className="w-8 h-8 text-purple-200" />
+                <Clock className="h-8 w-8 text-purple-200" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-orange-600 to-orange-700 text-white border-0">
-            <CardContent className="p-6">
+          <Card className="border-0 bg-gradient-to-br from-orange-600 to-orange-700 text-white transition-transform duration-300 hover:-translate-y-1 hover:shadow-2xl">
+            <CardContent className="p-6" data-animate="fade-in" style={{ animationDelay: "240ms" }}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-orange-100 text-sm">Rank</p>
+                  <p className="text-sm text-orange-100">Rank</p>
                   <p className="text-2xl font-bold">#{stats.rank}</p>
                 </div>
-                <Trophy className="w-8 h-8 text-orange-200" />
+                <Trophy className="h-8 w-8 text-orange-200" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            <Card className="shadow-lg">
+        <div className="grid gap-8 lg:grid-cols-3">
+          <div className="space-y-8 lg:col-span-2">
+            <Card className="border-0 shadow-lg">
               <CardHeader>
-                <CardTitle className="text-xl flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-maroon-600" />
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <TrendingUp className="h-5 w-5 text-maroon-600" />
                   Level Progress
                 </CardTitle>
                 <CardDescription>Earn XP from daily habits to unlock advanced recitation challenges.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6" data-animate="stagger">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-maroon-600">Current Level</p>
@@ -138,7 +182,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <Progress value={xpProgress} className="h-2" />
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
                   <div>
                     <p className="text-xs uppercase tracking-wide text-gray-500">Weekly XP</p>
                     <p className="text-lg font-semibold text-maroon-900">{weeklyXpTotal} XP</p>
@@ -159,274 +203,222 @@ export default function DashboardPage() {
                 <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-maroon-100 bg-maroon-50 p-4">
                   <div>
                     <p className="text-sm font-medium text-maroon-900">Keep the streak alive</p>
-                    <p className="text-xs text-maroon-600">
-                      Complete any Habit Quest today to push your streak past {stats.streak} days.
-                    </p>
+                    <p className="text-xs text-maroon-600">Complete any Habit Quest today to push your streak past {stats.streak} days.</p>
                   </div>
                   <Link href="/habits">
-                    <Button className="bg-gradient-to-r from-maroon-600 to-maroon-700 text-white border-0">Open Habit Quest</Button>
+                    <Button className="border-0 bg-gradient-to-r from-maroon-600 to-maroon-700 text-white">Open Habit Quest</Button>
                   </Link>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Continue Learning */}
             <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle className="text-xl">Continue Your Journey</CardTitle>
                 <CardDescription>Pick up where you left off</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="bg-gradient-to-r from-maroon-50 to-yellow-50 rounded-xl p-6 border border-maroon-100">
-                  <div className="flex items-center justify-between mb-4">
+                <div className="rounded-xl border border-maroon-100 bg-gradient-to-r from-maroon-50 to-yellow-50 p-6">
+                  <div className="mb-4 flex items-center justify-between">
                     <div>
                       <h3 className="text-lg font-semibold text-maroon-900">Surah Al-Baqarah</h3>
                       <p className="text-sm text-maroon-600">The Cow • Ayah 156 of 286</p>
                     </div>
-                    <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white border-0">
-                      Level {featuredHabit?.level ?? 1}
-                    </Badge>
+                    <Badge className="border-0 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white">Level {featuredHabit?.level ?? 1}</Badge>
                   </div>
                   <Progress value={featuredHabit?.progress ?? 0} className="mb-4" />
                   <div className="flex space-x-3">
                     <Link href="/reader" className="flex-1">
-                      <Button className="w-full bg-gradient-to-r from-maroon-600 to-maroon-700 text-white border-0">
-                        <Play className="w-4 h-4 mr-2" />
+                      <Button className="w-full border-0 bg-gradient-to-r from-maroon-600 to-maroon-700 text-white">
+                        <Play className="mr-2 h-4 w-4" />
                         Continue Reading
                       </Button>
                     </Link>
                     <Button variant="outline" className="bg-white">
-                      <Target className="w-4 h-4 mr-2" />
+                      <Target className="mr-2 h-4 w-4" />
                       View Habit
                     </Button>
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                    <CardContent className="p-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-maroon-600 to-maroon-700 rounded-lg flex items-center justify-center">
-                          <BookOpen className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium">Start New Surah</h4>
-                          <p className="text-sm text-gray-600">Begin fresh reading</p>
-                        </div>
+                <div className="space-y-4">
+                  {recentActivity.map((activity, index) => (
+                    <div
+                      key={activity.type + index}
+                      className="flex items-center justify-between gap-4 rounded-lg border border-maroon-100 bg-white/70 p-4 shadow-sm transition-transform duration-300 hover:-translate-y-1"
+                    >
+                      <div>
+                        <p className="capitalize text-sm font-semibold text-maroon-900">{activity.type}</p>
+                        <p className="text-xs text-maroon-600">
+                          {activity.surah} • {activity.time}
+                        </p>
                       </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                    <CardContent className="p-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center">
-                          <HeadphonesIcon className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium">Audio Sessions</h4>
-                          <p className="text-sm text-gray-600">Listen & learn</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      <Badge className="border-0 bg-gradient-to-r from-maroon-500 to-amber-500 text-white">In progress</Badge>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
 
-            <PremiumGate featureName="AI Tajweed Coach" description="Unlock instant pronunciation scoring and tajweed drills.">
-              <Card className="shadow-lg relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-maroon-600/10 via-transparent to-yellow-200/20 pointer-events-none" aria-hidden="true" />
-                <CardHeader>
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <Mic className="w-5 h-5 text-maroon-600" />
-                    AI Tajweed Coach
-                  </CardTitle>
-                  <CardDescription>Personalized tajweed drills with real-time corrections powered by premium AI.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-maroon-600 to-maroon-700 flex items-center justify-center text-white">
-                        <Sparkles className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-maroon-900">Precision feedback</p>
-                        <p className="text-xs text-maroon-600">Get phoneme-level scoring after every recitation.</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center text-white">
-                        <Award className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-maroon-900">Custom drills</p>
-                        <p className="text-xs text-maroon-600">Focus on weak letters and memorize with confidence.</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="rounded-xl border border-dashed border-maroon-200 bg-maroon-50/60 p-4 flex flex-col justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-maroon-900">Today's premium boost</p>
-                      <p className="text-xs text-maroon-600">
-                        Earn +120 bonus XP for completing a tajweed mastery session.
-                      </p>
-                    </div>
-                    <Button className="mt-4 w-full bg-gradient-to-r from-maroon-600 to-maroon-700 text-white border-0">
-                      Start Premium Session
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </PremiumGate>
-
-            {/* Recent Activity */}
-            <Card>
+            <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle className="text-xl">Recent Activity</CardTitle>
-                <CardDescription>Your learning progress over the past week</CardDescription>
+                <CardTitle className="text-xl">Habit Quest Progress</CardTitle>
+                <CardDescription>Master habits to unlock rare Hasanat bonuses.</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentActivity.map((activity, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
-                      <div className="flex items-center space-x-4">
-                        <div
-                          className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                            activity.type === "reading"
-                              ? "bg-gradient-to-r from-maroon-600 to-maroon-700"
-                              : activity.type === "memorization"
-                                ? "bg-gradient-to-r from-yellow-500 to-yellow-600"
-                                : "bg-gradient-to-r from-blue-500 to-blue-600"
-                          }`}
-                        >
-                          {activity.type === "reading" && <BookOpen className="w-5 h-5 text-white" />}
-                          {activity.type === "memorization" && <Star className="w-5 h-5 text-white" />}
-                          {activity.type === "recitation" && <Mic className="w-5 h-5 text-white" />}
-                        </div>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  {habits.map((habit) => (
+                    <div
+                      key={habit.id}
+                      className="rounded-2xl border border-maroon-100 bg-white/80 p-4 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl"
+                    >
+                      <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="font-medium capitalize">{activity.type}</h4>
-                          <p className="text-sm text-gray-600">
-                            {activity.surah}
-                            {activity.ayahs && ` • ${activity.ayahs} ayahs`}
-                            {activity.progress && ` • ${activity.progress}% progress`}
-                            {activity.score && ` • ${activity.score}% score`}
-                          </p>
+                          <p className="text-sm font-semibold text-maroon-900">{habit.title}</p>
+                          <p className="text-xs text-maroon-600">{habit.description}</p>
                         </div>
+                        <Badge className="border-0 bg-gradient-to-r from-maroon-200 to-amber-200 text-maroon-800">Lvl {habit.level}</Badge>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-500">{activity.time}</p>
+                      <div className="mt-4">
+                        <Progress value={habit.progress} className="h-2" />
+                        <div className="mt-2 flex items-center justify-between text-xs text-maroon-600">
+                          <span>{habit.dailyTarget}</span>
+                          <span>+{habit.xpReward} XP</span>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
+                <PremiumGate featureName="AI Tajweed Coaching">
+                  <div className="rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-100 to-amber-200 p-6">
+                    <div className="flex flex-col items-center gap-4 md:flex-row">
+                      <div className="rounded-full bg-white p-4 shadow">
+                        <Mic className="h-6 w-6 text-amber-500" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-lg font-semibold text-maroon-900">Unlock AI Tajweed Coaching</h4>
+                        <p className="text-sm text-maroon-600">
+                          Receive real-time feedback on makharij, tajweed rules, and rhythm to accelerate your memorization.
+                        </p>
+                      </div>
+                      <Button className="rounded-full bg-gradient-to-r from-maroon-500 to-maroon-600 px-6 text-white shadow-lg">
+                        Upgrade Now
+                      </Button>
+                    </div>
+                  </div>
+                </PremiumGate>
               </CardContent>
             </Card>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Goals & Progress */}
-            <Card>
+          <div className="space-y-8" data-animate="stagger">
+            <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle className="text-lg">Current Goals</CardTitle>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Award className="h-5 w-5 text-maroon-600" />
+                  Recent Activity
+                </CardTitle>
+                <CardDescription>Highlights from your Qur'anic practice.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {upcomingGoals.map((goal, index) => (
-                  <div key={index} className="space-y-2">
-                    <div className="flex justify-between items-start">
-                      <h4 className="font-medium text-sm">{goal.title}</h4>
-                      <Badge variant="secondary" className="text-xs">
-                        {goal.deadline}
-                      </Badge>
+                {recentActivity.map((activity, index) => (
+                  <div
+                    key={activity.type + index}
+                    className="flex items-center gap-3 rounded-2xl border border-maroon-100 bg-white/80 p-3"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-maroon-200 to-amber-200">
+                      <BookOpen className="h-5 w-5 text-maroon-700" />
                     </div>
-                    <Progress value={goal.progress} className="h-2" />
-                    <p className="text-xs text-gray-500">{goal.progress}% complete</p>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-maroon-900">{activity.type}</p>
+                      <p className="text-xs text-maroon-600">
+                        {activity.surah} • {activity.time}
+                      </p>
+                    </div>
+                    <Badge className="border-0 bg-gradient-to-r from-maroon-500 to-amber-400 text-white">View</Badge>
                   </div>
                 ))}
-                <Button variant="outline" className="w-full mt-4 bg-transparent">
-                  <Target className="w-4 h-4 mr-2" />
-                  Set New Goal
-                </Button>
               </CardContent>
             </Card>
 
-            {/* Achievements */}
-            <Card>
+            <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle className="text-lg">Recent Achievements</CardTitle>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Target className="h-5 w-5 text-maroon-600" />
+                  Time-Limited Challenges
+                </CardTitle>
+                <CardDescription>Track your progress towards upcoming Qur'anic milestones.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center space-x-3 p-3 rounded-lg bg-yellow-50 border border-yellow-200">
-                  <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center">
-                    <Award className="w-4 h-4 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-sm">Week Warrior</h4>
-                    <p className="text-xs text-gray-600">7-day reading streak</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3 p-3 rounded-lg bg-maroon-50 border border-maroon-200">
-                  <div className="w-8 h-8 bg-gradient-to-r from-maroon-600 to-maroon-700 rounded-full flex items-center justify-center">
-                    <Star className="w-4 h-4 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-sm">Perfect Reciter</h4>
-                    <p className="text-xs text-gray-600">95%+ accuracy score</p>
-                  </div>
-                </div>
-
-                <Button variant="outline" className="w-full mt-4 bg-transparent">
-                  <Trophy className="w-4 h-4 mr-2" />
-                  View All Achievements
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Leaderboard */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Community Leaderboard</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-2">
-                  {[
-                    { name: "Fatima A.", points: 2847, rank: 1 },
-                    { name: "Omar K.", points: 2156, rank: 2 },
-                    { name: "You", points: 1247, rank: 12, isUser: true },
-                  ].map((user, index) => (
-                    <div
-                      key={index}
-                      className={`flex items-center justify-between p-2 rounded ${user.isUser ? "bg-maroon-50 border border-maroon-200" : ""}`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <span
-                          className={`text-sm font-medium ${
-                            user.rank === 1
-                              ? "text-yellow-600"
-                              : user.rank === 2
-                                ? "text-gray-500"
-                                : user.isUser
-                                  ? "text-maroon-600"
-                                  : "text-gray-600"
-                          }`}
-                        >
-                          #{user.rank}
-                        </span>
-                        <span className={`text-sm ${user.isUser ? "font-medium" : ""}`}>{user.name}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Star className="w-3 h-3 text-yellow-500" />
-                        <span className="text-sm">{user.points.toLocaleString()}</span>
-                      </div>
+              <CardContent className="space-y-4">
+                {challenges.map((challenge, index) => (
+                  <div key={challenge.id} className="space-y-2" data-animate="fade-in" style={{ animationDelay: `${index * 80}ms` }}>
+                    <div className="flex justify-between text-sm">
+                      <span className="font-semibold text-maroon-900">{challenge.title}</span>
+                      <span className="text-maroon-600">{formatDuration(challenge.expiresAt)}</span>
                     </div>
-                  ))}
-                </div>
-                <Button variant="outline" className="w-full mt-4 bg-transparent">
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  View Full Leaderboard
-                </Button>
+                    <Progress value={(challenge.progress / challenge.goal) * 100} className="h-2" />
+                    <div className="flex items-center justify-between text-xs text-maroon-600">
+                      <span>{challenge.description}</span>
+                      <span>
+                        {challenge.progress}/{challenge.goal}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <HeadphonesIcon className="h-5 w-5 text-maroon-600" />
+                  Immersive Listening
+                </CardTitle>
+                <CardDescription>AI-personalized recitation and memorization playlists.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm text-maroon-700">
+                <p>Keep your sessions immersive with AI-powered tajweed correction and curated memorization playlists tailored to your level.</p>
+                <ul className="space-y-2 text-maroon-600">
+                  <li className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden />
+                    Daily recitation summaries delivered to your inbox.
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden />
+                    Adaptive audio speed to perfect rhythm and tajweed.
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden />
+                    Smart reminders for memorization reviews and reflection.
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Sparkles className="h-5 w-5 text-maroon-600" />
+                  Intelligent Recommendations
+                </CardTitle>
+                <CardDescription>Personalized modules curated for you.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {recommendations.map((recommendation) => (
+                  <Link
+                    key={recommendation.id}
+                    href={recommendation.href}
+                    className="block rounded-2xl border border-maroon-100 bg-white/80 p-4 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-maroon-900">{recommendation.title}</p>
+                        <p className="text-xs text-maroon-600">{recommendation.description}</p>
+                      </div>
+                      <Badge className="border-none bg-gradient-to-r from-maroon-500 to-amber-400 text-white">Explore</Badge>
+                    </div>
+                  </Link>
+                ))}
               </CardContent>
             </Card>
           </div>
