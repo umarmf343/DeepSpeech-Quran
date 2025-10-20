@@ -35,6 +35,7 @@ export default function Navigation() {
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "Habit Quest", href: "/habits", icon: Gamepad2 },
     { name: "Qur'an Reader", href: "/reader", icon: BookOpen },
+    { name: "AI Tajweed Lab", href: "/practice", icon: Sparkles },
     { name: "Memorization", href: "/memorization", icon: Target },
     { name: "Progress", href: "/progress", icon: BarChart3 },
     { name: "Achievements", href: "/achievements", icon: Trophy },
