@@ -1,0 +1,65 @@
+<%= render 'tools/header',
+           name: 'Surah Information',
+           title: "Proofread Surah info for #{@resource.language_name&.humanize} language",
+           key: 'surah_info'
+%>
+
+<%= render 'shared/access_message' %>
+
+<div class="page-wrapper container-lg">
+  <div class="page-section filters">
+    <%= form_tag surah_infos_path, method: :get do %>
+      <div data-controller="chapter-verses-filter" class="d-flex tw-flex-wrap">
+        <div class="form-group me-2">
+          <%= select_tag :language_id, options_from_collection_for_select(@available_languages, :id, :name, selected: @language.id), include_blank: false, class: 'form-select tw-w-[85vw] sm:tw-w-[200px]', data: { placeholder: 'Select language', controller: 'select2' } %>
+          <p class="form-text">Filter by language</p>
+        </div>
+
+        <%= render 'shared/filters', verse: false %>
+
+        <div class="form-group">
+          <%= submit_tag 'Filter', class: 'btn btn-primary', data: { disable_with: 'Please wait..' } %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="page-section mt-4">
+    <h2 class="tw-text-2xl tw-mb-4">Surah list</h2>
+    <div class="tools-table-overflow">
+    <table class="table table-hover">
+      <thead class="tw-sticky tw-top-0 tw-z-10 tw-bg-white">
+      <tr>
+        <th><%= sort_order_link 'Surah', :chapter_id, resource_id: @resource.id %></th>
+        <th>Language</th>
+        <th>Short text</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <% @surah_infos.each do |info| %>
+        <tr>
+          <th scope="row"><%= info.chapter_id %> - <%= info.chapter.name_simple %></th>
+
+          <td>
+            <%= info.language.name %>
+          </td>
+
+          <td>
+            <%= info.short_text %>
+          </td>
+
+          <td>
+            <div class="d-flex gap-1">
+              <%= link_to 'Edit', edit_surah_info_path(info.chapter_id, resource_id: @resource.id, language: info.language_id), class: 'btn btn-info' if @access %>
+              <%= link_to 'Show', surah_info_path(info.chapter_id, resource_id: @resource.id, language: info.language_id), class: 'btn btn-success' %>
+            </div>
+          </td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>

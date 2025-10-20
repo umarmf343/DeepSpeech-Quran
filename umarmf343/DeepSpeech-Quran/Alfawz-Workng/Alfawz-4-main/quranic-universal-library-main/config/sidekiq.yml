@@ -1,0 +1,23 @@
+:concurrency: 4
+
+production:
+  :concurrency: 3
+
+staging:
+  :concurrency: 1
+
+:queues:
+  - [default, 5]
+  - [mailers, 1]
+  - [active_storage_purge, 1]
+
+:schedule:
+  daily_backup:
+    class: BackupJob
+    cron: "0 10 * * *"
+    description: "Daily database backup job"
+
+  quran_enc_update_checker:
+    class: DraftContent::CheckContentChangesJob
+    cron: "0 6 * * 0"
+    description: "Weekly job to check for translation and tafsir changes from sources"

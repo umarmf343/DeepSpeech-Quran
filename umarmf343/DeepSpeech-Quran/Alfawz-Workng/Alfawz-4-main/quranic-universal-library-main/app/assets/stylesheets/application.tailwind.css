@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+    /*.rounded-lg{
+        border-radius: 0.5rem; // 8px
+    }
+    */
+}
+
+@layer components {
+    .active-tab {
+      @apply border-b-2 border-blue-600 text-blue-600;
+    }
+
+    .tw-link-button {
+        @apply tw-font-semibold tw-underline hover:tw-text-black
+    }
+
+    .tw-btn {
+        @apply tw-font-semibold tw-py-2 tw-px-4 tw-rounded focus:tw-outline-none focus:tw-ring-2;
+    }
+
+    .tw-btn-success {
+        @apply tw-bg-green-500 tw-text-white hover:tw-bg-green-600 focus:tw-ring-green-300 hover:tw-text-white;
+    }
+
+    .tw-docs {
+        @apply tw-text-gray-900 tw-leading-relaxed;
+    }
+
+    /* Headings */
+    .tw-docs h1 {
+        @apply tw-text-3xl tw-font-bold tw-text-blue-600 tw-mb-4;
+    }
+
+    .tw-docs h2 {
+        @apply tw-text-2xl tw-font-semibold tw-text-gray-700 tw-mt-6 tw-mb-2;
+    }
+
+    .tw-docs h3 {
+        @apply tw-text-xl tw-font-semibold tw-mt-4;
+    }
+
+    .tw-docs p {
+        @apply tw-mb-4;
+    }
+
+    .tw-docs ul {
+        @apply tw-list-disc tw-pl-6 tw-space-y-2;
+    }
+
+    .tw-docs pre {
+        @apply tw-p-4 tw-rounded-md tw-overflow-x-auto;
+        background-color: #ecf0f1; 
+        font-size: 1.1em;
+        color: #2c3e50; 
+    }
+
+    .tw-docs code {
+        @apply tw-px-1 tw-rounded tw-bg-gray-200;
+        background-color: #ecf0f1; 
+        font-family: "Courier New", monospace;
+        color: #2c3e50;
+    }
+
+    .tw-docs .example {
+        @apply tw-p-4 tw-rounded-lg tw-mt-3 tw-mb-3;
+        background-color: #eafaf1; 
+        border: 1px solid #b3e0b3;
+    }
+
+    .tw-docs .example h3 {
+        @apply tw-mt-0;
+    }
+
+    .tw-docs .note {
+        @apply tw-p-4 tw-mt-3 tw-mb-3;
+        background-color: #fef6e4; 
+        border-left: 4px solid #f39c12;
+    }
+
+    .tw-docs .hlt {
+        @apply tw-font-bold;
+        color: #ff6347; 
+    }
+
+    .tw-docs a {
+        @apply tw-underline tw-font-bold;
+    }
+}
+
+.resize-handler {
+    width: 8px;
+    background-color: #e2e8f0;
+    cursor: ew-resize;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.resize-handler:hover{
+    width: 16px;
+}
+
+.resize-handler::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    background-color: #4a5568;
+    border-radius: 50%;
+    box-shadow:
+            0 -8px 0 #4a5568,
+            0 8px 0 #4a5568;
+}
+
+.contributor-card {
+    transition: all 0.3s ease;
+}
+
+.contributor-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.contributor-logo {
+    transition: all 0.3s ease;
+}
+
+.contributor-logo:hover .logo {
+    transform: scale(1.05);
+}
+
+

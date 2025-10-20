@@ -1,0 +1,75 @@
+<%
+  actions = []
+
+  if @audio_file.chapter_id > 1
+  actions << link_to('Previous Surah', surah_audio_file_path(@recitation.id, chapter_id: @audio_file.chapter_id - 1), class: 'btn btn-dark')
+  end
+
+  if @audio_file.chapter_id < 114
+    actions << link_to('Next Surah', surah_audio_file_path(@recitation.id, chapter_id: @audio_file.chapter_id + 1), class: 'btn btn-dark')
+  end
+
+  actions << link_to('View Segments', segment_builder_surah_audio_file_path(@recitation.id, chapter_id: @audio_file.chapter_id), class: 'btn btn-primary')
+  actions << link_to('Back to Index', surah_audio_files_path(id: @recitation.id), class: 'btn btn-info')
+%>
+
+<%= render 'tools/header',
+           name: 'Surah recitations',
+           title: "#{@recitation.humanize} - #{@audio_file.chapter.name_simple}",
+           key: 'surah_recitation_segment_builder',
+           actions: actions
+%>
+
+<div class="page-wrapper container-lg">
+  <div class="page-section">
+    <h3>Segments list</h3>
+    <table class="table table-hover">
+      <thead class="tw-sticky tw-top-0 tw-z-10 bg-white border-bottom">
+      <tr>
+        <th><%= sort_order_link 'Verse', :verse_id, recitation_id: @recitation.id, chapter_id: params[:chapter_id] %></th>
+        <th>From</th>
+        <th>To</th>
+        <th>Duration</th>
+        <th>Words</th>
+        <th>Total Segments</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <% @audio_file.audio_segments.each do |segment| %>
+        <tr>
+          <th scope="row"><%= segment.verse_key %></th>
+
+          <td>
+            <%= segment.timestamp_from %>
+          </td>
+
+          <td>
+            <%= segment.timestamp_to %>
+          </td>
+
+          <td>
+            <%= segment.duration %>
+          </td>
+
+          <td>
+            <%= segment.verse.words.size %>
+          </td>
+
+          <td>
+            <%= segment.segments.size %>
+          </td>
+
+          <td>
+            <div class="d-flex gap-1">
+              <%= link_to 'Fix Segments', segment_builder_surah_audio_file_path(@recitation.id, chapter_id: @audio_file.chapter_id, verse: segment.verse.verse_number), class: 'btn btn-success' %>
+            </div>
+          </td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+

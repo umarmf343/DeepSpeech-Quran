@@ -1,0 +1,20 @@
+<%
+  patterns = (1..10).to_a
+%>
+<div class="sidescroll-container">
+  <h2 class="tw-text-3xl md:tw-text-5xl tw-text-white tw-font-title">Developer Tools</h2>
+</div>
+<div class="tw-mt-10">
+  <%= render 'card/card_sidescrolling_container' do %>
+    <% featured_developer_tools.each do |card| %>
+      <%= render 'card/card-container', card: card, patterns: patterns do %>
+        <%= render 'card/card_content', card: card, show_learn_more: true, show_tags: true, tool: true %>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>
+<div class="sidescroll-container">
+  <p class="tw-mt-10">
+    <%= link_to 'VIEW ALL DEVELOPER TOOLS', tools_path, class: 'tw-text-white tw-opacity-70 tw-font-semibold hover:tw-opacity-100 hover:tw-text-white tw-transition-opacity tw-duration-300' %>
+  </p>
+</div>

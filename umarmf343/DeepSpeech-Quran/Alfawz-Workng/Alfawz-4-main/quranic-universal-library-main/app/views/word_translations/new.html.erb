@@ -1,0 +1,44 @@
+<%= render 'tools/header',
+           name: "Word translation proofreading",
+           title: "#{@language.name} word-by-word translation for #{@verse.chapter.name_simple} ayah #{@verse.verse_number}",
+           key: 'word_translation' %>
+
+<div class="page-wrapper container-lg">
+  <div class="page-section">
+    <div class="row" id="editor-wrap">
+
+      <div class="col-md-12">
+        <b>Text Uthmani</b>
+        <div class="qpc-hafs" id="ayah_text">
+          <%= @verse.text_qpc_hafs %>
+        </div>
+      </div>
+
+      <div class="col-md-12 mb-4">
+        <% @verse.translations.each do |trans| %>
+          <b><%= trans.resource_name %></b>
+          <div class="<%= trans.language_name %>" id="ayah_text">
+            <%= safe_html trans.text %>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="col-md-12" data-controller="word-translation">
+        <%= form_for @verse, url: word_translations_path(verse_id: @verse.id, language: @language.id), method: :post, html: { class: 'form', autocomplete: 'off' } do |form| %>
+          <div id="words">
+            <%= form.fields_for :word_translations, @wbw_translations do |trans_form| %>
+             <%= render 'word_translation_field', form: trans_form, language: current_language %>
+            <% end %>
+          </div>
+
+          <div class="form-group d-flex justify-content-end align-items-center mt-3">
+            <%= link_to 'Cancel', word_translation_path(@verse.id, language: @language.id), class: 'me-3' %>
+            <%= form.submit 'Save translations',
+                            class: 'btn btn-success',
+                            data: { disable_with: 'Please wait...' } %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

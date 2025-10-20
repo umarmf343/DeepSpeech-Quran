@@ -1,0 +1,63 @@
+<%
+  actions = []
+  if @chapter.id > 1
+    actions << link_to('Previous Surah', ayah_audio_file_path(@recitation.id, chapter_id: @chapter.id - 1), class: 'btn btn-dark')
+  end
+
+  if @chapter.id < 114
+    actions << link_to('Next Surah', ayah_audio_file_path(@recitation.id, chapter_id: @chapter.id + 1), class: 'btn btn-dark')
+  end
+
+  actions << link_to('View Segments', segment_builder_ayah_audio_file_path(@recitation.id, chapter_id: @chapter.id), class: 'btn btn-primary')
+  actions << link_to('Back to Index', ayah_audio_files_path(id: @recitation.id), class: 'btn btn-success')
+%>
+
+<%= render 'tools/header',
+           name: 'Ayah recitations',
+           title: "#{@recitation.name} - Surah #{@chapter.name_simple}",
+           key: 'ayah_recitation',
+           actions: actions
+%>
+
+<div class="page-wrapper container-lg">
+  <div class="page-section">
+    <h3>Segments</h3>
+    <table class="table table-hover">
+      <thead class="tw-sticky tw-top-0 tw-z-10 bg-white border-bottom">
+      <tr>
+        <th><%= sort_order_link 'Verse', :verse_number, id: @recitation.id %></th>
+        <th>Duration</th>
+        <th>Words</th>
+        <th>Total Segments</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <% @audio_files.each do |file| %>
+        <tr>
+          <th scope="row"><%= file.verse.verse_key %></th>
+          <td>
+            <%= file.duration %>
+          </td>
+
+          <td>
+            <%= file.verse.words_count %>
+          </td>
+
+          <td>
+            <%= file.segments.size %>
+          </td>
+
+          <td>
+            <div class="d-grid gap-1">
+              <%= link_to 'Fix Segments', segment_builder_ayah_audio_file_path(@recitation.id, chapter_id: @chapter.id, verse: file.verse_number), class: 'btn btn-success' %>
+            </div>
+          </td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
