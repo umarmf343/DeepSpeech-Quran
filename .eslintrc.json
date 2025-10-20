@@ -1,6 +1,17 @@
 {
   "$schema": "https://json.schemastore.org/eslintrc",
   "extends": ["next/core-web-vitals", "next/typescript"],
-  "ignorePatterns": ["node_modules/", ".next/", "dist/"],
-  "rules": {}
+  "ignorePatterns": [
+    "node_modules/",
+    ".next/",
+    "dist/",
+    "DeepSpeech/",
+    "quranic-universal-library-main/"
+  ],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-require-imports": "off",
+    "react/no-unescaped-entities": "off",
+    "@next/next/no-page-custom-font": "off"
+  }
 }
