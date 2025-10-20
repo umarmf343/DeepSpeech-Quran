@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   const ayahReference = formData.get("ayahReference") as string | null
   const stage =
     deepspeechStages.find((entry) => entry.stage === preferredStage) ?? deepspeechStages[1] ?? deepspeechStages[0]
-  const morphologyLookup = ayahReference ? getMorphologyForAyah(ayahReference, ayahText) : null
+  const morphologyLookup = ayahReference ? await getMorphologyForAyah(ayahReference, ayahText) : null
 
   const tajweedMistakes = ayahText
     ? [
