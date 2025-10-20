@@ -1,17 +1,18 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useMemo, useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { MorphologyBreakdown } from "@/components/morphology-breakdown"
+import { mushafVariants } from "@/lib/integration-data"
 import {
   Play,
   Pause,
   SkipBack,
   SkipForward,
-  Volume2,
   BookOpen,
   Settings,
   Bookmark,
@@ -19,10 +20,10 @@ import {
   Mic,
   MicOff,
   RotateCcw,
+  Sparkles,
 } from "lucide-react"
 import Link from "next/link"
 
-// Sample Qur'an data - in real app this would come from Al-Quran Cloud API
 const sampleSurah = {
   number: 1,
   name: "Al-Fatiha",
@@ -91,10 +92,21 @@ export default function QuranReaderPage() {
   const [showTranslation, setShowTranslation] = useState(true)
   const [showTransliteration, setShowTransliteration] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
-  const [fontSize, setFontSize] = useState("text-4xl")
+  const [fontScale, setFontScale] = useState(4)
   const [reciter, setReciter] = useState("mishary")
+  const [selectedMushaf, setSelectedMushaf] = useState(mushafVariants[0])
 
   const audioRef = useRef<HTMLAudioElement>(null)
+  const mushafOptions = useMemo(() => mushafVariants, [])
+  const fontSizeClass = useMemo(() => {
+    const map: Record<number, string> = {
+      3: "text-3xl",
+      4: "text-4xl",
+      5: "text-5xl",
+      6: "text-6xl",
+    }
+    return map[fontScale] ?? "text-4xl"
+  }, [fontScale])
 
   const handlePlayPause = () => {
     if (audioRef.current) {
@@ -128,7 +140,6 @@ export default function QuranReaderPage() {
 
   const toggleRecording = () => {
     setIsRecording(!isRecording)
-    // In real app, this would start/stop audio recording for AI feedback
   }
 
   useEffect(() => {
@@ -138,9 +149,11 @@ export default function QuranReaderPage() {
     }
   }, [volume, playbackSpeed])
 
+  const selectedAyah = sampleSurah.ayahs[currentAyah]
+  const morphologyReference = `${sampleSurah.number}:${selectedAyah.number}`
+
   return (
     <div className="min-h-screen bg-gradient-cream">
-      {/* Header */}
       <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -181,9 +194,8 @@ export default function QuranReaderPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid lg:grid-cols-4 gap-8">
-          {/* Main Reader */}
-          <div className="lg:col-span-3">
-            <Card className="border-border/50 shadow-lg">
+          <div className="lg:col-span-3 space-y-6">
+            <Card className={`border-border/50 shadow-lg transition ${selectedMushaf.visualStyle.background}`}>
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -194,270 +206,264 @@ export default function QuranReaderPage() {
                       {sampleSurah.numberOfAyahs} Ayahs • {sampleSurah.revelationType}
                     </p>
                   </div>
-                  <Badge className="gradient-gold text-white border-0">
-                    Ayah {currentAyah + 1} of {sampleSurah.numberOfAyahs}
-                  </Badge>
+                  <Badge className="gradient-gold text-white border-0">Ayah {currentAyah + 1}</Badge>
                 </div>
               </CardHeader>
-
-              <CardContent className="space-y-8">
-                {/* Current Ayah Display */}
-                <div className="text-center space-y-6 py-8">
-                  <div
-                    className={`arabic-text ${fontSize} leading-loose text-primary cursor-pointer hover:text-primary/80 transition-colors`}
-                    onClick={() => handleAyahClick(currentAyah)}
-                  >
-                    {sampleSurah.ayahs[currentAyah].text}
+              <CardContent className="space-y-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">{sampleSurah.revelationType}</Badge>
+                    <Badge variant="outline">{sampleSurah.numberOfAyahs} Ayahs</Badge>
+                    <Badge className={selectedMushaf.visualStyle.badge}>{selectedMushaf.name}</Badge>
                   </div>
-
-                  {showTransliteration && (
-                    <p className="text-lg text-muted-foreground italic">
-                      {sampleSurah.ayahs[currentAyah].transliteration}
-                    </p>
-                  )}
-
-                  {showTranslation && (
-                    <p className="text-lg text-foreground max-w-3xl mx-auto leading-relaxed">
-                      {sampleSurah.ayahs[currentAyah].translation}
-                    </p>
-                  )}
-
-                  <div className="flex items-center justify-center space-x-2">
-                    <Badge variant="secondary">Ayah {sampleSurah.ayahs[currentAyah].number}</Badge>
-                  </div>
+                  <Button variant="ghost" size="sm" className="text-maroon-700" asChild>
+                    <Link href="/practice">
+                      <Sparkles className="w-4 h-4 mr-2" /> Launch AI Lab
+                    </Link>
+                  </Button>
                 </div>
 
-                {/* Audio Controls */}
-                <div className="bg-muted/30 rounded-xl p-6 space-y-4">
-                  <div className="flex items-center justify-center space-x-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handlePrevAyah}
-                      disabled={currentAyah === 0}
-                      className="bg-transparent"
-                    >
-                      <SkipBack className="w-4 h-4" />
-                    </Button>
-
-                    <Button
-                      onClick={handlePlayPause}
-                      size="lg"
-                      className="gradient-maroon text-white border-0 w-16 h-16 rounded-full"
-                    >
-                      {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-1" />}
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleNextAyah}
-                      disabled={currentAyah === sampleSurah.ayahs.length - 1}
-                      className="bg-transparent"
-                    >
-                      <SkipForward className="w-4 h-4" />
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center space-x-4">
-                    <Volume2 className="w-5 h-5 text-muted-foreground" />
-                    <Slider value={volume} onValueChange={setVolume} max={100} step={1} className="flex-1" />
-                    <span className="text-sm text-muted-foreground w-12">{volume[0]}%</span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center space-x-4">
-                      <Select value={playbackSpeed} onValueChange={setPlaybackSpeed}>
-                        <SelectTrigger className="w-20 h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="0.5">0.5x</SelectItem>
-                          <SelectItem value="0.75">0.75x</SelectItem>
-                          <SelectItem value="1">1x</SelectItem>
-                          <SelectItem value="1.25">1.25x</SelectItem>
-                          <SelectItem value="1.5">1.5x</SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      <Select value={reciter} onValueChange={setReciter}>
-                        <SelectTrigger className="w-32 h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="mishary">Mishary Rashid</SelectItem>
-                          <SelectItem value="sudais">Abdul Rahman Al-Sudais</SelectItem>
-                          <SelectItem value="husary">Mahmoud Khalil Al-Husary</SelectItem>
-                          <SelectItem value="minshawi">Mohamed Siddiq El-Minshawi</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <Button
-                      variant={isRecording ? "destructive" : "outline"}
-                      size="sm"
-                      onClick={toggleRecording}
-                      className={isRecording ? "" : "bg-transparent"}
-                    >
-                      {isRecording ? <MicOff className="w-4 h-4 mr-2" /> : <Mic className="w-4 h-4 mr-2" />}
-                      {isRecording ? "Stop Recording" : "Practice Recitation"}
-                    </Button>
-                  </div>
+                <div
+                  className={`rounded-xl border-2 px-6 py-8 shadow-sm bg-white/90 transition ${selectedMushaf.visualStyle.border}`}
+                >
+                  <p className={`font-arabic text-right leading-relaxed text-maroon-900 ${fontSizeClass}`}>
+                    {selectedAyah.text}
+                  </p>
                 </div>
 
-                {/* All Ayahs List */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">All Ayahs</h3>
-                  <div className="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
-                    {sampleSurah.ayahs.map((ayah, index) => (
-                      <div
-                        key={ayah.number}
-                        className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
-                          index === currentAyah
-                            ? "border-primary bg-primary/5"
-                            : "border-border/50 hover:border-primary/30"
-                        }`}
-                        onClick={() => handleAyahClick(index)}
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <Badge variant={index === currentAyah ? "default" : "secondary"} className="text-xs">
-                            {ayah.number}
-                          </Badge>
-                          {index === currentAyah && isPlaying && (
-                            <div className="flex items-center space-x-1">
-                              <div className="w-1 h-4 bg-primary rounded animate-pulse"></div>
-                              <div className="w-1 h-6 bg-primary rounded animate-pulse delay-100"></div>
-                              <div className="w-1 h-4 bg-primary rounded animate-pulse delay-200"></div>
-                            </div>
-                          )}
-                        </div>
-                        <div className="arabic-text text-xl leading-relaxed text-primary mb-2">{ayah.text}</div>
-                        {showTranslation && (
-                          <p className="text-sm text-muted-foreground leading-relaxed">{ayah.translation}</p>
-                        )}
+                {showTranslation && (
+                  <p className="text-sm text-gray-700 bg-gray-50/80 rounded-lg p-4 leading-relaxed">{selectedAyah.translation}</p>
+                )}
+
+                {showTransliteration && (
+                  <p className="text-sm text-gray-600 italic">{selectedAyah.transliteration}</p>
+                )}
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Card className="bg-maroon-50/70 border-maroon-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm text-maroon-800">Reader Settings</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4 text-sm text-gray-700">
+                      <div className="space-y-2">
+                        <p className="font-medium text-maroon-800 text-sm">Font Size</p>
+                        <Slider
+                          value={[fontScale]}
+                          onValueChange={(value) => setFontScale(value[0] ?? 4)}
+                          min={3}
+                          max={6}
+                          step={1}
+                        />
+                        <p className="text-xs text-gray-500">Current size: {fontSizeClass.replace("text-", "")}</p>
                       </div>
-                    ))}
-                  </div>
+                      <div className="space-y-2">
+                        <p className="font-medium text-maroon-800 text-sm">Reciter</p>
+                        <Select value={reciter} onValueChange={setReciter}>
+                          <SelectTrigger className="bg-white/90">
+                            <SelectValue placeholder="Select reciter" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="mishary">Mishary Alafasy</SelectItem>
+                            <SelectItem value="husary">Mahmoud Al-Husary</SelectItem>
+                            <SelectItem value="abdulbasit">Abdul Basit</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="font-medium text-maroon-800 text-sm">Mushaf Variant</p>
+                        <div className="flex flex-wrap gap-2">
+                          {mushafOptions.map((variant) => (
+                            <Button
+                              key={variant.id}
+                              variant={variant.id === selectedMushaf.id ? "default" : "outline"}
+                              className={
+                                variant.id === selectedMushaf.id
+                                  ? "bg-maroon-600 text-white"
+                                  : "border-maroon-200 text-maroon-700"
+                              }
+                              size="sm"
+                              onClick={() => setSelectedMushaf(variant)}
+                            >
+                              {variant.name}
+                            </Button>
+                          ))}
+                        </div>
+                        <p className="text-xs text-gray-600 leading-relaxed">{selectedMushaf.description}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-blue-200 bg-blue-50/70">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm text-blue-800">Audio Controls</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3 text-sm">
+                      <div className="flex items-center gap-3">
+                        <Button onClick={handlePrevAyah} variant="outline" size="sm">
+                          <SkipBack className="w-4 h-4" />
+                        </Button>
+                        <Button onClick={handlePlayPause} className="bg-maroon-600 hover:bg-maroon-700 text-white px-4">
+                          {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                          <span className="ml-2">{isPlaying ? "Pause" : "Play"}</span>
+                        </Button>
+                        <Button onClick={handleNextAyah} variant="outline" size="sm">
+                          <SkipForward className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="font-medium text-blue-800 text-sm">Volume</p>
+                        <Slider value={volume} onValueChange={setVolume} max={100} step={5} className="w-full" />
+                      </div>
+                      <div className="space-y-2">
+                        <p className="font-medium text-blue-800 text-sm">Playback Speed</p>
+                        <Select value={playbackSpeed} onValueChange={setPlaybackSpeed}>
+                          <SelectTrigger className="bg-white/90">
+                            <SelectValue placeholder="Speed" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="0.75">0.75x</SelectItem>
+                            <SelectItem value="1">1x</SelectItem>
+                            <SelectItem value="1.25">1.25x</SelectItem>
+                            <SelectItem value="1.5">1.5x</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="grid lg:grid-cols-2 gap-4">
+                  <Card className="border-emerald-200 bg-emerald-50/80">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm text-emerald-800">Mushaf Highlights</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3 text-sm text-emerald-900">
+                      <div className="font-arabic text-right text-xl bg-white/80 rounded-lg border border-emerald-200 p-3 shadow-sm">
+                        {selectedMushaf.ayahExample.arabic}
+                      </div>
+                      <p className="text-sm text-gray-700">{selectedMushaf.ayahExample.guidance}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedMushaf.highlights.map((highlight) => (
+                          <Badge key={highlight} className={selectedMushaf.visualStyle.badge}>
+                            {highlight}
+                          </Badge>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <MorphologyBreakdown ayahReference={morphologyReference} />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Card className="border-purple-200 bg-purple-50/80">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm text-purple-800">Live Tajweed Coach</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3 text-sm text-gray-700">
+                      <div className="flex items-center gap-3">
+                        <Button
+                          onClick={toggleRecording}
+                          className={`px-4 ${isRecording ? "bg-red-600 hover:bg-red-700" : "bg-maroon-600 hover:bg-maroon-700"} text-white`}
+                        >
+                          {isRecording ? <MicOff className="w-4 h-4 mr-2" /> : <Mic className="w-4 h-4 mr-2" />}
+                          {isRecording ? "Stop" : "Record"}
+                        </Button>
+                        <Button variant="outline" size="sm" className="text-purple-700" asChild>
+                          <Link href="/practice">
+                            Review Mistakes
+                          </Link>
+                        </Button>
+                      </div>
+                      <p>
+                        Connects directly to the DeepSpeech tajweed detector, enabling real-time mistake highlighting as you recite each ayah.
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-slate-200 bg-white/80">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm text-slate-800">Reader Shortcuts</CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-2 gap-3 text-xs text-gray-700">
+                      <div className="rounded-lg border border-slate-200 p-3">
+                        <p className="font-semibold text-maroon-700">Reset Layout</p>
+                        <p>Restore default font, translation, and Mushaf settings.</p>
+                        <Button variant="ghost" size="sm" className="mt-2 text-maroon-700" onClick={() => setSelectedMushaf(mushafVariants[0])}>
+                          <RotateCcw className="w-4 h-4 mr-1" /> Reset
+                        </Button>
+                      </div>
+                      <div className="rounded-lg border border-slate-200 p-3">
+                        <p className="font-semibold text-maroon-700">Toggle Translation</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Button variant="outline" size="sm" onClick={() => setShowTranslation((prev) => !prev)}>
+                            {showTranslation ? "Hide" : "Show"}
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => setShowTransliteration((prev) => !prev)}>
+                            Transliteration
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </CardContent>
             </Card>
+
+            <audio
+              ref={audioRef}
+              src={selectedAyah.audioUrl}
+              onEnded={() => setIsPlaying(false)}
+              className="hidden"
+            />
           </div>
 
-          {/* Sidebar Controls */}
           <div className="space-y-6">
-            {/* Display Settings */}
-            <Card className="border-border/50">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg">Display Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Font Size</label>
-                  <Select value={fontSize} onValueChange={setFontSize}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="text-2xl">Small</SelectItem>
-                      <SelectItem value="text-3xl">Medium</SelectItem>
-                      <SelectItem value="text-4xl">Large</SelectItem>
-                      <SelectItem value="text-5xl">Extra Large</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-3">
-                  <label className="flex items-center space-x-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={showTranslation}
-                      onChange={(e) => setShowTranslation(e.target.checked)}
-                      className="rounded border-border"
-                    />
-                    <span className="text-sm">Show Translation</span>
-                  </label>
-
-                  <label className="flex items-center space-x-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={showTransliteration}
-                      onChange={(e) => setShowTransliteration(e.target.checked)}
-                      className="rounded border-border"
-                    />
-                    <span className="text-sm">Show Transliteration</span>
-                  </label>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Progress Tracking */}
-            <Card className="border-border/50">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg">Progress</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>Surah Progress</span>
-                    <span>{Math.round(((currentAyah + 1) / sampleSurah.numberOfAyahs) * 100)}%</span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className="gradient-maroon h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${((currentAyah + 1) / sampleSurah.numberOfAyahs) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Today's Goal</span>
-                    <span className="text-primary font-medium">5 Ayahs</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Completed</span>
-                    <span className="text-primary font-medium">{currentAyah + 1} Ayahs</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Streak</span>
-                    <span className="text-accent font-medium">7 days</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card className="border-border/50">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg">Quick Actions</CardTitle>
+            <Card className="border-maroon-200 bg-white/80 shadow-md">
+              <CardHeader>
+                <CardTitle className="text-maroon-800 text-lg">Ayah Navigator</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start bg-transparent">
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Repeat Current Ayah
-                </Button>
-                <Button variant="outline" className="w-full justify-start bg-transparent">
-                  <Bookmark className="w-4 h-4 mr-2" />
-                  Add to Favorites
-                </Button>
-                <Button variant="outline" className="w-full justify-start bg-transparent">
-                  <Share className="w-4 h-4 mr-2" />
-                  Share Progress
-                </Button>
+                <div className="flex flex-col gap-2">
+                  {sampleSurah.ayahs.map((ayah, index) => (
+                    <button
+                      key={ayah.number}
+                      onClick={() => handleAyahClick(index)}
+                      className={`w-full text-left rounded-lg border px-4 py-3 transition ${
+                        index === currentAyah
+                          ? "border-maroon-300 bg-maroon-50 text-maroon-800 shadow"
+                          : "border-gray-200 bg-white/70 hover:bg-cream-100"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold">Ayah {ayah.number}</span>
+                        <Badge variant="outline" className="text-xs">
+                          {Math.round((index / sampleSurah.numberOfAyahs) * 100)}%
+                        </Badge>
+                      </div>
+                      <p className="font-arabic text-right text-lg text-maroon-900 mt-2">{ayah.text}</p>
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-amber-200 bg-amber-50/80 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-amber-800">DeepSpeech Reader Tips</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-gray-700">
+                <p>
+                  • Keep your microphone within 15cm and enable the tajweed Mushaf to mirror the color-coded mistakes flagged by DeepSpeech.
+                </p>
+                <p>
+                  • Replay any ayah with mismatched morphology roots to drill vocabulary directly from the grammar corpus.
+                </p>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
-
-      {/* Hidden Audio Element */}
-      <audio
-        ref={audioRef}
-        src={sampleSurah.ayahs[currentAyah].audioUrl}
-        onEnded={() => setIsPlaying(false)}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-      />
     </div>
   )
 }
