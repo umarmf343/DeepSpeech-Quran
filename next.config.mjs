@@ -6,72 +6,33 @@ const WINDOWS_PROTECTED_GLOBS = [
   "**/swapfile.sys",
 ];
 
-const WINDOWS_PROTECTED_REGEXES = [
-  /(?:^|[\\/])DumpStack\.log\.tmp$/,
-  /(?:^|[\\/])System Volume Information(?:$|[\\/])/, 
-  /(?:^|[\\/])hiberfil\.sys$/,
-  /(?:^|[\\/])pagefile\.sys$/,
-  /(?:^|[\\/])swapfile\.sys$/,
-];
+const normalizeIgnoredGlobs = (ignored) => {
+  if (!ignored) return [];
 
-const ensureArray = (value) => {
-  if (value == null) return [];
-  return Array.isArray(value) ? value : [value];
-};
-
-const filterInvalidIgnored = (items) =>
-  items.filter((item) => {
-    if (item == null) return false;
-    if (typeof item === "string") return item.trim().length > 0;
-    if (item instanceof RegExp) return true;
-    if (typeof item === "function") return true;
-    return false;
-  });
-
-const mergeIgnored = (existing, additions) => {
-  if (typeof existing === "function") {
-    const windowsIgnoreFn = (path) =>
-      WINDOWS_PROTECTED_REGEXES.some((regex) => regex.test(path));
-
-    return (path, ...rest) =>
-      existing(path, ...rest) || windowsIgnoreFn(path, ...rest);
+  if (Array.isArray(ignored)) {
+    return ignored.filter(
+      (item) => typeof item === "string" && item.trim().length > 0,
+    );
   }
 
-  const normalized = filterInvalidIgnored(ensureArray(existing));
-
-  if (normalized.length === 0) {
-    return [...additions.regex];
+  if (typeof ignored === "string") {
+    return ignored.trim().length > 0 ? [ignored] : [];
   }
 
-  if (normalized.every((item) => item instanceof RegExp)) {
-    return [...normalized, ...additions.regex];
-  }
-
-  if (normalized.every((item) => typeof item === "string")) {
-    return [...normalized, ...additions.globs];
-  }
-
-  if (normalized.every((item) => typeof item === "function")) {
-    const windowsIgnoreFn = (path) =>
-      WINDOWS_PROTECTED_REGEXES.some((regex) => regex.test(path));
-
-    return [...normalized, windowsIgnoreFn];
-  }
-
-  return normalized;
+  return [];
 };
 
 const withWindowsWatchIgnores = (watchOptions = {}) => {
   if (process.platform !== "win32") return watchOptions;
 
-  const additions = {
-    globs: WINDOWS_PROTECTED_GLOBS,
-    regex: WINDOWS_PROTECTED_REGEXES,
-  };
+  const existing = normalizeIgnoredGlobs(watchOptions.ignored);
+  const merged = Array.from(
+    new Set([...existing, ...WINDOWS_PROTECTED_GLOBS]),
+  );
 
   return {
     ...watchOptions,
-    ignored: mergeIgnored(watchOptions.ignored, additions),
+    ignored: merged,
   };
 };
 
