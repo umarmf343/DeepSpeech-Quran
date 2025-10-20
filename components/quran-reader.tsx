@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -9,7 +9,10 @@ import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Play, Pause, SkipBack, SkipForward, Volume2, Bookmark, BookmarkCheck, Languages, Repeat } from "lucide-react"
+import { EggChallengeWidget } from "@/components/egg-challenge-widget"
 import { quranAPI, type Surah, type Ayah, type Translation, type Reciter } from "@/lib/quran-api"
+import type { EggChallengeSnapshot } from "@/lib/egg-challenge-store"
+import type { DailyGoalSnapshot } from "@/lib/daily-goal-store"
 
 interface QuranReaderProps {
   initialSurah?: number
@@ -39,12 +42,47 @@ export function QuranReader({
   const [bookmarkedAyahs, setBookmarkedAyahs] = useState<Set<string>>(new Set())
   const [isLoading, setIsLoading] = useState(true)
   const [audioUrls, setAudioUrls] = useState<string[]>([])
+  const [eggChallengeEnabled, setEggChallengeEnabled] = useState(false)
+  const [eggChallengeState, setEggChallengeState] = useState<EggChallengeSnapshot | null>(null)
+  const [, setDailyGoalState] = useState<DailyGoalSnapshot | null>(null)
 
   const audioRef = useRef<HTMLAudioElement>(null)
 
   // Load initial data
   useEffect(() => {
     loadInitialData()
+  }, [])
+
+  useEffect(() => {
+    let isActive = true
+
+    const fetchEggChallengeState = async () => {
+      try {
+        const response = await fetch("/api/egg-challenge")
+        if (!response.ok) {
+          return
+        }
+
+        const data = await response.json()
+        if (!isActive) return
+
+        setEggChallengeEnabled(Boolean(data.enabled))
+        setEggChallengeState(data.state as EggChallengeSnapshot)
+
+        if (typeof window !== "undefined") {
+          const event = new CustomEvent("alfawz:egg-updated", { detail: data.state as EggChallengeSnapshot })
+          window.dispatchEvent(event)
+        }
+      } catch (error) {
+        console.error("Error loading egg challenge state:", error)
+      }
+    }
+
+    fetchEggChallengeState()
+
+    return () => {
+      isActive = false
+    }
   }, [])
 
   // Load surah when selection changes
@@ -118,6 +156,36 @@ export function QuranReader({
     }
   }
 
+  const reportVerseProgress = useCallback(
+    async (verses = 1) => {
+      try {
+        const response = await fetch("/api/track-verse-progress", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ verses }),
+        })
+
+        if (!response.ok) {
+          return
+        }
+
+        const data = await response.json()
+        setEggChallengeState(data.eggChallenge as EggChallengeSnapshot)
+        setDailyGoalState(data.dailyGoal as DailyGoalSnapshot)
+
+        if (typeof window !== "undefined") {
+          const event = new CustomEvent("alfawz:egg-updated", { detail: data.eggChallenge as EggChallengeSnapshot })
+          window.dispatchEvent(event)
+        }
+      } catch (error) {
+        console.error("Error tracking verse progress:", error)
+      }
+    },
+    [setDailyGoalState, setEggChallengeState],
+  )
+
   const playAyah = (index: number) => {
     if (audioRef.current && audioUrls[index]) {
       audioRef.current.src = audioUrls[index]
@@ -143,6 +211,7 @@ export function QuranReader({
       if (isPlaying) {
         playAyah(nextIndex)
       }
+      void reportVerseProgress(1)
     }
   }
 
@@ -357,6 +426,9 @@ export function QuranReader({
           </CardContent>
         </Card>
       )}
+
+      {/* Egg Challenge Widget */}
+      {eggChallengeEnabled && <EggChallengeWidget state={eggChallengeState} />}
 
       {/* Ayahs Display */}
       <div className="space-y-4">
