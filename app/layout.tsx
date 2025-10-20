@@ -40,7 +40,7 @@ export default function RootLayout({
           <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
           <Toaster />
         </UserProvider>
-        <Analytics />
+        {process.env.NODE_ENV === "production" ? <Analytics /> : null}
       </body>
     </html>
   )
