@@ -1,18 +1,10 @@
-const escapeRegex = (value) => value.replace(/[|\\{}()[\]^$+*?.-]/g, "\\$&");
-
-const WINDOWS_PROTECTED_PATHS = [
-  "C:\\DumpStack.log.tmp",
-  "C:\\System Volume Information",
-  "C:\\hiberfil.sys",
-  "C:\\pagefile.sys",
-  "C:\\swapfile.sys",
+const WINDOWS_PROTECTED_GLOBS = [
+  "**/DumpStack.log.tmp",
+  "**/System Volume Information/**",
+  "**/hiberfil.sys",
+  "**/pagefile.sys",
+  "**/swapfile.sys",
 ];
-
-const WINDOWS_PROTECTED_PATTERNS = WINDOWS_PROTECTED_PATHS.map((path) => {
-  const segments = path.split("\\").map(escapeRegex);
-  const pattern = `^${segments.join("[\\/]")}(?:$|[\\/])`;
-  return new RegExp(pattern, "i");
-});
 
 const mergeIgnored = (existing = [], additions = []) => {
   const normalized = Array.isArray(existing)
@@ -28,7 +20,7 @@ const withWindowsWatchIgnores = (watchOptions = {}) => {
 
   return {
     ...watchOptions,
-    ignored: mergeIgnored(watchOptions.ignored, WINDOWS_PROTECTED_PATTERNS),
+    ignored: mergeIgnored(watchOptions.ignored, WINDOWS_PROTECTED_GLOBS),
   };
 };
 
@@ -51,10 +43,6 @@ const nextConfig = {
 
     return config;
   },
-  webpackDevMiddleware: (config) => {
-    config.watchOptions = withWindowsWatchIgnores(config.watchOptions);
-    return config;
-  },
-}
+};
 
-export default nextConfig
+export default nextConfig;
