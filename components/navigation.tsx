@@ -24,6 +24,7 @@ import {
   Bell,
   Gamepad2,
   Sparkles,
+  LayoutGrid,
 } from "lucide-react"
 
 export default function Navigation() {
@@ -35,6 +36,7 @@ export default function Navigation() {
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "Habit Quest", href: "/habits", icon: Gamepad2 },
     { name: "Qur'an Reader", href: "/reader", icon: BookOpen },
+    { name: "Mushaf Studio", href: "/reader/layouts", icon: LayoutGrid },
     { name: "AI Tajweed Lab", href: "/practice", icon: Sparkles },
     { name: "Memorization", href: "/memorization", icon: Target },
     { name: "Progress", href: "/progress", icon: BarChart3 },
