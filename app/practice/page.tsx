@@ -16,6 +16,7 @@ import {
   ArrowRight,
   Award,
   BookOpen,
+  AlertTriangle,
   Loader2,
   ScrollText,
   Sparkles,
@@ -77,6 +78,11 @@ type TajweedAnalysis = {
   recommendations: string[]
 }
 
+type AnalysisNotice = {
+  tone: "warning" | "error"
+  message: string
+}
+
 export default function PracticePage() {
   const [currentAyah, setCurrentAyah] = useState<SampleAyah>(sampleAyahs[0])
   const [practiceSession, setPracticeSession] = useState({
@@ -88,27 +94,11 @@ export default function PracticePage() {
   const [selectedStage, setSelectedStage] = useState(deepspeechStages[1] ?? deepspeechStages[0])
   const [analysis, setAnalysis] = useState<TajweedAnalysis | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analysisNotice, setAnalysisNotice] = useState<AnalysisNotice | null>(null)
 
   const stageOptions = useMemo(() => deepspeechStages, [])
 
-  async function analyzeRecitation(audioBlob: Blob, duration: number, ayahText: string, ayahReference: string) {
-    const formData = new FormData()
-    formData.append("audio", audioBlob, "recitation.webm")
-    formData.append("duration", duration.toString())
-    formData.append("ayahText", ayahText)
-    formData.append("stage", selectedStage.stage)
-    formData.append("ayahReference", ayahReference)
-
-    const response = await fetch("/api/deepspeech/transcribe", {
-      method: "POST",
-      body: formData,
-    })
-
-    if (!response.ok) {
-      throw new Error("Unable to analyze recitation")
-    }
-
-    const result: TajweedAnalysis = await response.json()
+  function applyAnalysisResult(result: TajweedAnalysis) {
     setAnalysis(result)
     setPracticeSession((prev) => ({
       ...prev,
@@ -118,11 +108,102 @@ export default function PracticePage() {
     }))
   }
 
+  function createFallbackAnalysis(
+    ayahText: string,
+    ayahReference: string,
+    duration: number,
+  ): TajweedAnalysis {
+    const stage = selectedStage ?? stageOptions[0]
+    const evaluation = stage.metrics
+    const confidence = Number((1 - evaluation.wer).toFixed(3))
+    const notesFallback =
+      stage.notes ||
+      "Offline fallback guidance generated from the current DeepSpeech stage profile while the analysis service is unavailable."
+
+    return {
+      transcript: ayahText || "",
+      duration,
+      stage: stage.stage,
+      confidence: Number.isFinite(confidence) ? confidence : 0.75,
+      evaluation,
+      notes: notesFallback,
+      enhancements: stage.enhancements,
+      tajweedMistakes: [
+        {
+          rule: "Review Madd Elongations",
+          severity: "medium",
+          description:
+            "Use the tajweed-colored Mushaf to hold each elongation for two counts while we reconnect to the DeepSpeech service.",
+        },
+        {
+          rule: "Ghunna Consistency",
+          severity: "low",
+          description:
+            "Maintain a gentle nasal resonance on doubled letters such as meem and noon to keep articulation smooth offline.",
+        },
+      ],
+      morphology: null,
+      recommendations: [
+        "Retry the DeepSpeech analysis once your connection stabilizes to compare automated feedback.",
+        "Pair this ayah with the color-coded Mushaf legend for a self-paced tajweed check.",
+      ],
+    }
+  }
+
+  async function analyzeRecitation(
+    audioBlob: Blob,
+    duration: number,
+    ayahText: string,
+    ayahReference: string,
+  ): Promise<{ analysis: TajweedAnalysis; isFallback: boolean }> {
+    const formData = new FormData()
+    formData.append("audio", audioBlob, "recitation.webm")
+    formData.append("duration", duration.toString())
+    formData.append("ayahText", ayahText)
+    formData.append("stage", selectedStage.stage)
+    formData.append("ayahReference", ayahReference)
+
+    try {
+      const response = await fetch("/api/deepspeech/transcribe", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error(`Unable to analyze recitation (${response.status})`)
+      }
+
+      const result: TajweedAnalysis = await response.json()
+      applyAnalysisResult(result)
+      return { analysis: result, isFallback: false }
+    } catch (error) {
+      console.error("DeepSpeech analysis request failed", error)
+      const fallback = createFallbackAnalysis(ayahText, ayahReference, duration)
+      applyAnalysisResult(fallback)
+      return { analysis: fallback, isFallback: true }
+    }
+  }
+
   const handleRecordingComplete = (audioBlob: Blob, duration: number) => {
     setIsAnalyzing(true)
+    setAnalysisNotice(null)
     analyzeRecitation(audioBlob, duration, currentAyah.arabic, currentAyah.reference)
+      .then(({ isFallback }) => {
+        if (isFallback) {
+          setAnalysisNotice({
+            tone: "warning",
+            message:
+              "We couldn't reach the DeepSpeech service, so we generated offline guidance using the selected stage profile.",
+          })
+        }
+      })
       .catch((error) => {
         console.error("DeepSpeech analysis failed", error)
+        setAnalysis(null)
+        setAnalysisNotice({
+          tone: "error",
+          message: "We couldn't analyze your recitation right now. Please try again shortly.",
+        })
       })
       .finally(() => {
         setIsAnalyzing(false)
@@ -293,6 +374,18 @@ export default function PracticePage() {
           {isAnalyzing && (
             <div className="mt-4 flex items-center gap-2 text-sm text-maroon-700">
               <Loader2 className="h-4 w-4 animate-spin" /> Processing recitation with DeepSpeech Quran pipeline...
+            </div>
+          )}
+          {analysisNotice && (
+            <div
+              className={`mt-4 flex items-start gap-2 rounded-lg border px-4 py-3 text-sm ${
+                analysisNotice.tone === "warning"
+                  ? "border-amber-200 bg-amber-50 text-amber-800"
+                  : "border-red-200 bg-red-50 text-red-800"
+              }`}
+            >
+              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <span>{analysisNotice.message}</span>
             </div>
           )}
         </div>
