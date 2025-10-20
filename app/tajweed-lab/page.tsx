@@ -1,15 +1,24 @@
 "use client"
 
+import { useState } from "react"
+
+import Link from "next/link"
+
 import AppLayout from "@/components/app-layout"
+import { DeepSpeechEnginePanel } from "@/components/deepspeech/engine-panel"
+import { MorphologyExplorer } from "@/components/morphology/morphology-explorer"
+import { MushafVariantSelector } from "@/components/quran/mushaf-variant-selector"
 import { RecitationLab } from "@/components/tajweed/recitation-lab"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { tajweedContentCapabilities, priorityStyles } from "@/data/qul-capabilities"
 import { datasetCurationStages } from "@/data/tarteel-dataset-plan"
 import { tajweedRoadmap } from "@/data/tajweed-roadmap"
+import type { MushafVariantId } from "@/data/mushaf-variants"
 import { cn } from "@/lib/utils"
-import { BookOpen, ClipboardList, Compass, Database, ShieldCheck, Sparkles } from "lucide-react"
+import { ArrowUpRight, BookOpen, ClipboardList, Compass, Database, ShieldCheck, Sparkles } from "lucide-react"
 
 const workflowPhaseCopy: Record<(typeof tajweedContentCapabilities)[number]["workflowPhase"], string> = {
   ingest: "Capture",
@@ -19,6 +28,8 @@ const workflowPhaseCopy: Record<(typeof tajweedContentCapabilities)[number]["wor
 }
 
 export default function TajweedLabPage() {
+  const [labVariant, setLabVariant] = useState<MushafVariantId>("tajweed")
+
   return (
     <AppLayout>
       <div className="space-y-10 p-6 md:p-10">
@@ -36,7 +47,66 @@ export default function TajweedLabPage() {
           </p>
         </header>
 
-        <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+        <section className="grid gap-6 lg:grid-cols-2">
+          <DeepSpeechEnginePanel />
+          <MorphologyExplorer />
+        </section>
+
+        <section className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+          <MushafVariantSelector value={labVariant} onChange={setLabVariant} />
+          <Card className="border-maroon-100 bg-white/95">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <ClipboardList className="h-5 w-5 text-maroon-600" />
+                <div>
+                  <CardTitle className="text-xl text-maroon-900">Realtime tajwīd detection</CardTitle>
+                  <CardDescription>
+                    DeepSpeech now powers the live analyzer while morphology lookups feed rule-specific coaching moments.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm text-maroon-700">
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 inline-flex h-1.5 w-1.5 rounded-full bg-maroon-400" aria-hidden />
+                  <span>
+                    Streaming inference swaps the browser SpeechRecognition API for TensorFlow DeepSpeech checkpoints bundled
+                    in <code className="rounded bg-maroon-100 px-1">DeepSpeech/</code>.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 inline-flex h-1.5 w-1.5 rounded-full bg-maroon-400" aria-hidden />
+                  <span>
+                    Lemma, root, and stem corpora surface inline hints when a reciter slips, grounding feedback in Arabic
+                    morphology.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 inline-flex h-1.5 w-1.5 rounded-full bg-maroon-400" aria-hidden />
+                  <span>
+                    Mushaf variant <span className="font-semibold">{labVariant.toUpperCase()}</span> synchronises overlays with
+                    tajwīd colours and gamified drills.
+                  </span>
+                </li>
+              </ul>
+              <div className="flex flex-col gap-2">
+                <Button asChild className="bg-maroon-600 hover:bg-maroon-700">
+                  <Link href="/reader" className="flex items-center gap-2">
+                    Launch recitation workspace <ArrowUpRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="border-maroon-200 text-maroon-700 hover:bg-maroon-50">
+                  <Link href="/tajweed-lab#live-ops" className="flex items-center gap-2">
+                    Review live ops playbook <ArrowUpRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section id="live-ops" className="grid gap-6 lg:grid-cols-[2fr_1fr]">
           <Card className="border-maroon-100 bg-white/95">
             <CardHeader>
               <div className="flex items-center gap-3">

@@ -5,6 +5,7 @@ import type { CSSProperties } from "react"
 
 import { ArabicText } from "@/components/arabic-text"
 import { MushafOverlayMode, getTajweedRuleColor } from "@/lib/mushaf-fonts"
+import type { MushafVariantId } from "@/data/mushaf-variants"
 import type { LiveMistake } from "@/lib/recitation-analysis"
 import type { Ayah as QuranAyah } from "@/lib/quran-api"
 import { cn } from "@/lib/utils"
@@ -17,6 +18,7 @@ export interface MushafVerseProps {
   isMushafEnabled: boolean
   weakestMetricLabel?: string
   fontsReady: boolean
+  variant?: MushafVariantId
 }
 
 function buildMistakeLookup(mistakes: LiveMistake[], overlayMode: MushafOverlayMode): Map<number, LiveMistake> {
@@ -54,19 +56,21 @@ export function MushafVerse({
   isMushafEnabled,
   weakestMetricLabel,
   fontsReady,
+  variant = "hafs",
 }: MushafVerseProps) {
   const mistakeLookup = useMemo(() => buildMistakeLookup(mistakes, overlayMode), [mistakes, overlayMode])
 
   const words = useMemo(() => ayah.text.split(/\s+/).filter(Boolean), [ayah.text])
   const textVariant = isMushafEnabled && fontsReady ? "mushaf" : "quran"
+  const variantAccentClass = variant === "tajweed" ? "drop-shadow-[0_0_0.45rem_rgba(244,114,182,0.25)] text-maroon-900" : ""
   const wordCount = words.length
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" data-mushaf-variant={variant}>
       <ArabicText
         as="p"
         variant={textVariant}
-        className={cn(fontSizeClass, "text-primary transition-[font-family]")}
+        className={cn(fontSizeClass, "text-primary transition-[font-family]", variantAccentClass)}
         lang="ar"
       >
         {words.map((word, index) => {

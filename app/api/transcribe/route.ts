@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createLiveSessionSummary } from "@/lib/recitation-analysis"
+import { getConfiguredModelPaths, transcribeWithDeepSpeech } from "@/lib/deepspeech/engine"
 import { TarteelTranscriptionError, transcribeWithTarteel } from "@/lib/tarteel-client"
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
@@ -46,30 +47,43 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Audio chunk too large" }, { status: 413 })
     }
 
-    const tarteelApiKey = process.env.TARTEEL_API_KEY?.trim()
-    if (!tarteelApiKey) {
-      return NextResponse.json(
-        {
-          error:
-            "Tarteel API key is not configured. Set TARTEEL_API_KEY in your environment to enable recitation transcription.",
-        },
-        { status: 503 },
-      )
-    }
-
+    const deepSpeechConfig = getConfiguredModelPaths()
     const inferenceStartedAt = Date.now()
-    const baseUrl = process.env.TARTEEL_API_BASE_URL?.trim() ?? null
-    const { transcription, latencyMs } = await transcribeWithTarteel({
-      file: audioFile,
-      apiKey: tarteelApiKey,
-      baseUrl,
-      mode,
-      expectedText,
-      ayahId,
-      durationSeconds,
-    })
+    let transcription = ""
+    let inferenceLatencyMs = 0
+    let engine: "deepspeech" | "tarteel" = "deepspeech"
 
-    const inferenceLatencyMs = Number.isFinite(latencyMs) ? latencyMs : Date.now() - inferenceStartedAt
+    if (deepSpeechConfig) {
+      const { transcript } = await transcribeWithDeepSpeech(audioFile, { config: deepSpeechConfig })
+      transcription = transcript
+      inferenceLatencyMs = Date.now() - inferenceStartedAt
+    } else {
+      const tarteelApiKey = process.env.TARTEEL_API_KEY?.trim()
+      if (!tarteelApiKey) {
+        return NextResponse.json(
+          {
+            error:
+              "Neither DeepSpeech nor Tarteel transcription is configured. Provide DEEPSPEECH_MODEL_PATH (and optional scorer) or TARTEEL_API_KEY.",
+          },
+          { status: 503 },
+        )
+      }
+
+      engine = "tarteel"
+      const baseUrl = process.env.TARTEEL_API_BASE_URL?.trim() ?? null
+      const response = await transcribeWithTarteel({
+        file: audioFile,
+        apiKey: tarteelApiKey,
+        baseUrl,
+        mode,
+        expectedText,
+        ayahId,
+        durationSeconds,
+      })
+      transcription = response.transcription
+      const latencyMs = Number.isFinite(response.latencyMs) ? response.latencyMs : Date.now() - inferenceStartedAt
+      inferenceLatencyMs = latencyMs
+    }
 
     if (mode === "live") {
       return NextResponse.json({ transcription, latencyMs: inferenceLatencyMs })
@@ -80,10 +94,16 @@ export async function POST(request: Request) {
         durationSeconds: Number.isFinite(durationSeconds) ? durationSeconds : undefined,
         ayahId,
         analysis: {
-          engine: "tarteel",
+          engine,
           latencyMs: Number.isFinite(inferenceLatencyMs) ? Number(inferenceLatencyMs) : null,
-          description: "Cloud-hosted Tarteel transcription with streamlined word-level feedback.",
-          stack: ["Tarteel speech recognition", "Word alignment", "Recitation feedback heuristics"],
+          description:
+            engine === "deepspeech"
+              ? "On-device DeepSpeech Qurʼān recogniser with tajweed-aware boosters."
+              : "Cloud-hosted Tarteel transcription with streamlined word-level feedback.",
+          stack:
+            engine === "deepspeech"
+              ? ["TensorFlow DeepSpeech", "Qurʼān imam + learner corpora", "Tajweed-aware decoding"]
+              : ["Tarteel speech recognition", "Word alignment", "Recitation feedback heuristics"],
         },
         dialect: normalizedDialect,
         localeHint,

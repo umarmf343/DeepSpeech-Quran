@@ -38,6 +38,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { MushafVerse } from "@/components/quran/mushaf-verse"
+import { MushafVariantSelector } from "@/components/quran/mushaf-variant-selector"
 import { MobileRecitationClient } from "@/components/recitation/mobile-recitation-client"
 import { useMushafFontLoader } from "@/hooks/useMushafFontLoader"
 import type { MicrophonePermissionStatus } from "@/hooks/useMicrophoneStream"
@@ -54,6 +55,7 @@ import {
   type MistakeCategory,
 } from "@/lib/recitation-analysis"
 import { MUSHAF_FONTS_AVAILABLE, type MushafOverlayMode } from "@/lib/mushaf-fonts"
+import type { MushafVariantId } from "@/data/mushaf-variants"
 
 const FALLBACK_AUDIO_BASE = "https://cdn.islamic.network/quran/audio/128/ar.alafasy"
 const GWANI_ARCHIVE_BASE_URL = "https://archive.org/download/MoshafGwaniDahir"
@@ -266,6 +268,7 @@ export default function QuranReaderPage() {
   const isMushafTypographySupported = MUSHAF_FONTS_AVAILABLE
   const [useMushafTypography, setUseMushafTypography] = useState(isMushafTypographySupported)
   const [mushafOverlayMode, setMushafOverlayMode] = useState<MushafOverlayMode>("tajweed")
+  const [mushafVariant, setMushafVariant] = useState<MushafVariantId>("tajweed")
   const [liveVolume, setLiveVolume] = useState(0)
   const [microphonePermission, setMicrophonePermission] = useState<MicrophonePermissionStatus>("unknown")
   const [fontSize, setFontSize] = useState("text-4xl")
@@ -2642,6 +2645,7 @@ export default function QuranReaderPage() {
                               overlayMode={mushafOverlayMode}
                               fontSizeClass={fontSize}
                               isMushafEnabled={useMushafTypography}
+                              variant={mushafVariant}
                               weakestMetricLabel={weakestMetric?.label}
                               fontsReady={areMushafFontsReady}
                             />
@@ -3051,6 +3055,27 @@ export default function QuranReaderPage() {
                       </SelectContent>
                     </Select>
                   </div>
+                  {isMushafTypographySupported ? (
+                    <div
+                      className={cn(
+                        "transition-all",
+                        !useMushafTypography ? "pointer-events-none opacity-60" : "opacity-100",
+                      )}
+                    >
+                      <MushafVariantSelector
+                        value={mushafVariant}
+                        onChange={(next) => {
+                          if (!useMushafTypography) {
+                            return
+                          }
+                          setMushafVariant(next)
+                          if (next === "tajweed" && mushafOverlayMode === "none") {
+                            setMushafOverlayMode("tajweed")
+                          }
+                        }}
+                      />
+                    </div>
+                  ) : null}
                 </div>
               </CardContent>
             </Card>

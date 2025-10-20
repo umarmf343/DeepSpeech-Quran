@@ -14,7 +14,13 @@ const compat = new FlatCompat({
 const config = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
-    ignores: ["node_modules/", ".next/", "dist/"],
+    ignores: [
+      "node_modules/",
+      ".next/",
+      "dist/",
+      "DeepSpeech/",
+      "quranic-universal-library-main/",
+    ],
   },
 ];
 
