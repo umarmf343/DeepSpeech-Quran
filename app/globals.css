@@ -377,3 +377,145 @@
     background-position: 0 85%;
   }
 }
+
+.egg-message-shower {
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  height: 3.5rem;
+  pointer-events: none;
+}
+
+.egg-message-shower span {
+  position: absolute;
+  top: 0;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  opacity: 0;
+  animation: eggMessageDrop 1.8s ease-in-out forwards;
+}
+
+.egg-confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.egg-confetti span {
+  position: absolute;
+  top: -0.5rem;
+  width: 0.5rem;
+  height: 1.4rem;
+  border-radius: 9999px;
+  opacity: 0;
+  animation: eggConfettiFall 1.6s ease-out forwards;
+}
+
+.egg-celebrating {
+  animation: eggGlowPulse 1.4s ease-in-out infinite alternate;
+}
+
+.egg-growth-visual {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.egg-growth-trunk {
+  width: 0.5rem;
+  height: 3rem;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, rgba(101, 67, 33, 0.75), rgba(67, 40, 18, 0.85));
+}
+
+.egg-growth-leaves {
+  position: absolute;
+  bottom: 2.25rem;
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.18);
+  backdrop-filter: blur(6px);
+}
+
+.egg-growth-leaves span {
+  display: block;
+  width: 0.65rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  background: rgba(34, 197, 94, 0.45);
+  transform-origin: center bottom;
+  transform: scale(0.85);
+  opacity: 0.55;
+  transition: transform 0.4s ease, opacity 0.4s ease, background 0.4s ease;
+}
+
+.egg-growth-leaves span[data-active="true"] {
+  opacity: 0.9;
+  transform: scale(1);
+  background: rgba(16, 185, 129, 0.75);
+  animation: eggLeafGlow 1.4s ease-in-out infinite;
+}
+
+.egg-growth-leaves span[data-complete="true"] {
+  opacity: 1;
+  transform: scale(1.1);
+  background: rgba(22, 163, 74, 0.85);
+}
+
+@keyframes eggGlowPulse {
+  0% {
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.35);
+  }
+  100% {
+    box-shadow: 0 0 45px rgba(245, 158, 11, 0.65);
+  }
+}
+
+@keyframes eggMessageDrop {
+  0% {
+    transform: translateY(-10px) scale(0.8);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(42px) scale(1.05);
+    opacity: 0;
+  }
+}
+
+@keyframes eggConfettiFall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(120px) rotate(240deg);
+    opacity: 0;
+  }
+}
+
+@keyframes eggLeafGlow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.75));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .egg-celebrating,
+  .egg-message-shower span,
+  .egg-confetti span,
+  .egg-growth-leaves span[data-active="true"] {
+    animation: none;
+  }
+}
