@@ -1,0 +1,263 @@
+$font-cdn: "https://static-cdn.tarteel.ai/qul/fonts";
+$asset-version: "3.3";
+
+@import "indopak_font_faces";
+@import "surah_names";
+@import "qpc_fonts";
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic&display=swap');
+
+@font-face {
+  font-family: "MehrNastaliq";
+  src: local("Mehr Nastaliq Web"),
+  url("#{$font-cdn}/lang/urdu/Mehr_Nastaliq_Webv.2.0.woff?v=#{$asset-version}"),
+  url("#{$font-cdn}/lang/urdu/Mehr_Nastaliq_Webv.2.0.ttf?v=#{$asset-version}") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "bismillah";
+  src: url("#{$font-cdn}/bismillah/bismillah.woff2?v=#{$asset-version}");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: quran-icon;
+  src: url("#{$font-cdn}/common/quran-common.woff2?v=#{$asset-version}"),
+  url("#{$font-cdn}/common/quran-common.woff?v=#{$asset-version}") format("woff"),
+  url("#{$font-cdn}/common/quran-common.ttf?v=#{$asset-version}") format("truetype");
+}
+
+@font-face {
+  font-family: "qpc-dotted";
+  src: local("KFGQPC Alphabet Dotted"),
+  url("#{$font-cdn}/KFGQPCDotFont.otf?v=#{$asset-version}");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "qpc-outline";
+  src: local("KFGQPC Alphabet Outlined"),
+  url("#{$font-cdn}/Outlinedv001.otf?v=#{$asset-version}");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'digitalkhatt-v2';
+  src: url("#{$font-cdn}/DigitalKhattV2.otf?v=#{$asset-version}") format("opentype");
+  font-style: normal;
+  font-display: block
+}
+
+@font-face {
+  font-family: digitalkhatt-indopak;
+  src: url("#{$font-cdn}/DigitalKhattIndoPak.otf?v=#{$asset-version}");
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'indopak-nastaleeq';
+  src: url("#{$font-cdn}/nastaleeq/indopak-nastaleeq-waqf-lazim.woff2?v=#{$asset-version}");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'qpc-nastaleeq';
+  src: local('KFGQPCNastaleeq-Regular'),
+  url("#{$font-cdn}/nastaleeq/KFGQPCNastaleeq-Regular.woff2?v=#{$asset-version}");
+}
+
+@font-face {
+  font-family: 'pdms-saleem';
+  src: url("#{$font-cdn}/pdms-saleem-quranfont.ttf?v=#{$asset-version}");
+}
+
+@font-face {
+  font-family: 'me_quran';
+  src: url("#{$font-cdn}/me_quran_volt_newmet.ttf?v=#{$asset-version}") format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'digitalkhatt';
+  src: url("#{$font-cdn}/DigitalKhattQuranic.otf?v=#{$asset-version}") format("opentype");
+  font-style: normal;
+  font-display: block
+}
+
+@font-face {
+  font-family: juz-font;
+  src: url("#{$font-cdn}/common/quran-common.woff?v=#{$asset-version}");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: quran_common_font;
+  src: url("#{$font-cdn}/quran-common/quran_common.ttf?v=#{$asset-version}");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: KFGQPCHAFSColored-Bold;
+  src: url("#{$font-cdn}/KFGQPCHAFSColored-Bold.ttf?v=#{$asset-version}")
+}
+
+@font-face {
+  font-family: 'al_qalam';
+  src: url("#{$font-cdn}/AlQalamQuran.ttf?v=#{$asset-version}") format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.quran-icon{
+  font-family: quran-icon;
+}
+
+.bismillah {
+  font-family: bismillah;
+}
+
+.pdms-saleem{
+  font-family: pdms-saleem;
+  font-size: 30px;
+}
+
+.me-quran{
+  font-family: me_quran;
+  font-size: 30px;
+}
+
+.mushaf-qpc-nastaleeq {
+  font-family: qpc-nastaleeq !important;
+}
+
+.digitalkhatt {
+  font-family: digitalkhatt;
+  direction: rtl;
+  font-size: 30px;
+}
+
+.digitalkhatt-v2 {
+  font-family: digitalkhatt-v2;
+  direction: rtl;
+  font-size: 30px;
+}
+
+.digitalkhatt-indopak {
+  font-family: digitalkhatt-indopak;
+  direction: rtl;
+  font-size: 30px;
+}
+
+.mushaf-al_qalam {
+  font-family: al_qalam;
+}
+
+.qpc-dotted {
+  font-family: 'qpc-dotted';
+  direction: rtl;
+  font-size: 30px;
+}
+
+.qpc-outline {
+  font-family: 'qpc-outline';
+  direction: rtl;
+  font-size: 30px;
+}
+
+.qpc-hafs-color {
+  font-family: 'KFGQPCHAFSColored-Bold' !important;
+  direction: rtl;
+  font-size: 30px;
+}
+
+.qalam {
+  font-family: al_qalam;
+  direction: rtl;
+}
+
+.urdu, .ur, [lang=ur] {
+  font-family: MehrNastaliq !important;
+  direction: rtl;
+  font-size: 30px;
+  line-height: normal;
+}
+
+.ar, [lang=fa], [lang=ar] {
+  font-family: 'Noto Naskh Arabic', serif;
+  direction: rtl;
+  font-size: 30px;
+  line-height: normal;
+}
+
+.kashmiri, .ks, [lang=ks] {
+  font-family: 'Noto Naskh Arabic', serif;
+  direction: rtl;
+}
+
+.me_quran, .madani {
+  font-family: me_quran;
+  direction: rtl;
+  font-size: 30px;
+}
+
+.row td span.quran-text {
+  direction: rtl;
+}
+
+.indopak-nastaleeq, .indopak {
+  font-family: indopak-nastaleeq;
+  font-size: 30px;
+  direction: rtl;
+}
+
+.qpc-nastaleeq {
+  font-family: qpc-nastaleeq;
+  font-size: 30px;
+  direction: rtl;
+}
+
+.tp0, .v3p0 {
+  font-family: quran_common_font;
+}
+
+.quran-text {
+  direction: rtl;
+  text-align: right;
+  line-height: normal;
+
+  td span {
+    font-size: 30px;
+  }
+
+  a {
+    text-decoration: none;
+  }
+}
+
+.fs-lg {
+  font-size: 30px;
+}
+
+.fs-auto {
+  font-size: inherit;
+}
+
+.ar.indopak {
+  font-family: indopak-nastaleeq;
+  direction: rtl;
+}
+

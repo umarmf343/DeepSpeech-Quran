@@ -1,0 +1,57 @@
+<%
+  char = params[:char].strip
+  script = params[:script].to_s.downcase.strip
+  words = Word.order('word_index ASC').where("#{script} ilike ?", "%#{char}%")
+  pagination, words = pagy(words, items: 500)
+%>
+
+<style>
+    .char span {
+        color: #00a650;
+    }
+</style>
+
+<div class="page-wrapper container-lg" data-controller="chars-info">
+  <div class="page-section">
+    <h2>List of words from <%= scripts[script.to_sym] %> script that include <%= char %></h2>
+    <%= render 'char_font_options' %>
+
+    <div>
+      <table class="table table-hover text-center">
+        <thead class="tw-sticky tw-top-0 tw-z-10 bg-white border-bottom">
+        <tr>
+          <th>Location</th>
+          <th>Text</th>
+        </tr>
+        </thead>
+
+        <tbody>
+          <% words.each do |word| %>
+          <tr>
+            <td><%= link_to word.location, cms_word_path(word) %></td>
+            <td>
+              <div class="char <%= params[:font] %>" data-controller="tajweed-highlight">
+                <% if script.include?('tajweed') %>
+                  <%= safe_html word.read_attribute(script) %>
+                <% else %>
+                  <%= highlight safe_html(word.read_attribute(script)), char, highlighter: '<span>\1</span>' %>
+                <% end %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+
+          <tr>
+          <td>
+            <%= safe_html pagy_bootstrap_nav(pagination) %>
+          </td>
+
+          <td>
+            <%= safe_html pagy_info(pagination) %>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,42 @@
+<%
+  actions = []
+
+  if @access
+    actions << link_to('Edit', edit_surah_info_path(@info.chapter_id, resource_id: @resource.id, language: @info.language_id), class: 'btn btn-success')
+    actions << link_to('Edit History', '#_', class: 'btn btn-info', data: { url: history_surah_info_path(@info.chapter_id, resource_id: @resource.id, language: @info.language_id), controller: "ajax-modal" })
+  end
+
+  if @info.chapter_id > 1
+    actions << link_to('Previous Surah', surah_info_path(@info.chapter_id - 1, resource_id: @resource.id, language: @info.language_id), class: 'btn btn-dark')
+  end
+
+  if @info.chapter_id < 114
+    actions << link_to('Next Surah', surah_info_path(@info.chapter_id + 1, resource_id: @resource.id, language: @info.language_id), class: 'btn btn-dark')
+  end
+
+  actions << link_to('Back to Index', surah_infos_path(language: @info.language_id), class: 'btn btn-info')
+%>
+
+<%= render 'tools/header',
+           name: 'Surah Information',
+           title: "#{@resource.name} For Surah #{@info.chapter.name_simple}",
+           key: 'surah_info',
+           actions: actions
+%>
+
+<div class="page-wrapper container-lg">
+  <div class="page-section">
+    <h2>Short text</h2>
+    <div lang=<%= @language.iso_code %>>
+      <%= @info.short_text.presence || 'N/A' %>
+    </div>
+  </div>
+
+  <div class="page-section mt-4">
+    <h2>Full Surah info</h2>
+    <div lang=<%= @language.iso_code %>>
+      <%= safe_html @info.text %>
+    </div>
+  </div>
+</div>
+
