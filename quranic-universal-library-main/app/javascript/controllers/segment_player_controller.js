@@ -32,6 +32,7 @@ export default class extends Controller {
 
     this.playButton = this.element.querySelector('#play-button');
     this.progressBar = this.element.querySelector('#progress-bar');
+    this.progressFill = this.element.querySelector('#progress');
     this.currentTime = this.element.querySelector('#current-time');
     this.totalTime = this.element.querySelector('#total-duration');
 
@@ -123,7 +124,31 @@ export default class extends Controller {
   }
 
   seek(event) {
+    if (!this.player || typeof this.player.duration !== 'function') return;
 
+    const duration = this.player.duration();
+    if (!duration || Number.isNaN(duration)) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const clientX = event.clientX ?? (event.touches && event.touches[0]?.clientX);
+    if (clientX === undefined) return;
+
+    const offsetX = clientX - rect.left;
+    const ratio = Math.min(Math.max(offsetX / rect.width, 0), 1);
+    const seekTime = ratio * duration;
+
+    this.player.seek(seekTime);
+
+    if (this.progressFill) {
+      this.progressFill.style.width = `${ratio * 100}%`;
+    }
+
+    if (!this.isPlaying) {
+      this.currentTime.textContent = this.formatTime(seekTime);
+      const milliseconds = seekTime * 1000;
+      this.updateVerse(milliseconds);
+      this.updateHighlighting(milliseconds);
+    }
   }
 
   async loadVerses(verseKey) {
@@ -166,7 +191,9 @@ export default class extends Controller {
     this.currentTime.textContent = this.formatTime(time);
 
     const progressPercent = (time / this.player.duration()) * 100;
-    this.progressBar.style.width = `${progressPercent}%`;
+    if (this.progressFill) {
+      this.progressFill.style.width = `${progressPercent}%`;
+    }
 
     this.updateVerse(time * 1000);
     this.updateHighlighting(time * 1000);
@@ -200,8 +227,8 @@ export default class extends Controller {
     cancelAnimationFrame(this.playerId);
 
     const icon = this.playButton.querySelector("i");
-    icon.classList.add("fa-pause");
-    icon.classList.remove("fa-play");
+    icon.classList.add("fa-play");
+    icon.classList.remove("fa-pause");
   }
 
   onend() {
@@ -214,8 +241,20 @@ export default class extends Controller {
     this.totalTime.textContent = this.formatTime(duraton);
   }
 
-  onloaderror() {
-    //TODO: Handle error loading audio
+  onloaderror(id, error) {
+    console.error("Failed to load audio", error);
+
+    this.isPlaying = false;
+    cancelAnimationFrame(this.playerId);
+
+    this.playButton.setAttribute("disabled", "disabled");
+    const icon = this.playButton.querySelector("i");
+    if (icon) {
+      icon.classList.add("fa-play");
+      icon.classList.remove("fa-pause");
+    }
+
+    this.hideLoading();
   }
 
   renderAyah(verseKey) {
