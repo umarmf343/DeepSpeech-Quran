@@ -42,16 +42,17 @@ hooks/
 
 1. **Install dependencies**
    ```bash
-   npm install
+   pnpm install
    ```
+   If you previously installed with another package manager, delete the `node_modules` directory before running the command to avoid pnpm moving packages into `node_modules/.ignored`.
 2. **Start the development server**
    ```bash
-   npm run rundev
+   pnpm dev
    ```
    Visit `http://localhost:3000` to explore the dashboards and Habit Quest Arena.
 3. **Run lint checks**
    ```bash
-   npm run lint
+   pnpm lint
    ```
 
 ### Environment variables
@@ -66,11 +67,11 @@ Copy the provided `.env.example` into a new `.env.local` file before running the
 
 1. Build the production bundle locally:
    ```bash
-   npm run build
+   pnpm build
    ```
 2. Upload the `.next/standalone`, `.next/static`, `public`, and `package.json` directories/files to your cPanel Node.js application directory.
 3. Copy your `.env.local` (or set environment variables through the cPanel UI) alongside the uploaded files.
-4. Configure the application start command in cPanel to `npm run start:standalone` (which runs `node .next/standalone/server.js`). This uses Next.js' standalone output so only production dependencies are required.
+4. Configure the application start command in cPanel to `pnpm run start:standalone` (which runs `node .next/standalone/server.js`). This uses Next.js' standalone output so only production dependencies are required.
 5. Restart the application from the cPanel dashboard whenever you push an updated build.
 
 ## Default User System
@@ -114,14 +115,14 @@ When the current plan is `free`, the gate blurs the child, surfaces locked perks
 
 ## Testing & Quality
 
-- `npm run lint` – Ensures the codebase adheres to lint rules and catches TypeScript issues.
+ - `pnpm lint` – Ensures the codebase adheres to lint rules and catches TypeScript issues.
 - UI feedback relies on the built-in toast system (`<Toaster />` is mounted globally), so no extra setup is required to observe habit completion events.
 
 ## Contributing
 
 1. Fork/clone the repository.
 2. Create feature branches as needed (e.g., `git checkout -b feature/habit-rewards`).
-3. Run `npm run lint` before committing.
+3. Run `pnpm lint` before committing.
 4. Open a pull request describing changes and screenshots if UI adjustments are visible.
 
 ## License
