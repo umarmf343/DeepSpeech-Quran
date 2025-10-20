@@ -12,7 +12,12 @@ const mergeIgnored = (existing = [], additions = []) => {
     : existing
     ? [existing]
     : [];
-  return [...normalized, ...additions];
+
+  return [...normalized, ...additions].filter((item) => {
+    if (item == null) return false;
+    if (typeof item === "string") return item.trim().length > 0;
+    return true;
+  });
 };
 
 const withWindowsWatchIgnores = (watchOptions = {}) => {
