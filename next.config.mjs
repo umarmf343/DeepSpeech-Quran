@@ -1,6 +1,24 @@
 import fs from "node:fs"
 import path from "node:path"
 
+const STANDARD_NODE_ENVS = new Set(["development", "production", "test"])
+
+const originalNodeEnv = process.env.NODE_ENV
+
+if (originalNodeEnv && !STANDARD_NODE_ENVS.has(originalNodeEnv)) {
+  const fallbackEnv = originalNodeEnv === "staging" || process.env.VERCEL_ENV === "production" ? "production" : "development"
+
+  console.warn(
+    `Detected non-standard NODE_ENV value "${originalNodeEnv}". Falling back to "${fallbackEnv}" to keep Next.js behaviour predictable.\n` +
+      "Set VERCEL_ENV=production if you need production optimisations while using a custom NODE_ENV label."
+  )
+
+  if (!process.env.NEXT_PUBLIC_RUNTIME_ENV) {
+    process.env.NEXT_PUBLIC_RUNTIME_ENV = originalNodeEnv
+  }
+  process.env.NODE_ENV = fallbackEnv
+}
+
 const requiredMushafFonts = ["mushaf-madinah.woff2", "mushaf-madinah.woff"]
 const mushafFontDirectory = path.join(process.cwd(), "public", "fonts", "mushaf")
 
