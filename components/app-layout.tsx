@@ -3,6 +3,8 @@
 import type React from "react"
 
 import Navigation from "@/components/navigation"
+import { BottomNavigation } from "@/components/bottom-nav"
+import { CelebrationOverlay } from "@/components/celebration-overlay"
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -10,9 +12,16 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   return (
-    <div className="flex h-screen bg-gradient-to-br from-cream-50 to-maroon-50">
-      <Navigation />
-      <main className="flex-1 lg:ml-64 overflow-auto">{children}</main>
+    <div className="relative flex min-h-screen flex-col bg-gradient-to-br from-cream-50 via-white to-maroon-50 text-maroon-900">
+      <div className="hidden lg:block">
+        <Navigation />
+      </div>
+      <div className="relative flex-1 lg:ml-64">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(209,145,102,0.18),transparent_65%)]" />
+        <main className="relative z-10 min-h-screen overflow-x-hidden pb-28 pl-0 pr-0 lg:pb-0">{children}</main>
+      </div>
+      <CelebrationOverlay />
+      <BottomNavigation />
     </div>
   )
 }

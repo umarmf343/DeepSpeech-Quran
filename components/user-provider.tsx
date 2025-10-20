@@ -1,10 +1,33 @@
 "use client"
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react"
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 
-type UserRole = "student" | "teacher" | "parent" | "admin"
-type SubscriptionPlan = "free" | "premium"
-type HabitDifficulty = "easy" | "medium" | "hard"
+import type {
+  Badge,
+  GamificationState,
+  HabitQuest,
+  LocalizationStrings,
+  NavigationLink,
+  Notification,
+  Recommendation,
+  RuntimeData,
+  TimedChallenge,
+  UserPreferences,
+  UserRecord,
+  UserStats,
+} from "@/lib/data/mock-db"
+
+export type UserRole = "visitor" | "student" | "teacher" | "parent" | "admin"
+export type SubscriptionPlan = "free" | "premium"
+export type HabitDifficulty = "easy" | "medium" | "hard"
 
 export interface UserProfile {
   id: string
@@ -17,40 +40,17 @@ export interface UserProfile {
   joinedAt: string
 }
 
-export interface UserStats {
-  hasanat: number
-  streak: number
-  ayahsRead: number
-  studyMinutes: number
-  rank: number
-  level: number
-  xp: number
-  xpToNext: number
-  completedHabits: number
-  weeklyXP: number[]
-}
-
-export interface HabitQuest {
-  id: string
-  title: string
-  description: string
-  difficulty: HabitDifficulty
-  streak: number
-  bestStreak: number
-  level: number
-  xp: number
-  progress: number
-  xpReward: number
-  hasanatReward: number
-  dailyTarget: string
-  icon: string
-  lastCompletedAt?: string
-  weeklyProgress: number[]
-}
-
 export interface CompleteHabitResult {
   success: boolean
   message: string
+}
+
+interface CelebrationState {
+  active: boolean
+  title?: string
+  message: string
+  asset: "egg" | "tree" | "medal" | null
+  rewardCopy?: string
 }
 
 interface UserContextValue {
@@ -60,13 +60,110 @@ interface UserContextValue {
   perks: string[]
   lockedPerks: string[]
   isPremium: boolean
-  completeHabit: (habitId: string) => CompleteHabitResult
-  upgradeToPremium: () => void
-  downgradeToFree: () => void
+  preferences: UserPreferences
+  gamification: GamificationState
+  badges: Badge[]
+  challenges: TimedChallenge[]
+  notifications: Notification[]
+  localization: LocalizationStrings
+  navigation: NavigationLink[]
+  runtime: RuntimeData | null
+  recommendations: Recommendation[]
+  activeNav: string
+  celebration: CelebrationState
+  isLoading: boolean
+  completeHabit: (habitId: string) => Promise<CompleteHabitResult>
+  updatePreferences: (patch: Partial<UserPreferences>) => Promise<void>
+  toggleSeniorMode: () => Promise<void>
+  markNotificationRead: (id: string) => Promise<void>
+  refreshRuntime: () => Promise<void>
+  updateGamification: (payload: { type: "habit" | "badge" | "notification"; habitId?: string; badgeId?: string }) => Promise<void>
+  upgradeToPremium: () => Promise<void>
+  downgradeToFree: () => Promise<void>
+  setActiveNav: (slug: string) => void
+  closeCelebration: () => void
 }
 
-const LEVEL_XP_STEP = 500
-const HABIT_LEVEL_STEP = 120
+const DEFAULT_PROFILE: UserProfile = {
+  id: "user_student",
+  name: "Ahmad Al-Hafiz",
+  email: "student@alfawz.io",
+  role: "student",
+  locale: "en",
+  plan: "premium",
+  joinedAt: new Date().toISOString(),
+}
+
+const DEFAULT_STATS: UserStats = {
+  hasanat: 0,
+  streak: 0,
+  ayahsRead: 0,
+  studyMinutes: 0,
+  rank: 0,
+  level: 1,
+  xp: 0,
+  xpToNext: 500,
+  completedHabits: 0,
+  weeklyXP: [0, 0, 0, 0, 0, 0, 0],
+}
+
+const DEFAULT_PREFERENCES: UserPreferences = {
+  reciter: "Mishary Rashid",
+  translation: "Sahih International",
+  translationLanguage: "en",
+  playbackSpeed: 1,
+  challengeOptIn: true,
+  notifications: { email: true, push: true, sms: false },
+  seniorMode: false,
+  accessibilityFontSize: "normal",
+  heroAnimation: true,
+  savedPermalinks: ["/dashboard", "/reader"],
+  navOrder: [
+    "dashboard",
+    "reader",
+    "practice",
+    "memorization",
+    "progress",
+    "achievements",
+    "leaderboard",
+    "profile",
+  ],
+}
+
+const DEFAULT_GAMIFICATION: GamificationState = {
+  xp: 0,
+  hasanat: 0,
+  level: 1,
+  xpToNext: 500,
+  streak: 0,
+  heroCopy: {
+    title: "Takbir! The egg is hatching...",
+    subtitle: "Every recitation adds light to your journey",
+    kicker: "Daily Quest",
+  },
+  milestones: [],
+}
+
+const DEFAULT_LOCALIZATION: LocalizationStrings = {
+  locale: "en",
+  hero: {
+    title: "Keep nurturing your tree",
+    subtitle: "Continue building your Qur'anic legacy",
+    action: "Resume lesson",
+  },
+  navigation: {},
+  gamification: {
+    celebrationEgg: "Takbir! The egg is hatching...",
+    celebrationTree: "Mashallah! Your tree is blooming.",
+    streak: "Current streak",
+  },
+}
+
+const STORAGE_KEYS = {
+  token: "alfawz_token",
+  preferences: "alfawz_preferences",
+  activeNav: "alfawz_active_nav",
+}
 
 const perksByPlan: Record<SubscriptionPlan, string[]> = {
   free: [
@@ -87,223 +184,315 @@ const perksByPlan: Record<SubscriptionPlan, string[]> = {
   ],
 }
 
-const initialProfile: UserProfile = {
-  id: "user_001",
-  name: "Ahmad Al-Hafiz",
-  email: "ahmad@example.com",
-  role: "student",
-  locale: "en-US",
-  plan: "free",
-  joinedAt: "2024-02-14T10:00:00Z",
-}
-
-const initialStats: UserStats = {
-  hasanat: 1247,
-  streak: 7,
-  ayahsRead: 342,
-  studyMinutes: 135,
-  rank: 12,
-  level: 8,
-  xp: 3400,
-  xpToNext: 500,
-  completedHabits: 18,
-  weeklyXP: [120, 90, 160, 140, 110, 60, 0],
-}
-
-const yesterdayKey = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-
-const initialHabits: HabitQuest[] = [
-  {
-    id: "daily-recitation",
-    title: "Daily Recitation Quest",
-    description: "Recite at least 5 ayahs aloud focusing on Tajweed.",
-    difficulty: "medium",
-    streak: 6,
-    bestStreak: 14,
-    level: 3,
-    xp: 240,
-    progress: 40,
-    xpReward: 60,
-    hasanatReward: 45,
-    dailyTarget: "5 ayahs",
-    icon: "BookOpen",
-    lastCompletedAt: yesterdayKey,
-    weeklyProgress: [100, 80, 65, 100, 40, 0, 0],
-  },
-  {
-    id: "memorization-review",
-    title: "Memorization Review",
-    description: "Review your latest memorized passage with the SM-2 queue.",
-    difficulty: "hard",
-    streak: 4,
-    bestStreak: 9,
-    level: 2,
-    xp: 190,
-    progress: 60,
-    xpReward: 75,
-    hasanatReward: 60,
-    dailyTarget: "1 session",
-    icon: "Brain",
-    lastCompletedAt: yesterdayKey,
-    weeklyProgress: [90, 70, 40, 80, 30, 0, 0],
-  },
-  {
-    id: "reflection-journal",
-    title: "Reflection Journal",
-    description: "Write a reflection about today's recitation in your journal.",
-    difficulty: "easy",
-    streak: 3,
-    bestStreak: 8,
-    level: 2,
-    xp: 130,
-    progress: 10,
-    xpReward: 40,
-    hasanatReward: 30,
-    dailyTarget: "1 entry",
-    icon: "Pen",
-    lastCompletedAt: yesterdayKey,
-    weeklyProgress: [70, 40, 20, 60, 10, 0, 0],
-  },
-]
-
 const UserContext = createContext<UserContextValue | undefined>(undefined)
 
-function getDayDifference(from: string, to: string) {
-  const fromDate = new Date(from)
-  const toDate = new Date(to)
-  const diff = toDate.setHours(0, 0, 0, 0) - fromDate.setHours(0, 0, 0, 0)
-  return Math.round(diff / (24 * 60 * 60 * 1000))
+function reorderNavigation(links: NavigationLink[], order: string[]) {
+  const map = new Map(links.map((link) => [link.slug, link]))
+  const ordered = order.map((slug) => map.get(slug)).filter((link): link is NavigationLink => Boolean(link))
+  const remainder = links.filter((link) => !order.includes(link.slug))
+  return [...ordered, ...remainder]
+}
+
+function mergePreferences(base: UserPreferences, overrides?: Partial<UserPreferences>): UserPreferences {
+  if (!overrides) return base
+  return {
+    ...base,
+    ...overrides,
+    notifications: {
+      ...base.notifications,
+      ...(overrides.notifications ?? {}),
+    },
+    navOrder: overrides.navOrder ?? base.navOrder,
+    savedPermalinks: overrides.savedPermalinks ?? base.savedPermalinks,
+  }
 }
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [profile, setProfile] = useState<UserProfile>(initialProfile)
-  const [stats, setStats] = useState<UserStats>(initialStats)
-  const [habits, setHabits] = useState<HabitQuest[]>(initialHabits)
-  const [lastActivityDate, setLastActivityDate] = useState<string | null>(yesterdayKey)
+  const hasHydrated = useRef(false)
+  const [token, setToken] = useState<string | null>(null)
+  const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE)
+  const [stats, setStats] = useState<UserStats>(DEFAULT_STATS)
+  const [habits, setHabits] = useState<HabitQuest[]>([])
+  const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES)
+  const [gamification, setGamification] = useState<GamificationState>(DEFAULT_GAMIFICATION)
+  const [badges, setBadges] = useState<Badge[]>([])
+  const [challenges, setChallenges] = useState<TimedChallenge[]>([])
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [localization, setLocalization] = useState<LocalizationStrings>(DEFAULT_LOCALIZATION)
+  const [navigation, setNavigation] = useState<NavigationLink[]>([])
+  const [runtime, setRuntime] = useState<RuntimeData | null>(null)
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([])
+  const [activeNav, setActiveNavState] = useState<string>("dashboard")
+  const [celebration, setCelebration] = useState<CelebrationState>({
+    active: false,
+    message: "",
+    asset: null,
+  })
+  const [isLoading, setIsLoading] = useState(true)
+
+  const loadPreferencesFromStorage = useCallback(() => {
+    if (typeof window === "undefined") return null
+    const stored = window.localStorage.getItem(STORAGE_KEYS.preferences)
+    if (!stored) return null
+    try {
+      return JSON.parse(stored) as Partial<UserPreferences>
+    } catch (error) {
+      console.error("Failed to parse stored preferences", error)
+      return null
+    }
+  }, [])
+
+  const persistPreferences = useCallback((prefs: UserPreferences) => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STORAGE_KEYS.preferences, JSON.stringify(prefs))
+    }
+  }, [])
+
+  const applyUser = useCallback(
+    (user: UserRecord, nav?: NavigationLink[]) => {
+      const localPreferenceOverrides = loadPreferencesFromStorage()
+      const mergedPreferences = mergePreferences(user.preferences, localPreferenceOverrides ?? undefined)
+
+      setProfile({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        locale: user.locale,
+        plan: user.plan,
+        joinedAt: user.joinedAt,
+      })
+      setStats(user.stats)
+      setHabits(user.habits)
+      setPreferences(mergedPreferences)
+      setGamification(user.gamification)
+      setBadges(user.badges)
+      setChallenges(user.challenges)
+      setNotifications(user.notifications)
+      setLocalization(user.localization)
+      setRuntime(user.runtime)
+      setRecommendations(user.recommendations)
+
+      if (nav && nav.length > 0) {
+        setNavigation(reorderNavigation(nav, mergedPreferences.navOrder))
+      } else if (navigation.length > 0) {
+        setNavigation(reorderNavigation(navigation, mergedPreferences.navOrder))
+      }
+
+      persistPreferences(mergedPreferences)
+      setIsLoading(false)
+    },
+    [loadPreferencesFromStorage, navigation, persistPreferences],
+  )
+
+  const authorizedFetch = useCallback(
+    async (input: RequestInfo, init: RequestInit = {}) => {
+      const headers = new Headers(init.headers)
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`)
+      }
+      if (init.body && !headers.has("Content-Type")) {
+        headers.set("Content-Type", "application/json")
+      }
+
+      const response = await fetch(input, { ...init, headers })
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`)
+      }
+      return response.json()
+    },
+    [token],
+  )
+
+  const initializeSession = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const storedToken = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEYS.token) : null
+      if (storedToken) {
+        setToken(storedToken)
+        return
+      }
+
+      const loginResponse = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: "student" }),
+      })
+      const loginData = await loginResponse.json()
+      setToken(loginData.token)
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(STORAGE_KEYS.token, loginData.token)
+      }
+      applyUser(loginData.user, loginData.navigation)
+    } catch (error) {
+      console.error("Failed to initialize session", error)
+      setIsLoading(false)
+    }
+  }, [applyUser])
+
+  const hydrateFromSession = useCallback(async () => {
+    if (!token) return
+    try {
+      const session = await authorizedFetch("/api/auth/session")
+      applyUser(session.user, session.navigation)
+    } catch (error) {
+      console.error("Failed to load session", error)
+      await initializeSession()
+    }
+  }, [applyUser, authorizedFetch, initializeSession, token])
+
+  useEffect(() => {
+    if (hasHydrated.current) return
+    hasHydrated.current = true
+
+    if (typeof window !== "undefined") {
+      const storedNav = window.localStorage.getItem(STORAGE_KEYS.activeNav)
+      if (storedNav) {
+        setActiveNavState(storedNav)
+      }
+    }
+
+    initializeSession()
+  }, [initializeSession])
+
+  useEffect(() => {
+    if (!token) return
+    hydrateFromSession()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STORAGE_KEYS.activeNav, activeNav)
+    }
+  }, [activeNav])
 
   const isPremium = profile.plan === "premium"
 
   const perks = useMemo(() => perksByPlan[profile.plan], [profile.plan])
+
   const lockedPerks = useMemo(
     () => perksByPlan.premium.filter((perk) => !perksByPlan[profile.plan].includes(perk)),
     [profile.plan],
   )
 
-  const completeHabit = useCallback(
-    (habitId: string): CompleteHabitResult => {
-      const today = new Date()
-      const todayKey = today.toISOString().slice(0, 10)
-      const todayIndex = today.getDay()
+  const setActiveNav = useCallback((slug: string) => {
+    setActiveNavState(slug)
+  }, [])
 
-      let result: CompleteHabitResult = { success: false, message: "Habit not found." }
-      let xpGain = 0
-      let hasanatGain = 0
+  const updatePreferences = useCallback(
+    async (patch: Partial<UserPreferences>) => {
+      const nextPreferences = mergePreferences(preferences, patch)
+      setPreferences(nextPreferences)
+      persistPreferences(nextPreferences)
 
-      setHabits((previousHabits) =>
-        previousHabits.map((habit) => {
-          if (habit.id !== habitId) {
-            return habit
-          }
-
-          if (habit.lastCompletedAt === todayKey) {
-            result = { success: false, message: "You've already completed this habit today." }
-            return habit
-          }
-
-          const previousCompletion = habit.lastCompletedAt
-          let updatedStreak = habit.streak
-          if (previousCompletion) {
-            const diff = getDayDifference(previousCompletion, todayKey)
-            if (diff === 1) {
-              updatedStreak = habit.streak + 1
-            } else if (diff > 1) {
-              updatedStreak = 1
-            }
-          } else {
-            updatedStreak = 1
-          }
-
-          xpGain = habit.xpReward
-          hasanatGain = habit.hasanatReward
-          const newTotalXp = habit.xp + habit.xpReward
-          const nextLevel = Math.floor(newTotalXp / HABIT_LEVEL_STEP) + 1
-          const progressTowardsLevel = ((newTotalXp % HABIT_LEVEL_STEP) / HABIT_LEVEL_STEP) * 100
-
-          const updatedWeeklyProgress = [...habit.weeklyProgress]
-          updatedWeeklyProgress[todayIndex] = 100
-
-          result = { success: true, message: "Great job! Habit completed for today." }
-
-          return {
-            ...habit,
-            xp: newTotalXp,
-            level: nextLevel,
-            progress: Math.min(100, progressTowardsLevel),
-            streak: updatedStreak,
-            bestStreak: Math.max(habit.bestStreak, updatedStreak),
-            lastCompletedAt: todayKey,
-            weeklyProgress: updatedWeeklyProgress,
-          }
-        }),
-      )
-
-      if (!result.success) {
-        return result
+      try {
+        await authorizedFetch("/api/user/preferences", {
+          method: "PUT",
+          body: JSON.stringify(nextPreferences),
+        })
+      } catch (error) {
+        console.error("Failed to persist preferences", error)
       }
-
-      const diffFromLast = lastActivityDate ? getDayDifference(lastActivityDate, todayKey) : null
-      const updatedTodayIndex = new Date(todayKey).getDay()
-
-      setStats((previousStats) => {
-        let streak = previousStats.streak
-        if (diffFromLast === null) {
-          streak = Math.max(previousStats.streak, 1)
-        } else if (diffFromLast === 0) {
-          streak = previousStats.streak
-        } else if (diffFromLast === 1) {
-          streak = previousStats.streak + 1
-        } else if (diffFromLast > 1) {
-          streak = 1
-        }
-
-        let xpToNext = previousStats.xpToNext - xpGain
-        let level = previousStats.level
-        while (xpToNext <= 0) {
-          level += 1
-          xpToNext += LEVEL_XP_STEP
-        }
-
-        const weeklyXP = [...previousStats.weeklyXP]
-        weeklyXP[updatedTodayIndex] = Math.min(weeklyXP[updatedTodayIndex] + xpGain, LEVEL_XP_STEP)
-
-        return {
-          ...previousStats,
-          streak,
-          xp: previousStats.xp + xpGain,
-          xpToNext,
-          level,
-          hasanat: previousStats.hasanat + hasanatGain,
-          completedHabits: previousStats.completedHabits + 1,
-          weeklyXP,
-        }
-      })
-
-      setLastActivityDate(todayKey)
-
-      return result
     },
-    [lastActivityDate],
+    [authorizedFetch, persistPreferences, preferences],
   )
 
-  const upgradeToPremium = useCallback(() => {
-    setProfile((previous) => ({ ...previous, plan: "premium" }))
+  const toggleSeniorMode = useCallback(async () => {
+    await updatePreferences({ seniorMode: !preferences.seniorMode })
+  }, [preferences.seniorMode, updatePreferences])
+
+  const markNotificationRead = useCallback(
+    async (id: string) => {
+      setNotifications((prev) => prev.map((notification) => (notification.id === id ? { ...notification, read: true } : notification)))
+      try {
+        await authorizedFetch("/api/notifications", {
+          method: "POST",
+          body: JSON.stringify({ action: "mark-read", id }),
+        })
+      } catch (error) {
+        console.error("Failed to mark notification as read", error)
+      }
+    },
+    [authorizedFetch],
+  )
+
+  const refreshRuntime = useCallback(async () => {
+    try {
+      const { runtime: runtimeData } = await authorizedFetch("/api/runtime")
+      setRuntime(runtimeData)
+    } catch (error) {
+      console.error("Failed to refresh runtime", error)
+    }
+  }, [authorizedFetch])
+
+  const updateGamification = useCallback(
+    async (payload: { type: "habit" | "badge" | "notification"; habitId?: string; badgeId?: string }) => {
+      try {
+        const response = await authorizedFetch("/api/gamification", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        })
+        if (response.gamification) {
+          setGamification(response.gamification)
+        }
+        if (response.notifications) {
+          setNotifications(response.notifications)
+        }
+      } catch (error) {
+        console.error("Failed to update gamification", error)
+      }
+    },
+    [authorizedFetch],
+  )
+
+  const completeHabit = useCallback(
+    async (habitId: string): Promise<CompleteHabitResult> => {
+      if (!habitId) {
+        return { success: false, message: "Habit not found." }
+      }
+      try {
+        const response = await authorizedFetch("/api/user", {
+          method: "PATCH",
+          body: JSON.stringify({ habitId }),
+        })
+        if (response?.user) {
+          applyUser(response.user)
+          const milestone = response.user.gamification.milestones.find(
+            (entry: GamificationState["milestones"][number]) => entry.status === "completed" && entry.progress >= entry.threshold,
+          )
+          if (milestone) {
+            setCelebration({
+              active: true,
+              title: milestone.title,
+              message: milestone.celebrationText,
+              asset: milestone.asset,
+              rewardCopy: `+${response.user.stats.hasanat - stats.hasanat} Hasanat`,
+            })
+          }
+        }
+        return { success: true, message: "Habit completed." }
+      } catch (error) {
+        console.error("Failed to complete habit", error)
+        return { success: false, message: "Unable to complete habit." }
+      }
+    },
+    [applyUser, authorizedFetch, stats.hasanat],
+  )
+
+  const upgradeToPremium = useCallback(async () => {
+    setProfile((prev) => ({ ...prev, plan: "premium" }))
   }, [])
 
-  const downgradeToFree = useCallback(() => {
-    setProfile((previous) => ({ ...previous, plan: "free" }))
+  const downgradeToFree = useCallback(async () => {
+    setProfile((prev) => ({ ...prev, plan: "free" }))
   }, [])
 
-  const value = useMemo(
+  const closeCelebration = useCallback(() => {
+    setCelebration((prev) => ({ ...prev, active: false }))
+  }, [])
+
+  const value = useMemo<UserContextValue>(
     () => ({
       profile,
       stats,
@@ -311,11 +500,58 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       perks,
       lockedPerks,
       isPremium,
+      preferences,
+      gamification,
+      badges,
+      challenges,
+      notifications,
+      localization,
+      navigation,
+      runtime,
+      recommendations,
+      activeNav,
+      celebration,
+      isLoading,
       completeHabit,
+      updatePreferences,
+      toggleSeniorMode,
+      markNotificationRead,
+      refreshRuntime,
+      updateGamification,
       upgradeToPremium,
       downgradeToFree,
+      setActiveNav,
+      closeCelebration,
     }),
-    [profile, stats, habits, perks, lockedPerks, isPremium, completeHabit, upgradeToPremium, downgradeToFree],
+    [
+      activeNav,
+      badges,
+      celebration,
+      challenges,
+      completeHabit,
+      downgradeToFree,
+      gamification,
+      habits,
+      isLoading,
+      isPremium,
+      localization,
+      lockedPerks,
+      markNotificationRead,
+      navigation,
+      notifications,
+      perks,
+      preferences,
+      profile,
+      recommendations,
+      refreshRuntime,
+      runtime,
+      setActiveNav,
+      stats,
+      toggleSeniorMode,
+      updateGamification,
+      updatePreferences,
+      upgradeToPremium,
+    ],
   )
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>
@@ -324,7 +560,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 export function useUserContext() {
   const context = useContext(UserContext)
   if (!context) {
-    throw new Error("useUserContext must be used within a UserProvider")
+    throw new Error("useUser must be used within a UserProvider")
   }
   return context
 }
