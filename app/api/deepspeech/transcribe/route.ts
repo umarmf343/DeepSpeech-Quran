@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
-import { deepspeechStages, morphologyEntries } from "@/lib/integration-data"
+import { deepspeechStages } from "@/lib/integration-data"
+import { getMorphologyForAyah } from "@/lib/morphology-db"
 
 export async function POST(request: Request) {
   const formData = await request.formData()
@@ -7,12 +8,10 @@ export async function POST(request: Request) {
   const duration = Number.parseFloat((formData.get("duration") as string) ?? "0")
 
   const preferredStage = formData.get("stage") as string | null
+  const ayahReference = formData.get("ayahReference") as string | null
   const stage =
     deepspeechStages.find((entry) => entry.stage === preferredStage) ?? deepspeechStages[1] ?? deepspeechStages[0]
-
-  const morphologyLookup = morphologyEntries.find((entry) =>
-    entry.words.some((word) => ayahText.includes(word.arabic)),
-  )
+  const morphologyLookup = ayahReference ? getMorphologyForAyah(ayahReference, ayahText) : null
 
   const tajweedMistakes = ayahText
     ? [
@@ -40,7 +39,7 @@ export async function POST(request: Request) {
     notes: stage.notes,
     enhancements: stage.enhancements,
     tajweedMistakes,
-    morphology: morphologyLookup ?? null,
+    morphology: morphologyLookup,
     recommendations: [
       "Review the tajweed legend in the Color-Coded Mushaf to reinforce nasalization cues.",
       "Run a grammar drill on the shared root ر ح م using the adaptive morphology deck.",

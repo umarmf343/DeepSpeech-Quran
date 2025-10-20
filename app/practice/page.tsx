@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useMemo, useState } from "react"
 import { AppLayout } from "@/components/app-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,6 +10,7 @@ import { Progress } from "@/components/ui/progress"
 import { AdvancedAudioRecorder } from "@/components/advanced-audio-recorder"
 import { MorphologyBreakdown } from "@/components/morphology-breakdown"
 import { deepspeechResources, deepspeechStages, mushafVariants } from "@/lib/integration-data"
+import type { MorphologyResponse } from "@/types/morphology"
 import {
   Activity,
   ArrowRight,
@@ -71,7 +73,7 @@ type TajweedAnalysis = {
   notes: string
   enhancements: string[]
   tajweedMistakes: { rule: string; severity: string; description: string }[]
-  morphology: unknown
+  morphology: MorphologyResponse | null
   recommendations: string[]
 }
 
@@ -89,12 +91,13 @@ export default function PracticePage() {
 
   const stageOptions = useMemo(() => deepspeechStages, [])
 
-  async function analyzeRecitation(audioBlob: Blob, duration: number, ayahText: string) {
+  async function analyzeRecitation(audioBlob: Blob, duration: number, ayahText: string, ayahReference: string) {
     const formData = new FormData()
     formData.append("audio", audioBlob, "recitation.webm")
     formData.append("duration", duration.toString())
     formData.append("ayahText", ayahText)
     formData.append("stage", selectedStage.stage)
+    formData.append("ayahReference", ayahReference)
 
     const response = await fetch("/api/deepspeech/transcribe", {
       method: "POST",
@@ -117,7 +120,7 @@ export default function PracticePage() {
 
   const handleRecordingComplete = (audioBlob: Blob, duration: number) => {
     setIsAnalyzing(true)
-    analyzeRecitation(audioBlob, duration, currentAyah.arabic)
+    analyzeRecitation(audioBlob, duration, currentAyah.arabic, currentAyah.reference)
       .catch((error) => {
         console.error("DeepSpeech analysis failed", error)
       })
@@ -348,6 +351,23 @@ export default function PracticePage() {
                     </Badge>
                   ))}
                 </div>
+
+                {analysis.morphology && (
+                  <div className="rounded-lg border border-purple-200 bg-purple-50/80 px-4 py-3 text-sm text-purple-900 space-y-2">
+                    <p className="font-semibold">Grammar Snapshot</p>
+                    <p>
+                      <span className="font-medium">Roots observed:</span> {analysis.morphology.summary.roots ?? "—"}
+                    </p>
+                    <p>
+                      <span className="font-medium">Lemmas:</span> {analysis.morphology.summary.lemmas ?? "—"}
+                    </p>
+                    <Button asChild variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-100">
+                      <Link href={`/reader/layouts?ayah=${encodeURIComponent(analysis.morphology.ayah)}`}>
+                        Open Mushaf Alignment
+                      </Link>
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -379,7 +399,11 @@ export default function PracticePage() {
                 </CardContent>
               </Card>
 
-              <MorphologyBreakdown ayahReference={currentAyah.reference} />
+              <MorphologyBreakdown
+                ayahReference={currentAyah.reference}
+                ayahText={currentAyah.arabic}
+                initialData={analysis?.morphology ?? null}
+              />
             </div>
           </div>
         )}
