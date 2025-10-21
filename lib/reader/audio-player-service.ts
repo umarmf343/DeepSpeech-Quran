@@ -111,6 +111,32 @@ export class AudioPlayerService {
         URL.revokeObjectURL(objectUrl)
       }
     } catch (error) {
+      if (this.loadingUrl) {
+        this.loadingUrl = null
+      }
+
+      const isNetworkOrCorsError =
+        error instanceof TypeError ||
+        (error instanceof Error && /failed to fetch/i.test(error.message))
+
+      if (isNetworkOrCorsError) {
+        try {
+          this.audio.src = request.url
+          this.audio.onended = () => {
+            request.onEnd?.()
+          }
+          await this.audio.play()
+          return
+        } catch (fallbackError) {
+          request.onError?.(
+            fallbackError instanceof Error
+              ? fallbackError
+              : new Error("Audio playback failed")
+          )
+          return
+        }
+      }
+
       request.onError?.(error instanceof Error ? error : new Error("Audio playback failed"))
     }
   }
