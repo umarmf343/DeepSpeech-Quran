@@ -91,7 +91,7 @@ const DEFAULT_PROFILE: UserProfile = {
   role: "student",
   locale: "en",
   plan: "premium",
-  joinedAt: new Date().toISOString(),
+  joinedAt: "2024-01-01T00:00:00.000Z",
 }
 
 const DEFAULT_STATS: UserStats = {
