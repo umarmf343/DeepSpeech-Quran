@@ -400,297 +400,297 @@ export default function AlfawzReaderPage() {
           </Alert>
         )}
 
-        <GwaniSurahPlayer surahs={surahs} nightMode={nightMode} />
+        <Card className={cn("shadow-lg", cardBackground, selectedMushaf.visualStyle.background)}>
+          <CardHeader className="pb-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-2xl text-maroon-900 dark:text-amber-100">
+                  {surahMeta ? `${surahMeta.name} – ${surahMeta.englishName}` : "Loading…"}
+                </CardTitle>
+                {surahMeta && (
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {surahMeta.numberOfAyahs} Ayahs • {surahMeta.revelationType} Revelation
+                  </p>
+                )}
+              </div>
+              {selectedAyahNumber && (
+                <Badge className="bg-gradient-to-r from-maroon-600 to-amber-500 text-white">Ayah {selectedAyahNumber}</Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Select Surah</Label>
+                <Select
+                  value={selectedSurahNumber?.toString()}
+                  onValueChange={(value) => {
+                    const surahNumber = Number.parseInt(value)
+                    if (!Number.isNaN(surahNumber)) {
+                      setSelectedSurahNumber(surahNumber)
+                    }
+                  }}
+                >
+                  <SelectTrigger className="bg-white/90 dark:bg-slate-900/70">
+                    <SelectValue placeholder="Choose a surah" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {surahs.map((surah) => (
+                      <SelectItem key={surah.number} value={surah.number.toString()}>
+                        {surah.number}. {surah.englishName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Select Ayah</Label>
+                <Select value={selectedAyahNumber?.toString()} onValueChange={handleAyahSelection}>
+                  <SelectTrigger className="bg-white/90 dark:bg-slate-900/70">
+                    <SelectValue placeholder="Ayah" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {ayahList.map((ayah) => (
+                      <SelectItem key={ayah.number} value={ayah.numberInSurah.toString()}>
+                        Ayah {ayah.numberInSurah}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Reciter</Label>
+                <Select value={selectedReciter} onValueChange={handleReciterChange}>
+                  <SelectTrigger className="bg-white/90 dark:bg-slate-900/70">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RECITER_OPTIONS.map((reciter) => (
+                      <SelectItem key={reciter.edition} value={reciter.edition}>
+                        {reciter.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Translation</Label>
+                <Select value={selectedTranslation} onValueChange={handleTranslationChange}>
+                  <SelectTrigger className="bg-white/90 dark:bg-slate-900/70">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TRANSLATION_OPTIONS.map((translation) => (
+                      <SelectItem key={translation.edition} value={translation.edition}>
+                        {translation.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-2">
+                {surahMeta && (
+                  <Badge className="bg-emerald-100 text-emerald-800">{surahMeta.revelationType}</Badge>
+                )}
+                {surahMeta && (
+                  <Badge variant="outline">{surahMeta.numberOfAyahs} Ayahs</Badge>
+                )}
+                <Badge className={selectedMushaf.visualStyle.badge}>{selectedMushaf.name}</Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-maroon-600" />
+                <Link href="/practice" className="text-sm font-medium text-maroon-700 hover:underline">
+                  Launch AI Lab
+                </Link>
+              </div>
+            </div>
+
+            <div
+              className={cn(
+                "rounded-xl border-2 px-6 py-8 shadow-sm",
+                selectedMushaf.visualStyle.border,
+                nightMode ? "bg-slate-950/60" : "bg-white/90",
+              )}
+            >
+              {isLoadingAyah ? (
+                <Skeleton className="h-24 w-full" />
+              ) : (
+                <p className={cn("font-arabic text-right leading-relaxed text-maroon-900 dark:text-amber-100", fontSizeClass)}>
+                  {ayahDetail?.arabic?.text ?? ""}
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <Switch checked={showTranslation} onCheckedChange={setShowTranslation} id="toggle-translation" />
+                <Label htmlFor="toggle-translation" className="text-sm text-muted-foreground">
+                  Show translation
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={showTransliteration}
+                  onCheckedChange={setShowTransliteration}
+                  id="toggle-transliteration"
+                />
+                <Label htmlFor="toggle-transliteration" className="text-sm text-muted-foreground">
+                  Show transliteration
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={markAyahCompleted}>
+                  <Check className="mr-2 h-4 w-4" /> Mark ayah complete
+                </Button>
+                <Badge variant="outline" className="text-xs">
+                  {versesCompleted} / {dailyGoal} today
+                </Badge>
+              </div>
+            </div>
+
+            {showTranslation && ayahDetail?.translations?.length ? (
+              <div className="rounded-lg bg-slate-50/80 p-4 text-sm leading-relaxed text-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
+                {ayahDetail.translations.map((translation) => (
+                  <div key={translation.translator} className="space-y-2">
+                    <p>{translation.text}</p>
+                    <p className="text-xs text-muted-foreground">— {translation.translator}</p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {showTransliteration && ayahDetail?.transliteration && (
+              <p className="text-sm italic text-slate-600 dark:text-slate-300">
+                {ayahDetail.transliteration.text}
+              </p>
+            )}
+
+            <AudioPlayer
+              source={audioUrl}
+              isPlaying={isPlaying}
+              onTogglePlay={() => setIsPlaying((prev) => !prev)}
+              onNext={selectedAyahNumber && selectedAyahNumber < ayahList.length ? handleNextAyah : undefined}
+              onPrevious={selectedAyahNumber && selectedAyahNumber > 1 ? handlePreviousAyah : undefined}
+              playbackSpeed={playbackSpeed}
+              onPlaybackSpeedChange={handlePlaybackSpeedChange}
+              volume={volume}
+              onVolumeChange={setVolume}
+              disabled={isLoadingAudio || !audioUrl}
+              onEnded={handleNextAyah}
+              className={nightMode ? "border-slate-700 bg-slate-900/60" : undefined}
+            />
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <Card className={cn("border border-emerald-200 bg-emerald-50/80", nightMode && "border-emerald-400/60 bg-emerald-900/40") }>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-emerald-800 dark:text-emerald-200">Mushaf Highlights</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-emerald-900 dark:text-emerald-200">
+                  <div className="font-arabic rounded-lg border border-emerald-200 bg-white/90 p-3 text-right text-xl shadow-sm dark:border-emerald-400/50 dark:bg-emerald-900/40">
+                    {selectedMushaf.ayahExample.arabic}
+                  </div>
+                  <p>{selectedMushaf.ayahExample.guidance}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedMushaf.highlights.map((highlight) => (
+                      <Badge key={highlight} className={selectedMushaf.visualStyle.badge}>
+                        {highlight}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {selectedSurahNumber && selectedAyahNumber && (
+                <MorphologyBreakdown ayahReference={`${selectedSurahNumber}:${selectedAyahNumber}`} />
+              )}
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card className={cn("border border-purple-200 bg-purple-50/80", nightMode && "border-purple-400/60 bg-purple-900/30") }>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-purple-800 dark:text-purple-200">Reader Settings</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 text-sm text-slate-700 dark:text-slate-200">
+                  <div className="space-y-2">
+                    <p className="font-medium">Font size</p>
+                    <Slider value={[fontScale]} onValueChange={(value) => setFontScale(value[0] ?? 4)} min={3} max={6} step={1} />
+                    <p className="text-xs text-muted-foreground">Current size: {fontSizeClass.replace("text-", "")}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="font-medium">Mushaf variant</p>
+                    <div className="flex flex-wrap gap-2">
+                      {mushafOptions.map((variant) => (
+                        <Button
+                          key={variant.id}
+                          variant={variant.id === selectedMushaf.id ? "default" : "outline"}
+                          className={
+                            variant.id === selectedMushaf.id
+                              ? "bg-maroon-600 text-white"
+                              : nightMode
+                                ? "border-slate-600 text-slate-200"
+                                : "border-maroon-200 text-maroon-700"
+                          }
+                          size="sm"
+                          onClick={() => setSelectedMushaf(variant)}
+                        >
+                          {variant.name}
+                        </Button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground">{selectedMushaf.description}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className={cn("border border-slate-200 bg-white/80", nightMode && "border-slate-700 bg-slate-900/60") }>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-slate-800 dark:text-slate-200">Reader shortcuts</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 gap-3 text-xs text-slate-700 dark:text-slate-200 md:grid-cols-2">
+                  <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-600">
+                    <p className="font-semibold text-maroon-700 dark:text-amber-200">Reset layout</p>
+                    <p>Restore default font, translation, and Mushaf settings.</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mt-2 text-maroon-700 dark:text-amber-200"
+                      onClick={() => {
+                        setFontScale(4)
+                        setShowTranslation(true)
+                        setShowTransliteration(false)
+                        setSelectedMushaf(mushafVariants[0])
+                      }}
+                    >
+                      <RotateCcw className="mr-1 h-4 w-4" /> Reset
+                    </Button>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-600">
+                    <p className="font-semibold text-maroon-700 dark:text-amber-200">Toggle visibility</p>
+                    <p>Show or hide translations and transliteration instantly.</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setShowTranslation((prev) => !prev)}>
+                        {showTranslation ? "Hide" : "Show"} translation
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => setShowTransliteration((prev) => !prev)}>
+                        {showTransliteration ? "Hide" : "Show"} transliteration
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid gap-8 lg:grid-cols-4">
           <div className="space-y-6 lg:col-span-3">
-            <Card className={cn("shadow-lg", cardBackground, selectedMushaf.visualStyle.background)}>
-              <CardHeader className="pb-4">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <CardTitle className="text-2xl text-maroon-900 dark:text-amber-100">
-                      {surahMeta ? `${surahMeta.name} – ${surahMeta.englishName}` : "Loading…"}
-                    </CardTitle>
-                    {surahMeta && (
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {surahMeta.numberOfAyahs} Ayahs • {surahMeta.revelationType} Revelation
-                      </p>
-                    )}
-                  </div>
-                  {selectedAyahNumber && (
-                    <Badge className="bg-gradient-to-r from-maroon-600 to-amber-500 text-white">Ayah {selectedAyahNumber}</Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">Select Surah</Label>
-                    <Select
-                      value={selectedSurahNumber?.toString()}
-                      onValueChange={(value) => {
-                        const surahNumber = Number.parseInt(value)
-                        if (!Number.isNaN(surahNumber)) {
-                          setSelectedSurahNumber(surahNumber)
-                        }
-                      }}
-                    >
-                      <SelectTrigger className="bg-white/90 dark:bg-slate-900/70">
-                        <SelectValue placeholder="Choose a surah" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        {surahs.map((surah) => (
-                          <SelectItem key={surah.number} value={surah.number.toString()}>
-                            {surah.number}. {surah.englishName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">Select Ayah</Label>
-                    <Select value={selectedAyahNumber?.toString()} onValueChange={handleAyahSelection}>
-                      <SelectTrigger className="bg-white/90 dark:bg-slate-900/70">
-                        <SelectValue placeholder="Ayah" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        {ayahList.map((ayah) => (
-                          <SelectItem key={ayah.number} value={ayah.numberInSurah.toString()}>
-                            Ayah {ayah.numberInSurah}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">Reciter</Label>
-                    <Select value={selectedReciter} onValueChange={handleReciterChange}>
-                      <SelectTrigger className="bg-white/90 dark:bg-slate-900/70">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {RECITER_OPTIONS.map((reciter) => (
-                          <SelectItem key={reciter.edition} value={reciter.edition}>
-                            {reciter.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">Translation</Label>
-                    <Select value={selectedTranslation} onValueChange={handleTranslationChange}>
-                      <SelectTrigger className="bg-white/90 dark:bg-slate-900/70">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TRANSLATION_OPTIONS.map((translation) => (
-                          <SelectItem key={translation.edition} value={translation.edition}>
-                            {translation.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex flex-wrap items-center gap-2">
-                    {surahMeta && (
-                      <Badge className="bg-emerald-100 text-emerald-800">{surahMeta.revelationType}</Badge>
-                    )}
-                    {surahMeta && (
-                      <Badge variant="outline">{surahMeta.numberOfAyahs} Ayahs</Badge>
-                    )}
-                    <Badge className={selectedMushaf.visualStyle.badge}>{selectedMushaf.name}</Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-maroon-600" />
-                    <Link href="/practice" className="text-sm font-medium text-maroon-700 hover:underline">
-                      Launch AI Lab
-                    </Link>
-                  </div>
-                </div>
-
-                <div
-                  className={cn(
-                    "rounded-xl border-2 px-6 py-8 shadow-sm",
-                    selectedMushaf.visualStyle.border,
-                    nightMode ? "bg-slate-950/60" : "bg-white/90",
-                  )}
-                >
-                  {isLoadingAyah ? (
-                    <Skeleton className="h-24 w-full" />
-                  ) : (
-                    <p className={cn("font-arabic text-right leading-relaxed text-maroon-900 dark:text-amber-100", fontSizeClass)}>
-                      {ayahDetail?.arabic?.text ?? ""}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Switch checked={showTranslation} onCheckedChange={setShowTranslation} id="toggle-translation" />
-                    <Label htmlFor="toggle-translation" className="text-sm text-muted-foreground">
-                      Show translation
-                    </Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={showTransliteration}
-                      onCheckedChange={setShowTransliteration}
-                      id="toggle-transliteration"
-                    />
-                    <Label htmlFor="toggle-transliteration" className="text-sm text-muted-foreground">
-                      Show transliteration
-                    </Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={markAyahCompleted}>
-                      <Check className="mr-2 h-4 w-4" /> Mark ayah complete
-                    </Button>
-                    <Badge variant="outline" className="text-xs">
-                      {versesCompleted} / {dailyGoal} today
-                    </Badge>
-                  </div>
-                </div>
-
-                {showTranslation && ayahDetail?.translations?.length ? (
-                  <div className="rounded-lg bg-slate-50/80 p-4 text-sm leading-relaxed text-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
-                    {ayahDetail.translations.map((translation) => (
-                      <div key={translation.translator} className="space-y-2">
-                        <p>{translation.text}</p>
-                        <p className="text-xs text-muted-foreground">— {translation.translator}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-
-                {showTransliteration && ayahDetail?.transliteration && (
-                  <p className="text-sm italic text-slate-600 dark:text-slate-300">
-                    {ayahDetail.transliteration.text}
-                  </p>
-                )}
-
-                <AudioPlayer
-                  source={audioUrl}
-                  isPlaying={isPlaying}
-                  onTogglePlay={() => setIsPlaying((prev) => !prev)}
-                  onNext={selectedAyahNumber && selectedAyahNumber < ayahList.length ? handleNextAyah : undefined}
-                  onPrevious={selectedAyahNumber && selectedAyahNumber > 1 ? handlePreviousAyah : undefined}
-                  playbackSpeed={playbackSpeed}
-                  onPlaybackSpeedChange={handlePlaybackSpeedChange}
-                  volume={volume}
-                  onVolumeChange={setVolume}
-                  disabled={isLoadingAudio || !audioUrl}
-                  onEnded={handleNextAyah}
-                  className={nightMode ? "border-slate-700 bg-slate-900/60" : undefined}
-                />
-
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <Card className={cn("border border-emerald-200 bg-emerald-50/80", nightMode && "border-emerald-400/60 bg-emerald-900/40") }>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm text-emerald-800 dark:text-emerald-200">Mushaf Highlights</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3 text-sm text-emerald-900 dark:text-emerald-200">
-                      <div className="font-arabic rounded-lg border border-emerald-200 bg-white/90 p-3 text-right text-xl shadow-sm dark:border-emerald-400/50 dark:bg-emerald-900/40">
-                        {selectedMushaf.ayahExample.arabic}
-                      </div>
-                      <p>{selectedMushaf.ayahExample.guidance}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedMushaf.highlights.map((highlight) => (
-                          <Badge key={highlight} className={selectedMushaf.visualStyle.badge}>
-                            {highlight}
-                          </Badge>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {selectedSurahNumber && selectedAyahNumber && (
-                    <MorphologyBreakdown ayahReference={`${selectedSurahNumber}:${selectedAyahNumber}`} />
-                  )}
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Card className={cn("border border-purple-200 bg-purple-50/80", nightMode && "border-purple-400/60 bg-purple-900/30") }>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm text-purple-800 dark:text-purple-200">Reader Settings</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4 text-sm text-slate-700 dark:text-slate-200">
-                      <div className="space-y-2">
-                        <p className="font-medium">Font size</p>
-                        <Slider value={[fontScale]} onValueChange={(value) => setFontScale(value[0] ?? 4)} min={3} max={6} step={1} />
-                        <p className="text-xs text-muted-foreground">Current size: {fontSizeClass.replace("text-", "")}</p>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="font-medium">Mushaf variant</p>
-                        <div className="flex flex-wrap gap-2">
-                          {mushafOptions.map((variant) => (
-                            <Button
-                              key={variant.id}
-                              variant={variant.id === selectedMushaf.id ? "default" : "outline"}
-                              className={
-                                variant.id === selectedMushaf.id
-                                  ? "bg-maroon-600 text-white"
-                                  : nightMode
-                                    ? "border-slate-600 text-slate-200"
-                                    : "border-maroon-200 text-maroon-700"
-                              }
-                              size="sm"
-                              onClick={() => setSelectedMushaf(variant)}
-                            >
-                              {variant.name}
-                            </Button>
-                          ))}
-                        </div>
-                        <p className="text-xs text-muted-foreground">{selectedMushaf.description}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className={cn("border border-slate-200 bg-white/80", nightMode && "border-slate-700 bg-slate-900/60") }>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm text-slate-800 dark:text-slate-200">Reader shortcuts</CardTitle>
-                    </CardHeader>
-                    <CardContent className="grid grid-cols-1 gap-3 text-xs text-slate-700 dark:text-slate-200 md:grid-cols-2">
-                      <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-600">
-                        <p className="font-semibold text-maroon-700 dark:text-amber-200">Reset layout</p>
-                        <p>Restore default font, translation, and Mushaf settings.</p>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="mt-2 text-maroon-700 dark:text-amber-200"
-                          onClick={() => {
-                            setFontScale(4)
-                            setShowTranslation(true)
-                            setShowTransliteration(false)
-                            setSelectedMushaf(mushafVariants[0])
-                          }}
-                        >
-                          <RotateCcw className="mr-1 h-4 w-4" /> Reset
-                        </Button>
-                      </div>
-                      <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-600">
-                        <p className="font-semibold text-maroon-700 dark:text-amber-200">Toggle visibility</p>
-                        <p>Show or hide translations and transliteration instantly.</p>
-                        <div className="mt-2 flex items-center gap-2">
-                          <Button variant="outline" size="sm" onClick={() => setShowTranslation((prev) => !prev)}>
-                            {showTranslation ? "Hide" : "Show"} translation
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => setShowTransliteration((prev) => !prev)}>
-                            {showTransliteration ? "Hide" : "Show"} transliteration
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
+            <GwaniSurahPlayer surahs={surahs} nightMode={nightMode} />
           </div>
 
           <div className="space-y-6">
