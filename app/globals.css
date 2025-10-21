@@ -563,3 +563,9 @@
     animation: none;
   }
 }
+
+@layer utilities {
+  .animate-ping-slow {
+    animation: ping 3s linear infinite;
+  }
+}
