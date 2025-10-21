@@ -1,21 +1,21 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef } from "react"
 
 import { Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { useEggSessionTimer } from "@/hooks/use-egg-session"
+import { useUser } from "@/hooks/use-user"
 import { cn } from "@/lib/utils"
 
 const DEFAULT_DURATION = 120
 
 export function BreakEggTimer() {
   const { state, duration, timeLeft, isRunning, isLoading, start, reset } = useEggSessionTimer(DEFAULT_DURATION)
-  const [showCelebration, setShowCelebration] = useState(false)
   const lastCelebrationRef = useRef<string | null>(null)
-  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { triggerCelebration } = useUser()
 
   const progress = useMemo(() => {
     if (duration === 0) return 0
@@ -34,36 +34,13 @@ export function BreakEggTimer() {
     if (lastCelebrationRef.current === state.lastCompletedAt) return
 
     lastCelebrationRef.current = state.lastCompletedAt
-    setShowCelebration(true)
-  }, [state?.lastCompletedAt])
-
-  useEffect(() => {
-    if (!showCelebration) {
-      return
-    }
-
-    if (hideTimeoutRef.current) {
-      clearTimeout(hideTimeoutRef.current)
-    }
-
-    hideTimeoutRef.current = setTimeout(() => {
-      setShowCelebration(false)
-    }, 5000)
-
-    return () => {
-      if (hideTimeoutRef.current) {
-        clearTimeout(hideTimeoutRef.current)
-      }
-    }
-  }, [showCelebration])
-
-  useEffect(() => {
-    return () => {
-      if (hideTimeoutRef.current) {
-        clearTimeout(hideTimeoutRef.current)
-      }
-    }
-  }, [])
+    triggerCelebration({
+      title: "Takbir!",
+      message: "You completed the Break the Egg focus sprint. Keep the momentum going and aim for the next egg!",
+      asset: "egg",
+      rewardCopy: `Sessions cracked: ${state.totalCompleted ?? 0}`,
+    })
+  }, [state?.lastCompletedAt, state?.totalCompleted, triggerCelebration])
 
   const handleStart = async () => {
     try {
@@ -132,29 +109,6 @@ export function BreakEggTimer() {
         </CardContent>
       </Card>
 
-      <div
-        className={cn(
-          "fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 px-4 transition-opacity",
-          showCelebration ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0",
-        )}
-        role="dialog"
-        aria-modal="true"
-        aria-hidden={!showCelebration}
-      >
-        <div className="max-w-md transform rounded-3xl bg-white p-6 text-center shadow-2xl transition-all">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-4xl">🎉</div>
-          <h3 className="mt-4 text-2xl font-bold text-slate-900">Congratulations!</h3>
-          <p className="mt-2 text-slate-600">
-            You completed the Break the Egg focus sprint. Keep the momentum going and aim for the next egg!
-          </p>
-          <Button
-            onClick={() => setShowCelebration(false)}
-            className="mt-6 rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-600"
-          >
-            Keep going
-          </Button>
-        </div>
-      </div>
     </div>
   )
 }

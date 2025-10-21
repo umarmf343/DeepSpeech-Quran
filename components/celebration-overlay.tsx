@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Sparkles, TreePine } from "lucide-react"
+import { Medal, Sparkles, TreePine } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -72,6 +72,11 @@ export function CelebrationOverlay() {
     }))
   }, [celebration.active, reduceMotion])
 
+  const accentClass = useMemo(() => {
+    if (!celebration.asset) return ""
+    return `celebration-card--${celebration.asset}`
+  }, [celebration.asset])
+
   if (!celebration.active) return null
 
   return (
@@ -84,17 +89,30 @@ export function CelebrationOverlay() {
       <div
         ref={overlayRef}
         tabIndex={-1}
-        className="relative mx-4 w-full max-w-md rounded-3xl border border-amber-200/70 bg-gradient-to-br from-cream-50/95 via-white to-amber-50/95 p-6 text-center shadow-2xl outline-none"
+        className={cn(
+          "celebration-card relative mx-4 w-full max-w-md overflow-hidden rounded-3xl border border-amber-200/70 bg-gradient-to-br from-cream-50/95 via-white to-amber-50/95 p-6 text-center shadow-2xl outline-none",
+          accentClass,
+        )}
       >
+        <div className="celebration-card__glow" aria-hidden />
+        <div className="celebration-card__burst celebration-card__burst--one" aria-hidden />
+        <div className="celebration-card__burst celebration-card__burst--two" aria-hidden />
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-maroon-500 text-white shadow-lg">
-          {celebration.asset === "tree" ? <TreePine className="h-10 w-10" /> : <Sparkles className="h-10 w-10" />}
+          {celebration.asset === "tree" ? (
+            <TreePine className="h-10 w-10" />
+          ) : celebration.asset === "medal" ? (
+            <Medal className="h-10 w-10" />
+          ) : (
+            <Sparkles className="h-10 w-10" />
+          )}
         </div>
-        <h2 className="mt-4 text-2xl font-bold text-maroon-900">
+        <p className="mt-3 text-xs font-semibold uppercase tracking-[0.35em] text-amber-500">Well done</p>
+        <h2 className="mt-2 text-2xl font-bold text-maroon-900">
           {celebration.title ?? "Takbir!"}
         </h2>
-        <p className="mt-2 text-sm text-maroon-700">{celebration.message}</p>
+        <p className="mt-3 text-sm text-maroon-700">{celebration.message}</p>
         {celebration.rewardCopy && (
-          <p className="mt-4 rounded-full bg-maroon-50 px-4 py-1 text-sm font-semibold text-maroon-700">
+          <p className="mt-4 inline-flex items-center justify-center rounded-full bg-maroon-50 px-4 py-1 text-sm font-semibold text-maroon-700 shadow-inner">
             {celebration.rewardCopy}
           </p>
         )}

@@ -53,6 +53,13 @@ interface CelebrationState {
   rewardCopy?: string
 }
 
+export interface TriggerCelebrationPayload {
+  title?: string
+  message: string
+  asset?: CelebrationState["asset"]
+  rewardCopy?: string
+}
+
 interface UserContextValue {
   profile: UserProfile
   stats: UserStats
@@ -82,6 +89,7 @@ interface UserContextValue {
   downgradeToFree: () => Promise<void>
   setActiveNav: (slug: string) => void
   closeCelebration: () => void
+  triggerCelebration: (payload: TriggerCelebrationPayload) => void
 }
 
 const DEFAULT_PROFILE: UserProfile = {
@@ -450,6 +458,19 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     [authorizedFetch],
   )
 
+  const triggerCelebration = useCallback(
+    ({ title, message, asset, rewardCopy }: TriggerCelebrationPayload) => {
+      setCelebration({
+        active: true,
+        title: title ?? "Takbir!",
+        message,
+        asset: asset ?? "medal",
+        rewardCopy,
+      })
+    },
+    [],
+  )
+
   const completeHabit = useCallback(
     async (habitId: string): Promise<CompleteHabitResult> => {
       if (!habitId) {
@@ -466,8 +487,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             (entry: GamificationState["milestones"][number]) => entry.status === "completed" && entry.progress >= entry.threshold,
           )
           if (milestone) {
-            setCelebration({
-              active: true,
+            triggerCelebration({
               title: milestone.title,
               message: milestone.celebrationText,
               asset: milestone.asset,
@@ -481,7 +501,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         return { success: false, message: "Unable to complete habit." }
       }
     },
-    [applyUser, authorizedFetch, stats.hasanat],
+    [applyUser, authorizedFetch, stats.hasanat, triggerCelebration],
   )
 
   const upgradeToPremium = useCallback(async () => {
@@ -526,6 +546,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       downgradeToFree,
       setActiveNav,
       closeCelebration,
+      triggerCelebration,
     }),
     [
       activeNav,
@@ -552,6 +573,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       setActiveNav,
       stats,
       toggleSeniorMode,
+      closeCelebration,
+      triggerCelebration,
       updateGamification,
       updatePreferences,
       upgradeToPremium,
