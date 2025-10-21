@@ -110,7 +110,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4" data-animate="stagger">
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4" data-animate="stagger">
           <Card className="border-0 bg-gradient-to-br from-blue-600 to-blue-700 text-white transition-transform duration-300 hover:-translate-y-1 hover:shadow-2xl">
             <CardContent className="p-6" data-animate="fade-in">
               <div className="flex items-center justify-between">
