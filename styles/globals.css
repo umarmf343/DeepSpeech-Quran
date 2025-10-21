@@ -131,6 +131,28 @@
     stroke-width: 2px;
   }
 
+  .egg-icon {
+    animation: eggIconFloat 2.6s ease-in-out infinite;
+    transform-origin: center bottom;
+  }
+
+  .egg-shell-base {
+    stroke: #f59e0b;
+    stroke-width: 1.8px;
+    filter: drop-shadow(0 6px 12px rgba(250, 204, 21, 0.25));
+  }
+
+  .egg-shell-highlight {
+    fill: rgba(255, 255, 255, 0.6);
+    stroke: rgba(255, 255, 255, 0.35);
+    stroke-width: 0.75px;
+    animation: eggShellHighlight 2.8s ease-in-out infinite;
+  }
+
+  .egg-shell-glow {
+    animation: eggShellGlowPulse 3.6s ease-in-out infinite;
+  }
+
   .egg-shadow {
     filter: drop-shadow(0 8px 14px rgba(79, 70, 229, 0.18));
   }
@@ -188,5 +210,41 @@
   to {
     opacity: 1;
     transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes eggIconFloat {
+  0% {
+    transform: translateY(0) rotate(-1.2deg);
+  }
+  50% {
+    transform: translateY(-2px) rotate(1.2deg);
+  }
+  100% {
+    transform: translateY(0) rotate(-1.2deg);
+  }
+}
+
+@keyframes eggShellHighlight {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: translateX(-0.5px);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateX(0.5px);
+  }
+}
+
+@keyframes eggShellGlowPulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.05);
   }
 }
