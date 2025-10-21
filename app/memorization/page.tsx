@@ -1203,7 +1203,7 @@ export default function MemorizationPage() {
             </CardHeader>
             <CardContent className="space-y-6 pb-10">
               {!activePlan ? (
-                <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/60 p-8 text-center">
+                <div className="-mt-6 rounded-xl border border-dashed border-emerald-200 bg-emerald-50/60 p-8 text-center">
                   <p className="text-sm font-medium text-emerald-900">No plan selected</p>
                   <p className="mt-1 text-sm text-emerald-700">Select a plan or create one to begin reciting.</p>
                   <Button
