@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { cn } from "@/lib/utils"
 import type { EggChallengeSnapshot } from "@/lib/egg-challenge-store"
+import { useUser } from "@/hooks/use-user"
 
 interface CelebrationElement {
   id: string
@@ -26,6 +27,7 @@ export function EggChallengeWidget({ state }: EggChallengeWidgetProps) {
   const [droplets, setDroplets] = useState<CelebrationElement[]>([])
   const [confetti, setConfetti] = useState<CelebrationElement[]>([])
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  const { triggerCelebration } = useUser()
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -99,7 +101,7 @@ export function EggChallengeWidget({ state }: EggChallengeWidgetProps) {
     })
   }, [state])
 
-  const triggerCelebration = useCallback(
+  const triggerLocalCelebration = useCallback(
     (target: number) => {
       if (prefersReducedMotion) return
 
@@ -142,10 +144,27 @@ export function EggChallengeWidget({ state }: EggChallengeWidgetProps) {
     }
 
     setLastCelebratedTarget(state.celebration.target)
-    const cleanup = triggerCelebration(state.celebration.target)
+    const cleanup = triggerLocalCelebration(state.celebration.target)
+
+    const { celebration } = state
+    const asset = celebration.phase === "growth" ? "tree" : "egg"
+    const rewardCopy =
+      celebration.phase === "growth"
+        ? `Growth stage ${celebration.growthStage ?? 1} blossomed`
+        : `Level ${celebration.level} egg hatched`
+
+    triggerCelebration({
+      title: celebration.phase === "growth" ? "Mashallah!" : "Takbir!",
+      message:
+        celebration.phase === "growth"
+          ? "Your Qur'anic tree just bloomed into a new stage. Keep nurturing your recitation roots!"
+          : `You hatched the ${celebration.target}-verse egg. Set your sights on the next challenge!`,
+      asset,
+      rewardCopy,
+    })
 
     return cleanup
-  }, [state, lastCelebratedTarget, triggerCelebration])
+  }, [state, lastCelebratedTarget, triggerCelebration, triggerLocalCelebration])
 
   if (!state) {
     return null

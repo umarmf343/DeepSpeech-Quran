@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Brain, Clock, CheckCircle, RotateCcw, Eye, EyeOff, Star } from "lucide-react"
 import type { SRSCard, ReviewResult } from "@/lib/srs-algorithm"
+import { useUser } from "@/hooks/use-user"
 
 interface SRSStudySessionProps {
   cards: SRSCard[]
@@ -21,6 +22,7 @@ export function SRSStudySession({ cards, onSessionComplete, dailyTarget = 10 }: 
   const [startTime, setStartTime] = useState<Date>(new Date())
   const [cardStartTime, setCardStartTime] = useState<Date>(new Date())
   const [isSessionComplete, setIsSessionComplete] = useState(false)
+  const { triggerCelebration } = useUser()
 
   const currentCard = cards[currentCardIndex]
   const progress = ((currentCardIndex + (showAnswer ? 0.5 : 0)) / cards.length) * 100
@@ -28,6 +30,20 @@ export function SRSStudySession({ cards, onSessionComplete, dailyTarget = 10 }: 
   useEffect(() => {
     setCardStartTime(new Date())
   }, [currentCardIndex])
+
+  useEffect(() => {
+    if (!isSessionComplete || sessionResults.length === 0) {
+      return
+    }
+
+    const stats = calculateSessionStats(sessionResults)
+    triggerCelebration({
+      title: "Takbir!",
+      message: `You completed your review session covering ${stats.totalCards} cards with ${stats.averageAccuracy}% accuracy.`,
+      asset: "medal",
+      rewardCopy: `+${stats.totalHasanat} Hasanat`,
+    })
+  }, [isSessionComplete, sessionResults, triggerCelebration])
 
   const handleReveal = () => {
     setShowAnswer(true)
