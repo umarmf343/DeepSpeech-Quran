@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -25,6 +26,7 @@ import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import {
   BookOpen,
+  Check,
   CheckCircle2,
   Heart,
   Hourglass,
@@ -72,6 +74,7 @@ interface PlanProgressState {
   targetRepetitions: number
   failureCount: number
   pausedUntil?: string | null
+  targetSource?: "base" | "grace" | "manual"
 }
 
 interface MemorizationPreferences {
@@ -81,6 +84,21 @@ interface MemorizationPreferences {
   elderMode: boolean
   publicMode: boolean
   lastSelectedPlanId?: string | null
+  activeIntentionId?: string | null
+}
+
+interface IntentionProfile {
+  id: string
+  label: string
+  description: string
+  highlights: string[]
+  config: {
+    graceEnabled: boolean
+    childMode: boolean
+    elderMode: boolean
+    publicMode: boolean
+    defaultMode: ConfirmationMode | null
+  }
 }
 
 const DEFAULT_TARGET = 20
@@ -111,6 +129,100 @@ const affirmationMessages = [
   "Take your time—presence over perfection.",
 ]
 
+const CUSTOM_INTENTION_ID = "custom"
+
+const INTENTION_PROFILES: IntentionProfile[] = [
+  {
+    id: "steady",
+    label: "Steady presence",
+    description: "Maintain the standard target with gentle grace and voice confirmation.",
+    highlights: [
+      "Targets the full repetition count",
+      "Keeps grace prompts available",
+      "Prefers voice presence for tracking",
+    ],
+    config: {
+      graceEnabled: true,
+      childMode: false,
+      elderMode: false,
+      publicMode: false,
+      defaultMode: null,
+    },
+  },
+  {
+    id: "gentle",
+    label: "Gentle reset",
+    description: "Soften the day with a lighter target and heart-led confirmations.",
+    highlights: [
+      "Lowers repetitions to the child target",
+      "Keeps grace prompts switched on",
+      "Uses heart hold as the starting mode",
+    ],
+    config: {
+      graceEnabled: true,
+      childMode: true,
+      elderMode: false,
+      publicMode: false,
+      defaultMode: "heart",
+    },
+  },
+  {
+    id: "reflective",
+    label: "Reflective pace",
+    description: "Honour a slower rhythm with elder support and writing reflections.",
+    highlights: [
+      "Applies the elder repetition target",
+      "Keeps grace prompts available",
+      "Starts with writing reflection mode",
+    ],
+    config: {
+      graceEnabled: true,
+      childMode: false,
+      elderMode: true,
+      publicMode: false,
+      defaultMode: "writing",
+    },
+  },
+  {
+    id: "shared-space",
+    label: "Shared space",
+    description: "Quiet environments favour touch confirmations and muted microphones.",
+    highlights: [
+      "Keeps the standard repetition target",
+      "Silences the microphone automatically",
+      "Begins with gesture rhythm mode",
+    ],
+    config: {
+      graceEnabled: true,
+      childMode: false,
+      elderMode: false,
+      publicMode: true,
+      defaultMode: "gesture",
+    },
+  },
+]
+
+const getProfileTarget = (profile: IntentionProfile) => {
+  if (profile.config.childMode) return CHILD_TARGET
+  if (profile.config.elderMode) return ELDER_TARGET
+  return DEFAULT_TARGET
+}
+
+const matchesIntentionProfileConfig = (
+  profile: IntentionProfile,
+  preferences: MemorizationPreferences,
+) =>
+  profile.config.graceEnabled === preferences.graceEnabled &&
+  profile.config.childMode === preferences.childMode &&
+  profile.config.elderMode === preferences.elderMode &&
+  profile.config.publicMode === preferences.publicMode &&
+  profile.config.defaultMode === preferences.defaultMode
+
+const deriveIntentionId = (preferences: MemorizationPreferences) => {
+  const matched = INTENTION_PROFILES.find((profile) => matchesIntentionProfileConfig(profile, preferences))
+  return matched ? matched.id : CUSTOM_INTENTION_ID
+}
+
 export default function MemorizationPage() {
   const [surahs, setSurahs] = useState<SurahSummary[]>([])
   const [surahLoading, setSurahLoading] = useState(false)
@@ -119,14 +231,29 @@ export default function MemorizationPage() {
   const [plans, setPlans] = useState<MemorizationPlan[]>([])
   const [planProgress, setPlanProgress] = useState<Record<string, PlanProgressState>>({})
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
-  const [preferences, setPreferences] = useState<MemorizationPreferences>({
-    defaultMode: null,
-    graceEnabled: true,
-    childMode: false,
-    elderMode: false,
-    publicMode: false,
-    lastSelectedPlanId: null,
+  const [preferences, setPreferences] = useState<MemorizationPreferences>(() => {
+    const initial: MemorizationPreferences = {
+      defaultMode: null,
+      graceEnabled: true,
+      childMode: false,
+      elderMode: false,
+      publicMode: false,
+      lastSelectedPlanId: null,
+      activeIntentionId: null,
+    }
+    return { ...initial, activeIntentionId: deriveIntentionId(initial) }
   })
+
+  const updatePreferencesState = useCallback(
+    (updater: (previous: MemorizationPreferences) => MemorizationPreferences) => {
+      setPreferences((previous) => {
+        const next = updater(previous)
+        const resolvedId = deriveIntentionId(next)
+        return { ...next, activeIntentionId: next.activeIntentionId ?? resolvedId }
+      })
+    },
+    [],
+  )
 
   const baseTarget = useMemo(() => {
     if (preferences.childMode) return CHILD_TARGET
@@ -137,6 +264,37 @@ export default function MemorizationPage() {
   const fallbackMode = useMemo(
     () => preferences.defaultMode ?? (preferences.publicMode ? "heart" : "voice"),
     [preferences.defaultMode, preferences.publicMode],
+  )
+
+  const activeIntentionId = preferences.activeIntentionId ?? deriveIntentionId(preferences)
+
+  const activeIntentionProfile = useMemo(() => {
+    if (!activeIntentionId || activeIntentionId === CUSTOM_INTENTION_ID) {
+      const matched = INTENTION_PROFILES.find((profile) => matchesIntentionProfileConfig(profile, preferences))
+      return matched ?? null
+    }
+    const byId = INTENTION_PROFILES.find((profile) => profile.id === activeIntentionId)
+    if (byId && matchesIntentionProfileConfig(byId, preferences)) {
+      return byId
+    }
+    const matched = INTENTION_PROFILES.find((profile) => matchesIntentionProfileConfig(profile, preferences))
+    return matched ?? null
+  }, [activeIntentionId, preferences])
+
+  const intentionSummary = useMemo(
+    () =>
+      activeIntentionProfile
+        ? {
+            id: activeIntentionProfile.id,
+            label: activeIntentionProfile.label,
+            description: activeIntentionProfile.description,
+          }
+        : {
+            id: CUSTOM_INTENTION_ID,
+            label: "Personal intention",
+            description: "You fine-tuned the settings to match today\'s energy and space.",
+          },
+    [activeIntentionProfile],
   )
 
   const [verses, setVerses] = useState<VerseDetail[]>([])
@@ -255,13 +413,25 @@ export default function MemorizationPage() {
       const storedProgress = window.localStorage.getItem(LOCAL_STORAGE_KEYS.progress)
       if (storedProgress) {
         const parsedProgress: Record<string, PlanProgressState> = JSON.parse(storedProgress)
-        setPlanProgress(parsedProgress)
+        const normalised: Record<string, PlanProgressState> = Object.fromEntries(
+          Object.entries(parsedProgress).map(([planId, state]) => [
+            planId,
+            {
+              ...state,
+              targetSource: state.targetSource ?? "base",
+            },
+          ]),
+        )
+        setPlanProgress(normalised)
       }
 
       const storedPreferences = window.localStorage.getItem(LOCAL_STORAGE_KEYS.preferences)
       if (storedPreferences) {
         const parsedPreferences: MemorizationPreferences = JSON.parse(storedPreferences)
-        setPreferences((previous) => ({ ...previous, ...parsedPreferences }))
+        setPreferences((previous) => {
+          const merged: MemorizationPreferences = { ...previous, ...parsedPreferences }
+          return { ...merged, activeIntentionId: deriveIntentionId(merged) }
+        })
         if (parsedPreferences.lastSelectedPlanId) {
           setSelectedPlanId(parsedPreferences.lastSelectedPlanId)
         }
@@ -335,6 +505,7 @@ export default function MemorizationPage() {
           mode: fallbackMode,
           targetRepetitions: baseTarget,
           failureCount: 0,
+          targetSource: "base",
         }
 
         setRepeatCount(progressState.repeatCount ?? 0)
@@ -404,11 +575,12 @@ export default function MemorizationPage() {
         targetRepetitions: baseTarget,
         failureCount: 0,
         pausedUntil: null,
+        targetSource: "base",
       },
     }))
 
     setSelectedPlanId(newPlan.id)
-    setPreferences((previous) => ({ ...previous, lastSelectedPlanId: newPlan.id }))
+    updatePreferencesState((previous) => ({ ...previous, lastSelectedPlanId: newPlan.id }))
     setStartAyah("")
     setEndAyah("")
     setSelectedSurahNumber("")
@@ -428,6 +600,7 @@ export default function MemorizationPage() {
           targetRepetitions: baseTarget,
           failureCount: 0,
           pausedUntil: null,
+          targetSource: "base",
         }
         return {
           ...previous,
@@ -437,6 +610,31 @@ export default function MemorizationPage() {
     },
     [baseTarget, fallbackMode],
   )
+
+  useEffect(() => {
+    setPlanProgress((previous) => {
+      let changed = false
+      const next: Record<string, PlanProgressState> = {}
+      for (const [planId, state] of Object.entries(previous)) {
+        const source = state.targetSource ?? "base"
+        if (source === "base" && state.targetRepetitions !== baseTarget) {
+          changed = true
+          next[planId] = {
+            ...state,
+            targetRepetitions: baseTarget,
+            repeatCount: Math.min(state.repeatCount, baseTarget),
+            targetSource: "base",
+          }
+        } else if (!state.targetSource) {
+          changed = true
+          next[planId] = { ...state, targetSource: source }
+        } else {
+          next[planId] = state
+        }
+      }
+      return changed ? next : previous
+    })
+  }, [baseTarget])
 
   const markPlanCompleted = useCallback(
     (planId: string) => {
@@ -592,6 +790,7 @@ export default function MemorizationPage() {
       ...existing,
       targetRepetitions: GRACE_TARGET,
       repeatCount: Math.min(existing.repeatCount, GRACE_TARGET),
+      targetSource: "grace",
     }))
     setRepeatCount((previous) => Math.min(previous, GRACE_TARGET))
   }, [activePlan, updatePlanProgress])
@@ -891,13 +1090,13 @@ export default function MemorizationPage() {
 
   const handleModeSelection = useCallback(
     (mode: ConfirmationMode) => {
-      setPreferences((previous) => ({ ...previous, defaultMode: mode }))
+      updatePreferencesState((previous) => ({ ...previous, defaultMode: mode, activeIntentionId: undefined }))
       if (activePlan) {
         updatePlanProgress(activePlan.id, (existing) => ({ ...existing, mode }))
       }
       setShowModeDialog(false)
     },
-    [activePlan, updatePlanProgress],
+    [activePlan, updatePlanProgress, updatePreferencesState],
   )
 
   const handleStartMemorization = useCallback(() => {
@@ -914,6 +1113,97 @@ export default function MemorizationPage() {
     if (!activePlan) return
     markPlanCompleted(activePlan.id)
   }, [activePlan, markPlanCompleted])
+
+  const applyIntentionProfile = useCallback(
+    (profileId: string, options?: { autoStart?: boolean }) => {
+      const profile = INTENTION_PROFILES.find((item) => item.id === profileId)
+      if (!profile) return
+
+      updatePreferencesState((previous) => ({
+        ...previous,
+        graceEnabled: profile.config.graceEnabled,
+        childMode: profile.config.childMode,
+        elderMode: profile.config.elderMode,
+        publicMode: profile.config.publicMode,
+        defaultMode: profile.config.defaultMode,
+        activeIntentionId: profile.id,
+      }))
+
+      const profileTarget = getProfileTarget(profile)
+      setPlanProgress((previous) => {
+        let changed = false
+        const next: Record<string, PlanProgressState> = {}
+        for (const [planId, state] of Object.entries(previous)) {
+          const source = state.targetSource ?? "base"
+          if (source === "manual") {
+            next[planId] = state
+            continue
+          }
+          if (state.targetRepetitions !== profileTarget || source !== "base" || !state.targetSource) {
+            changed = true
+            next[planId] = {
+              ...state,
+              targetRepetitions: profileTarget,
+              repeatCount: Math.min(state.repeatCount, profileTarget),
+              targetSource: "base",
+            }
+          } else {
+            next[planId] = state
+          }
+        }
+        return changed ? next : previous
+      })
+
+      if (activePlan) {
+        const desiredMode = profile.config.defaultMode ?? (profile.config.publicMode ? "heart" : "voice")
+        updatePlanProgress(activePlan.id, (existing) => ({ ...existing, mode: desiredMode }))
+      }
+
+      if (options?.autoStart && activePlan) {
+        setShowSettingsDialog(false)
+        handleStartMemorization()
+      }
+    },
+    [activePlan, handleStartMemorization, updatePlanProgress, updatePreferencesState],
+  )
+
+  const alignPlansWithCurrentPreferences = useCallback(
+    (options?: { autoStart?: boolean }) => {
+      setPlanProgress((previous) => {
+        let changed = false
+        const next: Record<string, PlanProgressState> = {}
+        for (const [planId, state] of Object.entries(previous)) {
+          const source = state.targetSource ?? "base"
+          if (source === "manual") {
+            next[planId] = state
+            continue
+          }
+          if (state.targetRepetitions !== baseTarget || source !== "base" || !state.targetSource) {
+            changed = true
+            next[planId] = {
+              ...state,
+              targetRepetitions: baseTarget,
+              repeatCount: Math.min(state.repeatCount, baseTarget),
+              targetSource: "base",
+            }
+          } else {
+            next[planId] = state
+          }
+        }
+        return changed ? next : previous
+      })
+
+      if (activePlan) {
+        updatePlanProgress(activePlan.id, (existing) => ({ ...existing, mode: fallbackMode }))
+      }
+
+      if (options?.autoStart && activePlan) {
+        setShowSettingsDialog(false)
+        handleStartMemorization()
+      }
+    },
+    [activePlan, baseTarget, fallbackMode, handleStartMemorization, updatePlanProgress],
+  )
 
   useEffect(() => {
     if (!activePlan) return
@@ -1166,7 +1456,7 @@ export default function MemorizationPage() {
                       value={selectedPlanId ?? undefined}
                       onValueChange={(value) => {
                         setSelectedPlanId(value)
-                        setPreferences((previous) => ({ ...previous, lastSelectedPlanId: value }))
+                        updatePreferencesState((previous) => ({ ...previous, lastSelectedPlanId: value }))
                         setPlanDropdownOpen(false)
                         setShowCelebration(false)
                       }}
@@ -1202,6 +1492,30 @@ export default function MemorizationPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-6 pb-10">
+              {activePlan && (
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-4 text-sm text-emerald-900">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge className="border border-emerald-300 bg-emerald-100/80 text-emerald-700">
+                          {intentionSummary.id === CUSTOM_INTENTION_ID ? "Custom intention" : "Preset intention"}
+                        </Badge>
+                        <span className="text-xs font-semibold text-emerald-700">{intentionSummary.label}</span>
+                      </div>
+                      <p className="text-xs text-emerald-700">{intentionSummary.description}</p>
+                    </div>
+                    <div className="text-xs text-emerald-700 md:text-right">
+                      <p>
+                        Target repetitions: <span className="font-semibold text-emerald-900">{activeTarget}</span>
+                      </p>
+                      <p>
+                        Session mode: <span className="font-semibold text-emerald-900">{modeDescriptions[activeMode].title}</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {!activePlan ? (
                 <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/60 p-8 text-center">
                   <p className="text-sm font-medium text-emerald-900">No plan selected</p>
@@ -1573,47 +1887,129 @@ export default function MemorizationPage() {
               Shape the repetition goals to honour your current season of memorisation.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50/60 p-4">
-              <div>
-                <p className="text-sm font-semibold text-slate-900">Graceful repetitions</p>
-                <p className="text-xs text-slate-600">Allow the system to suggest a reduced repetition count when effort feels heavy.</p>
+          <div className="space-y-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Quick presets</p>
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                {INTENTION_PROFILES.map((profile) => {
+                  const isActive = activeIntentionProfile?.id === profile.id
+                  return (
+                    <button
+                      key={profile.id}
+                      type="button"
+                      onClick={() => applyIntentionProfile(profile.id)}
+                      className={cn(
+                        "w-full rounded-xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400",
+                        isActive
+                          ? "border-emerald-400 bg-emerald-50 shadow-sm"
+                          : "border-emerald-100 hover:border-emerald-200 hover:shadow-sm",
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">{profile.label}</p>
+                          <p className="mt-1 text-xs text-slate-600">{profile.description}</p>
+                        </div>
+                        {isActive && (
+                          <Badge className="border border-emerald-200 bg-emerald-100 text-emerald-700">Active</Badge>
+                        )}
+                      </div>
+                      <ul className="mt-3 space-y-1 text-xs text-slate-600">
+                        {profile.highlights.map((highlight) => (
+                          <li key={highlight} className="flex items-start gap-2">
+                            <Check className="mt-0.5 h-3 w-3 text-emerald-500" />
+                            <span>{highlight}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </button>
+                  )
+                })}
               </div>
-              <Switch checked={preferences.graceEnabled} onCheckedChange={(checked) => setPreferences((previous) => ({ ...previous, graceEnabled: checked }))} />
             </div>
 
-            <div className="flex items-center justify-between rounded-xl border border-emerald-100 bg-white/80 p-4">
-              <div>
-                <p className="text-sm font-semibold text-slate-900">Child-friendly focus</p>
-                <p className="text-xs text-slate-600">Use a lighter target (around {CHILD_TARGET} repetitions) for young memorizers.</p>
-              </div>
-              <Switch
-                checked={preferences.childMode}
-                onCheckedChange={(checked) =>
-                  setPreferences((previous) => ({ ...previous, childMode: checked, elderMode: checked ? false : previous.elderMode }))
-                }
-              />
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 text-xs text-emerald-800">
+              <p className="text-sm font-semibold text-slate-900">Session preview</p>
+              <p className="mt-1">
+                Your next sitting will aim for <span className="font-semibold text-emerald-700">{baseTarget}</span> repetitions using
+                {" "}
+                <span className="font-semibold text-emerald-700">{modeDescriptions[fallbackMode].title.toLowerCase()}</span> mode.
+              </p>
+              <p className="mt-2 text-emerald-700">
+                {activePlan
+                  ? `Active plan: ${activePlan.surahName} • Ayah ${activePlan.startAyah} – ${activePlan.endAyah}`
+                  : "Select a memorisation plan to begin with these settings."}
+              </p>
             </div>
 
-            <div className="flex items-center justify-between rounded-xl border border-emerald-100 bg-white/80 p-4">
-              <div>
-                <p className="text-sm font-semibold text-slate-900">Elder support</p>
-                <p className="text-xs text-slate-600">A gentle target (about {ELDER_TARGET} repetitions) for slower, reflective pacing.</p>
-              </div>
-              <Switch
-                checked={preferences.elderMode}
-                onCheckedChange={(checked) =>
-                  setPreferences((previous) => ({ ...previous, elderMode: checked, childMode: checked ? false : previous.childMode }))
-                }
-              />
-            </div>
+            <div className="space-y-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Fine-tune</p>
 
-            <div className="flex items-center justify-between rounded-xl border border-emerald-100 bg-white/80 p-4">
-              <div>
-                <p className="text-sm font-semibold text-slate-900">Public / quiet mode</p>
-                <p className="text-xs text-slate-600">Silence the microphone and favour touch-based confirmation for shared spaces.</p>
+              <div className="flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50/60 p-4">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">Graceful repetitions</p>
+                  <p className="text-xs text-slate-600">Allow the system to suggest a reduced repetition count when effort feels heavy.</p>
+                </div>
+                <Switch
+                  checked={preferences.graceEnabled}
+                  onCheckedChange={(checked) =>
+                    updatePreferencesState((previous) => ({ ...previous, graceEnabled: checked, activeIntentionId: undefined }))
+                  }
+                />
               </div>
-              <Switch checked={preferences.publicMode} onCheckedChange={(checked) => setPreferences((previous) => ({ ...previous, publicMode: checked }))} />
+
+              <div className="flex items-center justify-between rounded-xl border border-emerald-100 bg-white/80 p-4">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">Child-friendly focus</p>
+                  <p className="text-xs text-slate-600">Use a lighter target (around {CHILD_TARGET} repetitions) for young memorizers.</p>
+                </div>
+                <Switch
+                  checked={preferences.childMode}
+                  onCheckedChange={(checked) =>
+                    updatePreferencesState((previous) => ({
+                      ...previous,
+                      childMode: checked,
+                      elderMode: checked ? false : previous.elderMode,
+                      activeIntentionId: undefined,
+                    }))
+                  }
+                />
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl border border-emerald-100 bg-white/80 p-4">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">Elder support</p>
+                  <p className="text-xs text-slate-600">A gentle target (about {ELDER_TARGET} repetitions) for slower, reflective pacing.</p>
+                </div>
+                <Switch
+                  checked={preferences.elderMode}
+                  onCheckedChange={(checked) =>
+                    updatePreferencesState((previous) => ({
+                      ...previous,
+                      elderMode: checked,
+                      childMode: checked ? false : previous.childMode,
+                      activeIntentionId: undefined,
+                    }))
+                  }
+                />
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl border border-emerald-100 bg-white/80 p-4">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">Public / quiet mode</p>
+                  <p className="text-xs text-slate-600">Silence the microphone and favour touch-based confirmation for shared spaces.</p>
+                </div>
+                <Switch
+                  checked={preferences.publicMode}
+                  onCheckedChange={(checked) =>
+                    updatePreferencesState((previous) => ({
+                      ...previous,
+                      publicMode: checked,
+                      activeIntentionId: undefined,
+                    }))
+                  }
+                />
+              </div>
             </div>
 
             {isUltraLowPower && (
@@ -1622,6 +2018,25 @@ export default function MemorizationPage() {
               </div>
             )}
           </div>
+          <DialogFooter className="mt-6 flex flex-col gap-3 border-t border-emerald-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-xs text-slate-500">
+              {activePlan
+                ? `Ready to recite ${activePlan.surahName}? We\'ll hold you to ${baseTarget} repetitions in ${modeDescriptions[fallbackMode].title.toLowerCase()} mode.`
+                : "Choose a memorisation plan to start with these intention settings."}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowSettingsDialog(false)}>
+                Close
+              </Button>
+              <Button
+                className="bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
+                disabled={!activePlan}
+                onClick={() => alignPlansWithCurrentPreferences({ autoStart: true })}
+              >
+                Start with this intention
+              </Button>
+            </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
