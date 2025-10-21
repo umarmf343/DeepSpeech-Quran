@@ -61,53 +61,55 @@ export function BreakEggTimer() {
   return (
     <div className="w-full">
       <Card className="relative overflow-hidden border border-blue-100/70 bg-gradient-to-br from-blue-50 via-white to-indigo-50 shadow-sm">
-        <CardContent className="space-y-5 p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-1">
+        <CardContent className="p-6">
+          <div className="grid grid-cols-2 gap-5 md:grid-cols-[minmax(0,2.5fr)_minmax(0,1.5fr)] md:gap-6">
+            <div className="col-span-1 space-y-1">
               <p className="text-sm font-semibold uppercase tracking-wide text-indigo-500">Break the Egg Challenge</p>
               <h2 className="text-2xl font-bold text-slate-900">2-minute focused recitation sprint</h2>
             </div>
-            <EggProgressIcon progress={progress} />
-          </div>
-
-          <div className="space-y-4">
-            <div className="relative h-3 w-full overflow-hidden rounded-full bg-indigo-100">
-              <div
-                className={cn(
-                  "h-full rounded-full bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-500 transition-[width] duration-500",
-                  isRunning ? "shadow-[0_0_15px_rgba(99,102,241,0.35)]" : "",
-                )}
-                style={{ width: `${progress * 100}%` }}
-              />
+            <div className="col-span-1 flex items-center justify-end">
+              <EggProgressIcon progress={progress} />
             </div>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-lg font-medium text-slate-700">Time left: {formattedTime}</p>
-              <div className="grid w-full grid-cols-2 gap-3 sm:w-auto">
-                <Button
-                  onClick={handleStart}
-                  disabled={isRunning || isLoading}
-                  className="w-full rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {isLoading && !isRunning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Start 2-minute session
-                </Button>
-                <Button
-                  onClick={handleReset}
-                  variant="outline"
-                  className="w-full rounded-full border-slate-200 px-6 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-                >
-                  Reset
-                </Button>
+
+            <div className="col-span-1 md:col-span-2 space-y-4">
+              <div className="relative h-3 w-full overflow-hidden rounded-full bg-indigo-100">
+                <div
+                  className={cn(
+                    "h-full rounded-full bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-500 transition-[width] duration-500",
+                    isRunning ? "shadow-[0_0_15px_rgba(99,102,241,0.35)]" : "",
+                  )}
+                  style={{ width: `${progress * 100}%` }}
+                />
+              </div>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-lg font-medium text-slate-700">Time left: {formattedTime}</p>
+                <div className="grid w-full grid-cols-2 gap-3 sm:w-auto">
+                  <Button
+                    onClick={handleStart}
+                    disabled={isRunning || isLoading}
+                    className="w-full rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {isLoading && !isRunning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Start 2-minute session
+                  </Button>
+                  <Button
+                    onClick={handleReset}
+                    variant="outline"
+                    className="w-full rounded-full border-slate-200 px-6 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                  >
+                    Reset
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="rounded-2xl bg-white/70 p-4 text-sm text-slate-600 shadow-inner">
-            <p>
-              Stay focused for the full two minutes to crack the shell. You have completed
-              <span className="mx-1 font-semibold text-indigo-600">{state?.totalCompleted ?? 0}</span>
-              sessions so far.
-            </p>
+            <div className="col-span-1 md:col-span-2 rounded-2xl bg-white/70 p-4 text-sm text-slate-600 shadow-inner">
+              <p>
+                Stay focused for the full two minutes to crack the shell. You have completed
+                <span className="mx-1 font-semibold text-indigo-600">{state?.totalCompleted ?? 0}</span>
+                sessions so far.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
