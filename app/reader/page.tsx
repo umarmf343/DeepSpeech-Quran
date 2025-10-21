@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 
 import Link from "next/link"
 
+import { BreakEggTimer } from "@/components/break-egg-timer"
 import { AudioPlayer } from "@/components/reader/audio-player"
 import { MilestoneCelebration } from "@/components/reader/milestone-celebration"
 import { GwaniSurahPlayer } from "@/components/reader/gwani-surah-player"
@@ -435,6 +436,10 @@ export default function AlfawzReaderPage() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
+
+        <div className="mb-6">
+          <BreakEggTimer />
+        </div>
 
         <Card className={cn("shadow-lg", cardBackground, selectedMushaf.visualStyle.background)}>
           <CardHeader className="pb-4">
