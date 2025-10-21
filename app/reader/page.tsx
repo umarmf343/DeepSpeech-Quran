@@ -602,7 +602,7 @@ export default function AlfawzReaderPage() {
                     aria-label="Previous ayah"
                     onClick={handlePreviousAyah}
                     className={cn(
-                      "absolute left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 hover:-translate-y-0.5",
+                      "absolute bottom-6 left-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 md:top-1/2 md:bottom-auto md:-translate-y-1/2 hover:-translate-y-0.5",
                       nightMode
                         ? "border-emerald-500/40 bg-slate-900/70 text-emerald-200 hover:bg-slate-900/60"
                         : "border-emerald-200/70 bg-white/90 text-emerald-700 hover:bg-white",
@@ -630,7 +630,7 @@ export default function AlfawzReaderPage() {
                     aria-label="Next ayah"
                     onClick={handleNextAyah}
                     className={cn(
-                      "absolute right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 hover:-translate-y-0.5",
+                      "absolute bottom-6 right-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 md:top-1/2 md:bottom-auto md:-translate-y-1/2 hover:-translate-y-0.5",
                       nightMode
                         ? "border-emerald-500/40 bg-slate-900/70 text-emerald-200 hover:bg-slate-900/60"
                         : "border-emerald-200/70 bg-white/90 text-emerald-700 hover:bg-white",

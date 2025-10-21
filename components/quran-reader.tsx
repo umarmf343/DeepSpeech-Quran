@@ -441,7 +441,7 @@ export function QuranReader({
                         variant="secondary"
                         size="icon"
                         aria-label="Previous ayah"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full shadow-md bg-white/80 backdrop-blur-sm hover:bg-white"
+                        className="absolute bottom-4 left-2 rounded-full shadow-md bg-white/80 backdrop-blur-sm hover:bg-white md:left-0 md:top-1/2 md:bottom-auto md:-translate-y-1/2 md:-translate-x-1/2"
                       >
                         <SkipBack className="w-4 h-4" />
                       </Button>
@@ -451,7 +451,7 @@ export function QuranReader({
                         variant="secondary"
                         size="icon"
                         aria-label="Next ayah"
-                        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 rounded-full shadow-md bg-white/80 backdrop-blur-sm hover:bg-white"
+                        className="absolute bottom-4 right-2 rounded-full shadow-md bg-white/80 backdrop-blur-sm hover:bg-white md:right-0 md:top-1/2 md:bottom-auto md:-translate-y-1/2 md:translate-x-1/2"
                       >
                         <SkipForward className="w-4 h-4" />
                       </Button>
