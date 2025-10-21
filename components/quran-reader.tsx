@@ -9,6 +9,7 @@ import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Play, Pause, SkipBack, SkipForward, Volume2, Bookmark, BookmarkCheck, Languages, Repeat } from "lucide-react"
+import { BreakEggTimer } from "@/components/break-egg-timer"
 import { EggChallengeWidget } from "@/components/egg-challenge-widget"
 import { useEggChallenge } from "@/hooks/use-egg-challenge"
 import { quranAPI, type Surah, type Ayah, type Translation, type Reciter } from "@/lib/quran-api"
@@ -372,8 +373,13 @@ export function QuranReader({
         </Card>
       )}
 
-      {/* Egg Challenge Widget */}
-      {eggChallengeEnabled && <EggChallengeWidget state={eggChallengeState} />}
+      {/* Break the Egg timer and progression */}
+      {eggChallengeEnabled && (
+        <div className="space-y-6">
+          <BreakEggTimer />
+          <EggChallengeWidget state={eggChallengeState} />
+        </div>
+      )}
 
       {/* Ayahs Display */}
       <div className="space-y-4">
