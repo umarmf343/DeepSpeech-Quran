@@ -48,6 +48,25 @@ export interface AudioSegment {
   segments?: { start: number; end: number; text: string }[]
 }
 
+export interface MushafWord {
+  id: number
+  text: string
+  lineNumber: number
+  verseKey: string
+  position: number
+  charType: string
+}
+
+export interface MushafLine {
+  lineNumber: number
+  words: MushafWord[]
+}
+
+export interface MushafPage {
+  pageNumber: number
+  lines: MushafLine[]
+}
+
 export interface QuranEdition {
   identifier: string
   language: string
@@ -198,6 +217,76 @@ class QuranCloudAPI {
       throw new Error("Failed to fetch ayah")
     } catch (error) {
       console.error("Error fetching ayah:", error)
+      return null
+    }
+  }
+
+  /**
+   * Retrieve a Mushaf page with word-level positioning for display
+   */
+  async getMushafPage(pageNumber: number, mushafId = 4): Promise<MushafPage | null> {
+    const cacheKey = `mushaf_page_${pageNumber}_${mushafId}`
+    const cached = this.getFromCache(cacheKey)
+    if (cached) return cached
+
+    try {
+      const response = await fetch(
+        `https://api.quran.com/api/qdc/verses/by_page/${pageNumber}?mushaf=${mushafId}&words=true`,
+      )
+      if (!response.ok) {
+        throw new Error(`Failed to fetch mushaf page ${pageNumber}`)
+      }
+
+      const data = await response.json()
+      const verses: any[] = Array.isArray(data.verses) ? data.verses : []
+      if (!verses.length) {
+        this.setCache(cacheKey, null)
+        return null
+      }
+
+      const linesMap = new Map<number, MushafWord[]>()
+
+      for (const verse of verses) {
+        const verseKey: string = verse.verse_key
+        const words: any[] = Array.isArray(verse.words) ? verse.words : []
+
+        for (const word of words) {
+          if (!word || typeof word.text !== "string" || word.text.trim() === "") {
+            continue
+          }
+
+          const mushafWord: MushafWord = {
+            id: Number(word.id) || 0,
+            text: word.text,
+            lineNumber: Number(word.line_number) || 0,
+            verseKey,
+            position: Number(word.position) || 0,
+            charType: word.char_type_name ?? "",
+          }
+
+          const existing = linesMap.get(mushafWord.lineNumber) ?? []
+          existing.push(mushafWord)
+          linesMap.set(mushafWord.lineNumber, existing)
+        }
+      }
+
+      const lines: MushafLine[] = Array.from(linesMap.entries())
+        .filter(([lineNumber]) => lineNumber > 0)
+        .sort(([a], [b]) => a - b)
+        .map(([lineNumber, words]) => ({
+          lineNumber,
+          words: words.sort((a, b) => a.position - b.position),
+        }))
+
+      const mushafPage: MushafPage = {
+        pageNumber: Number(verses[0]?.page_number) || pageNumber,
+        lines,
+      }
+
+      this.setCache(cacheKey, mushafPage)
+      return mushafPage
+    } catch (error) {
+      console.error("Error fetching mushaf page:", error)
       return null
     }
   }
