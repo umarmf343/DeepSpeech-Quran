@@ -4,7 +4,7 @@ import path from "path"
 import initSqlJs from "sql.js"
 import type { MorphologyResponse, MorphologyWord } from "@/types/morphology"
 
-const require = createRequire(import.meta.url)
+const require = createRequire(path.join(process.cwd(), "package.json"))
 
 const baseDir = path.join(process.cwd(), "Quranic Grammar and Morphology")
 
