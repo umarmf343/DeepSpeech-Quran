@@ -491,7 +491,7 @@ export default function MemorizationPage() {
                       <p className="text-sm font-medium text-slate-600">
                         Verse {currentVerseIndex + 1} of {verses.length}
                       </p>
-                      <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex flex-wrap items-center gap-3 pb-6 md:pb-8">
                           <Button
                             variant="outline"
                             className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
