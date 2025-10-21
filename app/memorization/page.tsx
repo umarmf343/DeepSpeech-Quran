@@ -444,7 +444,7 @@ export default function MemorizationPage() {
                   : "Choose a memorization plan on the left or create a new one to begin."}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pb-8">
               {!activePlan ? (
                 <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/60 p-8 text-center">
                   <p className="text-sm font-medium text-emerald-900">Nothing selected</p>
