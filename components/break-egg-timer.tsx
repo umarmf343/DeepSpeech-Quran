@@ -58,6 +58,15 @@ export function BreakEggTimer() {
     }
   }
 
+  const handleToggle = async () => {
+    if (isRunning) {
+      await handleReset()
+      return
+    }
+
+    await handleStart()
+  }
+
   return (
     <div className="w-full">
       <Card className="relative overflow-hidden border border-blue-100/70 bg-gradient-to-br from-blue-50 via-white to-indigo-50 shadow-sm">
@@ -83,21 +92,15 @@ export function BreakEggTimer() {
               </div>
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-lg font-medium text-slate-700">Time left: {formattedTime}</p>
-                <div className="grid w-full grid-cols-2 gap-3 sm:w-auto">
+                <div className="grid w-full grid-cols-1 gap-3 sm:w-auto">
                   <Button
-                    onClick={handleStart}
-                    disabled={isRunning || isLoading}
+                    onClick={handleToggle}
+                    disabled={isLoading}
                     className="w-full rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-70"
+                    aria-pressed={isRunning}
                   >
-                    {isLoading && !isRunning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                    Start
-                  </Button>
-                  <Button
-                    onClick={handleReset}
-                    variant="outline"
-                    className="w-full rounded-full border-slate-200 px-6 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-                  >
-                    Stop
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    {isRunning ? "Stop" : "Start"}
                   </Button>
                 </div>
               </div>
