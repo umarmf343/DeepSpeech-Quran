@@ -91,12 +91,24 @@ export function AudioPlayer({
           </Button>
           <Button
             onClick={onTogglePlay}
-            className="bg-maroon-600 px-4 text-white hover:bg-maroon-700"
+            className={cn(
+              "group relative overflow-hidden rounded-md px-5 text-white shadow-lg shadow-emerald-500/30",
+              "bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 transition-all duration-300",
+              "hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/40",
+              "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/60"
+            )}
             size="sm"
             disabled={disabled || !source}
           >
-            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            <span className="ml-2">{isPlaying ? "Pause" : "Play"}</span>
+            <span className="pointer-events-none absolute inset-0 bg-white/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            {isPlaying ? (
+              <Pause className="relative z-10 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
+            ) : (
+              <Play className="relative z-10 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
+            )}
+            <span className="relative z-10 ml-2 font-semibold tracking-wide transition-all duration-300 group-hover:tracking-widest">
+              {isPlaying ? "Pause" : "Play"}
+            </span>
           </Button>
           <Button onClick={onNext} variant="outline" size="sm" disabled={disabled || !onNext}>
             <SkipForward className="h-4 w-4" />
