@@ -32,6 +32,7 @@ import type { UserRole } from "@/components/user-provider"
 type TabSlug =
   | "dashboard"
   | "reader"
+  | "kid-class"
   | "memorization"
   | "qaidah"
   | "leaderboard"
@@ -50,6 +51,7 @@ interface TabDefinition {
 const TAB_REGISTRY: Record<TabSlug, TabDefinition> = {
   dashboard: { slug: "dashboard", label: "Dashboard", href: "/dashboard", icon: "home" },
   reader: { slug: "reader", label: "Reader", href: "/reader", icon: "book" },
+  "kid-class": { slug: "kid-class", label: "Kid Class", href: "/kid-class", icon: "sparkles" },
   memorization: { slug: "memorization", label: "Memorization", href: "/memorization", icon: "target" },
   qaidah: { slug: "qaidah", label: "Qa'idah", href: "/qaidah", icon: "scroll" },
   leaderboard: { slug: "leaderboard", label: "Leaderboard", href: "/leaderboard", icon: "crown" },
@@ -65,11 +67,21 @@ const TAB_REGISTRY: Record<TabSlug, TabDefinition> = {
 }
 
 const ROLE_TAB_MAP: Record<UserRole, TabSlug[]> = {
-  visitor: ["dashboard", "reader", "memorization", "qaidah", "profile"],
-  student: ["dashboard", "reader", "memorization", "qaidah", "profile"],
-  teacher: ["dashboard", "reader", "memorization", "qaidah", "teacher-dashboard", "profile"],
-  admin: ["dashboard", "reader", "memorization", "qaidah", "leaderboard", "game", "admin-dashboard", "profile"],
-  parent: ["dashboard", "reader", "profile"],
+  visitor: ["dashboard", "reader", "kid-class", "memorization", "qaidah", "profile"],
+  student: ["dashboard", "reader", "kid-class", "memorization", "qaidah", "profile"],
+  teacher: ["dashboard", "reader", "kid-class", "memorization", "qaidah", "teacher-dashboard", "profile"],
+  admin: [
+    "dashboard",
+    "reader",
+    "kid-class",
+    "memorization",
+    "qaidah",
+    "leaderboard",
+    "game",
+    "admin-dashboard",
+    "profile",
+  ],
+  parent: ["dashboard", "reader", "kid-class", "profile"],
 }
 
 const iconMap: Record<string, ComponentType<{ className?: string }>> = {
