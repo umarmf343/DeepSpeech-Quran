@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import Link from "next/link"
 
@@ -103,10 +103,10 @@ export default function AlfawzReaderPage() {
   const [ayahList, setAyahList] = useState<Ayah[]>([])
   const [selectedAyahNumber, setSelectedAyahNumber] = useState<number | null>(null)
   const [ayahDetail, setAyahDetail] = useState<AyahDetail | null>(null)
+  const ayahDetailCacheRef = useRef<Map<string, AyahDetail>>(new Map())
   const [audioSegments, setAudioSegments] = useState<AudioSegment[]>([])
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoadingSurah, setIsLoadingSurah] = useState(true)
-  const [isLoadingAyah, setIsLoadingAyah] = useState(false)
   const [isLoadingAudio, setIsLoadingAudio] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fontScale, setFontScale] = useState(4)
@@ -276,11 +276,51 @@ export default function AlfawzReaderPage() {
     window.localStorage.setItem(TRANSLITERATION_VISIBILITY_STORAGE_KEY, showTransliteration ? "true" : "false")
   }, [showTransliteration])
 
+  const getAyahCacheKey = useCallback(
+    (surahNumber: number, ayahNumber: number) => {
+      const translationKey = showTranslation ? selectedTranslation : "none"
+      const transliterationKey = showTransliteration ? "with-transliteration" : "no-transliteration"
+      return `${surahNumber}:${ayahNumber}:${translationKey}:${transliterationKey}`
+    },
+    [selectedTranslation, showTranslation, showTransliteration],
+  )
+
   useEffect(() => {
     if (!selectedSurahNumber || !selectedAyahNumber) return
     let active = true
-    setIsLoadingAyah(true)
     setError(null)
+
+    const cacheKey = getAyahCacheKey(selectedSurahNumber, selectedAyahNumber)
+    const cachedDetail = ayahDetailCacheRef.current.get(cacheKey)
+    if (cachedDetail) {
+      setAyahDetail(cachedDetail)
+      return () => {
+        active = false
+      }
+    }
+
+    const baseAyah = ayahList.find((ayah) => ayah.numberInSurah === selectedAyahNumber)
+    if (baseAyah) {
+      setAyahDetail((previous) => {
+        const previousMatchesCurrent = previous?.arabic.number === baseAyah.number
+        const preservedTransliteration =
+          previousMatchesCurrent && showTransliteration ? previous?.transliteration : undefined
+
+        if (previousMatchesCurrent && previous?.arabic.text === baseAyah.text && !showTranslation) {
+          return {
+            arabic: previous.arabic,
+            translations: [],
+            transliteration: preservedTransliteration,
+          }
+        }
+
+        return {
+          arabic: baseAyah,
+          translations: [],
+          transliteration: preservedTransliteration,
+        }
+      })
+    }
 
     ;(async () => {
       try {
@@ -298,15 +338,19 @@ export default function AlfawzReaderPage() {
           setError("Unable to load ayah details.")
           return
         }
-        setAyahDetail(detail)
+
+        const normalizedDetail: AyahDetail = {
+          arabic: detail.arabic,
+          translations: showTranslation ? detail.translations : [],
+          transliteration: showTransliteration ? detail.transliteration : undefined,
+        }
+
+        ayahDetailCacheRef.current.set(cacheKey, normalizedDetail)
+        setAyahDetail(normalizedDetail)
       } catch (err) {
         console.error("Failed to load ayah", err)
         if (active) {
           setError("Unable to load the ayah. Please try again.")
-        }
-      } finally {
-        if (active) {
-          setIsLoadingAyah(false)
         }
       }
     })()
@@ -314,7 +358,15 @@ export default function AlfawzReaderPage() {
     return () => {
       active = false
     }
-  }, [selectedSurahNumber, selectedAyahNumber, selectedTranslation, showTranslation, showTransliteration])
+  }, [
+    ayahList,
+    getAyahCacheKey,
+    selectedAyahNumber,
+    selectedSurahNumber,
+    selectedTranslation,
+    showTranslation,
+    showTransliteration,
+  ])
 
   const audioUrl = useMemo(() => {
     if (!selectedAyahNumber) return undefined
@@ -641,7 +693,7 @@ export default function AlfawzReaderPage() {
                 </>
               )}
 
-              {isLoadingAyah ? (
+              {!ayahDetail ? (
                 <Skeleton className="h-24 w-full" />
               ) : (
                 <div className={cn("space-y-6", showMushafView && "px-6 py-6")}>
@@ -668,9 +720,9 @@ export default function AlfawzReaderPage() {
                           "font-arabic text-right",
                         )}
                       >
-                        {ayahDetail?.arabic?.text ?? ""}
+                        {ayahDetail.arabic.text}
                       </p>
-                      {showTranslation && ayahDetail?.translations?.length
+                      {showTranslation && ayahDetail.translations.length
                         ? ayahDetail.translations.map((translation, index) => (
                             <p
                               key={`${translation.translator}-${index}`}
@@ -687,7 +739,7 @@ export default function AlfawzReaderPage() {
                     </div>
                   )}
 
-                  {showTransliteration && ayahDetail?.transliteration ? (
+                  {showTransliteration && ayahDetail.transliteration ? (
                     <p className="text-sm italic text-slate-600 dark:text-slate-300">
                       {ayahDetail.transliteration.text}
                     </p>
