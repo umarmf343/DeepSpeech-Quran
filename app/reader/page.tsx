@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { useHasanatTracker } from "@/hooks/use-hasanat-tracker"
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion"
 import { useUser } from "@/hooks/use-user"
@@ -613,13 +614,22 @@ export default function AlfawzReaderPage() {
               )}
 
               <div className="flex flex-wrap items-center justify-end gap-2">
-                <Button
-                  variant={showMushafView ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setShowMushafView((previous) => !previous)}
-                >
-                  {showMushafView ? "Close Mushaf view" : "Open Mushaf view"}
-                </Button>
+                <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-1.5 shadow-xs dark:border-input dark:bg-input/30">
+                  <Switch
+                    id="mushaf-view-toggle"
+                    checked={showMushafView}
+                    onCheckedChange={setShowMushafView}
+                  />
+                  <Label
+                    htmlFor="mushaf-view-toggle"
+                    className="text-sm font-medium text-muted-foreground"
+                  >
+                    Mushaf view
+                  </Label>
+                  <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                    {showMushafView ? "On" : "Off"}
+                  </span>
+                </div>
                 <Button variant="secondary" size="sm" className="gap-2">
                   <Sparkles className="h-4 w-4" /> Launch AI Lab
                 </Button>
