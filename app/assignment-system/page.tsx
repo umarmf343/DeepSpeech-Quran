@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { EggChallengeWidget } from "@/components/egg-challenge-widget"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,6 +17,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
+import { useEggChallenge } from "@/hooks/use-egg-challenge"
 import {
   CalendarIcon,
   CheckCircle2,
@@ -87,10 +89,10 @@ const activityHighlights = [
     gradient: "from-[#ede9fe] via-[#ddd6fe] to-[#a78bfa]",
   },
   {
-    icon: "🎉",
-    title: "Celebrate Mastery",
-    description: "Completion badges sparkle once every hotspot is explored and audio reviewed.",
-    gradient: "from-[#fee2e2] via-[#fecaca] to-[#f87171]",
+    icon: "🥚",
+    title: "Break the Egg Challenge",
+    description: "Every completed hotspot pours progress into the memorisation egg until it finally hatches.",
+    gradient: "from-[#ede9fe] via-[#f3e8ff] to-[#fde68a]",
   },
 ]
 
@@ -116,6 +118,9 @@ export default function AssignmentSystemPage() {
   const [feedbackMessage, setFeedbackMessage] = useState("")
   const [openAssignmentId, setOpenAssignmentId] = useState<string | null>(null)
   const [progressMap, setProgressMap] = useState<Record<string, string[]>>({})
+
+  const { enabled: eggChallengeEnabled, state: eggChallengeState, trackProgress: trackEggChallengeProgress } =
+    useEggChallenge()
 
   const assignmentModalAudio = useRef<HTMLAudioElement | null>(null)
   const hotspotCanvasRef = useRef<HTMLDivElement>(null)
@@ -338,9 +343,15 @@ export default function AssignmentSystemPage() {
   }
 
   const handleHotspotInteraction = (assignment: Assignment, hotspot: Hotspot) => {
+    let shouldTrackEggProgress = false
+
     setProgressMap((prev) => {
       const existing = new Set(prev[assignment.id] ?? [])
-      existing.add(hotspot.id)
+      if (!existing.has(hotspot.id)) {
+        existing.add(hotspot.id)
+        shouldTrackEggProgress = true
+      }
+
       const nextState = { ...prev, [assignment.id]: Array.from(existing) }
 
       if (assignment.hotspots.length > 0 && existing.size === assignment.hotspots.length) {
@@ -356,6 +367,10 @@ export default function AssignmentSystemPage() {
 
       return nextState
     })
+
+    if (shouldTrackEggProgress && role === "student") {
+      void trackEggChallengeProgress(1)
+    }
 
     if (hotspot.audioUrl) {
       try {
@@ -998,6 +1013,36 @@ export default function AssignmentSystemPage() {
               with every successful interaction.
             </p>
           </div>
+          {eggChallengeEnabled && (
+            <div className="grid gap-6 lg:grid-cols-[1.3fr,0.7fr]">
+              <EggChallengeWidget state={eggChallengeState} />
+              <div className="flex h-full flex-col justify-between gap-6 rounded-3xl border border-white/60 bg-white/80 p-6 text-maroon-900 shadow-xl backdrop-blur">
+                <div className="space-y-3">
+                  <h3 className="text-xl font-semibold text-maroon-950">How to hatch your egg companion</h3>
+                  <p className="text-sm text-maroon-900/80">
+                    Each hotspot you complete adds fresh verses to the Break the Egg challenge. Stay consistent and the celebration will follow.
+                  </p>
+                </div>
+                <div className="space-y-3 text-sm text-maroon-900/80">
+                  <div className="flex items-center gap-3">
+                    <MousePointerClick className="h-4 w-4 text-maroon-700" />
+                    Tap glowing hotspots to earn verse credits.
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Headphones className="h-4 w-4 text-maroon-700" />
+                    Listen to each audio prompt before moving on.
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Sparkles className="h-4 w-4 text-maroon-700" />
+                    Reach 100% and enjoy the confetti when your egg cracks.
+                  </div>
+                </div>
+                <p className="rounded-2xl bg-amber-50/70 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-amber-700">
+                  Hotspot completions count automatically—no extra submissions needed.
+                </p>
+              </div>
+            </div>
+          )}
           {isLoadingAssignments ? (
             <div className="flex items-center gap-3 rounded-3xl border border-maroon-100 bg-white/80 px-5 py-6 text-maroon-900">
               <Loader2 className="h-5 w-5 animate-spin text-maroon-700" />
