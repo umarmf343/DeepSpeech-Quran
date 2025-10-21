@@ -124,6 +124,11 @@ export default function AlfawzReaderPage() {
     return map[fontScale] ?? "text-2xl"
   }, [fontScale])
 
+  const totalAyahs = surahMeta?.numberOfAyahs ?? ayahList.length
+  const totalAyahDisplay = totalAyahs > 0 ? totalAyahs : "–"
+  const currentAyahDisplay = selectedAyahNumber ?? "–"
+  const repetitionsCompleted = Math.min(versesCompleted, dailyGoal)
+
   useEffect(() => {
     if (typeof window === "undefined") return
     const stored = window.localStorage.getItem(TRANSLATION_VISIBILITY_STORAGE_KEY)
@@ -654,26 +659,40 @@ export default function AlfawzReaderPage() {
                       nightMode={nightMode}
                     />
                   ) : (
-                    <p
-                      className={cn(
-                        "font-arabic text-right leading-relaxed text-maroon-900 dark:text-amber-100",
-                        fontSizeClass,
-                      )}
-                    >
-                      {ayahDetail?.arabic?.text ?? ""}
-                    </p>
-                  )}
-
-                  {showTranslation && ayahDetail?.translations?.length ? (
-                    <div className="rounded-lg bg-slate-50/80 p-4 text-sm leading-relaxed text-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
-                      {ayahDetail.translations.map((translation) => (
-                        <div key={translation.translator} className="space-y-2">
-                          <p>{translation.text}</p>
-                          <p className="text-xs text-muted-foreground">— {translation.translator}</p>
-                        </div>
-                      ))}
+                    <div className="rounded-2xl bg-gradient-to-br from-white to-emerald-50 p-8 shadow-inner">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="inline-flex items-center justify-center border w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700">
+                          Ayah {currentAyahDisplay} of {totalAyahDisplay}
+                        </span>
+                        <span className="text-xs font-medium text-emerald-600">
+                          Repetitions {repetitionsCompleted} / {dailyGoal}
+                        </span>
+                      </div>
+                      <p
+                        className={cn(
+                          "mt-6 leading-relaxed text-slate-900 md:text-[2.25rem]",
+                          fontSizeClass,
+                          "font-arabic text-right",
+                        )}
+                      >
+                        {ayahDetail?.arabic?.text ?? ""}
+                      </p>
+                      {showTranslation && ayahDetail?.translations?.length
+                        ? ayahDetail.translations.map((translation, index) => (
+                            <p
+                              key={`${translation.translator}-${index}`}
+                              className={cn(
+                                "text-base leading-relaxed text-slate-600",
+                                index === 0 ? "mt-4" : "mt-2",
+                              )}
+                            >
+                              {translation.text}
+                              {translation.translator ? ` — ${translation.translator}` : ""}
+                            </p>
+                          ))
+                        : null}
                     </div>
-                  ) : null}
+                  )}
 
                   {showTransliteration && ayahDetail?.transliteration ? (
                     <p className="text-sm italic text-slate-600 dark:text-slate-300">
