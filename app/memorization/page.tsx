@@ -84,6 +84,8 @@ export default function MemorizationPage() {
   const [showCelebration, setShowCelebration] = useState(false)
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [showPlanDropdown, setShowPlanDropdown] = useState(false)
+  const [planDropdownOpen, setPlanDropdownOpen] = useState(false)
   const [selectedSurahNumber, setSelectedSurahNumber] = useState<string>("")
   const [startAyah, setStartAyah] = useState("")
   const [endAyah, setEndAyah] = useState("")
@@ -238,6 +240,8 @@ export default function MemorizationPage() {
     setSelectedSurahNumber("")
     setFormError(null)
     setIsCreateDialogOpen(false)
+    setShowPlanDropdown(true)
+    setPlanDropdownOpen(true)
   }
 
   const updatePlanProgress = (planId: string, state: Partial<PlanProgressState>) => {
@@ -434,14 +438,43 @@ export default function MemorizationPage() {
         <div className="flex-1 space-y-6">
           <Card className="border-emerald-100/80 bg-white/80 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-lg font-semibold text-slate-900">
-                {activePlan ? `${activePlan.surahName} • Ayah ${activePlan.startAyah} – ${activePlan.endAyah}` : "Select a plan"}
-              </CardTitle>
-              <CardDescription className="text-sm text-slate-600">
-                {activePlan
-                  ? "Repeat each ayah with focus. The next ayah unlocks after 20 repetitions."
-                  : "Choose a memorization plan on the left or create a new one to begin."}
-              </CardDescription>
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <CardTitle className="text-lg font-semibold text-slate-900">
+                    {activePlan
+                      ? `${activePlan.surahName} • Ayah ${activePlan.startAyah} – ${activePlan.endAyah}`
+                      : "Select a plan"}
+                  </CardTitle>
+                  <CardDescription className="text-sm text-slate-600">
+                    {activePlan
+                      ? "Repeat each ayah with focus. The next ayah unlocks after 20 repetitions."
+                      : "Choose a memorization plan on the left or create a new one to begin."}
+                  </CardDescription>
+                </div>
+                {showPlanDropdown && plans.length > 0 && (
+                  <Select
+                    open={planDropdownOpen}
+                    onOpenChange={setPlanDropdownOpen}
+                    value={selectedPlanId ?? undefined}
+                    onValueChange={(value) => {
+                      setSelectedPlanId(value)
+                      setPlanDropdownOpen(false)
+                      setShowCelebration(false)
+                    }}
+                  >
+                    <SelectTrigger className="w-full border-emerald-200 focus:border-emerald-400 focus:ring-emerald-200 md:w-64">
+                      <SelectValue placeholder="Choose a plan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {plans.map((plan) => (
+                        <SelectItem key={plan.id} value={plan.id}>
+                          {plan.surahName} • Ayah {plan.startAyah} – {plan.endAyah}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-6 pb-8">
               {!activePlan ? (
