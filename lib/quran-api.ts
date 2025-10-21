@@ -28,6 +28,12 @@ export interface Translation {
   translator: string
 }
 
+export interface Transliteration {
+  text: string
+  language: string
+  translator: string
+}
+
 export interface Reciter {
   id: number
   name: string
@@ -143,6 +149,7 @@ class QuranCloudAPI {
   ): Promise<{
     arabic: Ayah
     translations: Translation[]
+    transliteration?: Transliteration
   } | null> {
     const cacheKey = `ayah_${surahNumber}_${ayahNumber}_${editions.join("_")}`
     const cached = this.getFromCache(cacheKey)
@@ -157,6 +164,7 @@ class QuranCloudAPI {
         const ayahs = Array.isArray(data.data) ? data.data : [data.data]
         const arabicAyah = ayahs.find((a: any) => a.edition.type === "quran")
         const translationAyahs = ayahs.filter((a: any) => a.edition.type === "translation")
+        const transliterationAyah = ayahs.find((a: any) => a.edition.type === "transliteration")
 
         const result = {
           arabic: {
@@ -175,6 +183,13 @@ class QuranCloudAPI {
             language: t.edition.language,
             translator: t.edition.name,
           })),
+          transliteration: transliterationAyah
+            ? {
+                text: transliterationAyah.text,
+                language: transliterationAyah.edition.language,
+                translator: transliterationAyah.edition.name,
+              }
+            : undefined,
         }
 
         this.setCache(cacheKey, result)
