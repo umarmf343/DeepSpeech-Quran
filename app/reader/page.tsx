@@ -640,47 +640,6 @@ export default function AlfawzReaderPage() {
               </div>
             )}
 
-            <div className="flex flex-wrap items-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={showTranslation}
-                  onCheckedChange={(checked) => setRawShowTranslation(checked === true)}
-                  id="toggle-translation"
-                />
-                <Label htmlFor="toggle-translation" className="text-sm text-muted-foreground">
-                  Show translation
-                </Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={showTransliteration}
-                  onCheckedChange={(checked) => setRawShowTransliteration(checked === true)}
-                  id="toggle-transliteration"
-                />
-                <Label htmlFor="toggle-transliteration" className="text-sm text-muted-foreground">
-                  Show transliteration
-                </Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={showMushafView}
-                  onCheckedChange={(checked) => setShowMushafView(checked === true)}
-                  id="toggle-mushaf"
-                />
-                <Label htmlFor="toggle-mushaf" className="text-sm text-muted-foreground">
-                  Mushaf view
-                </Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={markAyahCompleted} disabled={goalReached}>
-                  <Check className="mr-2 h-4 w-4" /> Mark ayah complete
-                </Button>
-                <Badge variant="outline" className="text-xs">
-                  {Math.min(versesCompleted, dailyGoal)} / {dailyGoal} today
-                </Badge>
-              </div>
-            </div>
-
             <AudioPlayer
               source={audioUrl}
               isPlaying={isPlaying}
