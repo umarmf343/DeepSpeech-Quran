@@ -6,7 +6,6 @@ import Link from "next/link"
 
 import { HasanatCelebration } from "@/components/reader/hasanat-celebration"
 import { HasanatHud } from "@/components/reader/hasanat-hud"
-import { HasanatSparkleEmitter } from "@/components/reader/hasanat-sparkles"
 import { MilestoneCelebration } from "@/components/reader/milestone-celebration"
 import { GwaniSurahPlayer } from "@/components/reader/gwani-surah-player"
 import { MushafView } from "@/components/reader/mushaf-view"
@@ -22,7 +21,6 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { useHasanatTracker } from "@/hooks/use-hasanat-tracker"
-import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion"
 import { useUser } from "@/hooks/use-user"
 import { quranAPI, type AudioSegment, type Ayah, type Surah } from "@/lib/quran-api"
 import { mushafVariants } from "@/lib/integration-data"
@@ -35,7 +33,7 @@ import {
 import { buildVerseKey } from "@/lib/hasanat"
 import { cn } from "@/lib/utils"
 
-import { BookOpen, Bookmark, Check, ChevronLeft, ChevronRight, Settings, Share, Sparkles } from "lucide-react"
+import { BookOpen, Bookmark, Check, Settings, Share, Sparkles } from "lucide-react"
 
 const RECITER_OPTIONS = [
   { edition: "ar.alafasy", label: "Mishary Rashid" },
@@ -110,16 +108,6 @@ export default function AlfawzReaderPage() {
     announcement: hasanatAnnouncement,
     ramadanState,
   } = useHasanatTracker({ initialDailyGoal: dailyGoal })
-
-  const prefersReducedMotion = usePrefersReducedMotion()
-
-  const currentAyahIndex = useMemo(() => {
-    if (!selectedAyahNumber) return -1
-    return ayahList.findIndex((ayah) => ayah.numberInSurah === selectedAyahNumber)
-  }, [ayahList, selectedAyahNumber])
-
-  const isFirstAyah = currentAyahIndex <= 0
-  const isLastAyah = currentAyahIndex >= 0 && currentAyahIndex === ayahList.length - 1
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -345,16 +333,6 @@ export default function AlfawzReaderPage() {
     setSelectedAyahNumber(ayahNumber)
   }, [])
 
-  const handlePreviousAyah = useCallback(() => {
-    setSelectedAyahNumber((previous) => {
-      if (previous === null) return previous
-      const currentIndex = ayahList.findIndex((ayah) => ayah.numberInSurah === previous)
-      if (currentIndex <= 0) return previous
-      const previousAyah = ayahList[currentIndex - 1]
-      return previousAyah ? previousAyah.numberInSurah : previous
-    })
-  }, [ayahList])
-
   const markAyahCompleted = useCallback(() => {
     setVersesCompleted((previous) => {
       if (previous >= dailyGoal) {
@@ -369,52 +347,48 @@ export default function AlfawzReaderPage() {
     })
   }, [dailyGoal])
 
-  const handleNextAyah = useCallback(() => {
-    if (!selectedSurahNumber) return
-    if (currentAyahIndex < 0) return
-
-    const currentAyah = ayahList[currentAyahIndex]
-    if (!currentAyah) return
-
-    const nextAyah = ayahList[currentAyahIndex + 1] ?? null
-
-    const result = recordRecitation({
-      surahNumber: selectedSurahNumber,
-      surahName: surahMeta?.englishName,
-      verses: [
-        {
-          verseKey: buildVerseKey(selectedSurahNumber, currentAyah.numberInSurah),
-          text: currentAyah.text,
-          juz: currentAyah.juz,
-        },
-      ],
-      shouldCount: true,
-      completedGoal: versesCompleted + 1 >= dailyGoal,
-      isSurahCompletion: !nextAyah,
-      completedJuzIds:
-        !nextAyah || nextAyah.juz !== currentAyah.juz ? [currentAyah.juz] : [],
-    })
-
-    if (result) {
-      markAyahCompleted()
-    }
-
-    setSelectedAyahNumber((previous) => {
-      if (nextAyah) {
-        return nextAyah.numberInSurah
+  const handleNextAyah = useCallback(
+    (currentAyah: Ayah | null, nextAyah: Ayah | null) => {
+      if (!selectedSurahNumber || !currentAyah) {
+        return false
       }
-      return previous
-    })
-  }, [
-    ayahList,
-    currentAyahIndex,
-    dailyGoal,
-    markAyahCompleted,
-    recordRecitation,
-    selectedSurahNumber,
-    surahMeta?.englishName,
-    versesCompleted,
-  ])
+
+      const result = recordRecitation({
+        surahNumber: selectedSurahNumber,
+        surahName: surahMeta?.englishName,
+        verses: [
+          {
+            verseKey: buildVerseKey(selectedSurahNumber, currentAyah.numberInSurah),
+            text: currentAyah.text,
+            juz: currentAyah.juz,
+          },
+        ],
+        shouldCount: true,
+        completedGoal: versesCompleted + 1 >= dailyGoal,
+        isSurahCompletion: !nextAyah,
+        completedJuzIds:
+          !nextAyah || nextAyah.juz !== currentAyah.juz ? [currentAyah.juz] : [],
+      })
+
+      if (result) {
+        markAyahCompleted()
+      }
+
+      if (nextAyah) {
+        setSelectedAyahNumber(nextAyah.numberInSurah)
+      }
+
+      return true
+    },
+    [
+      dailyGoal,
+      markAyahCompleted,
+      recordRecitation,
+      selectedSurahNumber,
+      surahMeta?.englishName,
+      versesCompleted,
+    ],
+  )
 
   const closeCelebration = useCallback(() => {
     setShouldCelebrate(false)
@@ -610,6 +584,14 @@ export default function AlfawzReaderPage() {
                   audioSegments={audioSegments}
                   onVersePlaybackEnd={markAyahCompleted}
                   telemetryEnabled={profile.telemetryOptIn}
+                  onNavigate={({ direction, currentAyah, targetAyah }) => {
+                    if (direction === "next") {
+                      return handleNextAyah(currentAyah, targetAyah ?? null)
+                    }
+                    return false
+                  }}
+                  sparkleEvents={sparkles}
+                  onSparkleComplete={removeSparkle}
                 />
               )}
 
