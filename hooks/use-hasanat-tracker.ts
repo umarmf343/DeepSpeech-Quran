@@ -330,14 +330,6 @@ export function useHasanatTracker({ initialDailyGoal }: UseHasanatTrackerOptions
             ...milestones,
             hundredSteps: Array.from(new Set([...milestones.hundredSteps, newHundreds * 100])).sort((a, b) => a - b),
           }
-          celebrationToTrigger = {
-            id: `hundred-${newHundreds}`,
-            type: "hundred",
-            title: "MashaAllah!",
-            message: `You just crossed ${(newHundreds * 100).toLocaleString()} hasanat!`,
-            verse: "فَاسْتَبِقُوا الْخَيْرَاتِ",
-            emphasis: "Every hundred hasanat magnifies your light.",
-          }
         }
 
         if (isSurahCompletion) {
@@ -366,14 +358,6 @@ export function useHasanatTracker({ initialDailyGoal }: UseHasanatTrackerOptions
               ...milestones,
               goalsMet: [...milestones.goalsMet, goalKey],
             }
-            celebrationToTrigger = {
-              id: `goal-${goalKey}`,
-              type: "goal",
-              title: "Daily 10 verses complete",
-              message: "You completed today’s 10-verse journey with presence.",
-              verse: "فَاذْكُرُوا اللَّهَ كَثِيرًا",
-              emphasis: "Another 10 verses rooted in your heart.",
-            }
           }
         }
 
@@ -385,14 +369,6 @@ export function useHasanatTracker({ initialDailyGoal }: UseHasanatTrackerOptions
               ramadanMoments: [...milestones.ramadanMoments, ramadanKey],
             }
           }
-          celebrationToTrigger = {
-            id: `ramadan-${ramadanKey}`,
-            type: "ramadan",
-            title: "Ramadan Reward",
-            message: "In Ramadan, every letter blossoms seven hundredfold.",
-            verse: "مَنْ جَاءَ بِالْحَسَنَةِ فَلَهُ عَشْرُ أَمْثَالِهَا",
-            emphasis: `+${earned.toLocaleString()} Hasanat (Ramadan reward)`,
-          }
         }
 
         if (completedJuzIds && completedJuzIds.length > 0) {
@@ -401,13 +377,6 @@ export function useHasanatTracker({ initialDailyGoal }: UseHasanatTrackerOptions
             milestones = {
               ...milestones,
               juzCompleted: [...milestones.juzCompleted, ...newJuz.map((id) => id.toString())],
-            }
-            celebrationToTrigger = {
-              id: `juz-${newJuz[0]}-${now.getTime()}`,
-              type: "juz",
-              title: "Juz’ milestone",
-              message: `Juz’ ${newJuz[0]} completed—may the Qur’an intercede for you.`,
-              verse: "لَا يَمَسُّهُ إِلَّا الْمُطَهَّرُونَ",
             }
           }
         }
