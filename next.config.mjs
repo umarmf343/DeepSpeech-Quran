@@ -7,16 +7,13 @@ const WINDOWS_SYSTEM_PATHS = [
   "C:/swapfile.sys",
 ];
 
-const WINDOWS_SYSTEM_GLOBS = WINDOWS_SYSTEM_PATHS.flatMap((systemPath) => {
-  const normalized = systemPath.replace(/\\/g, "/");
-  const withoutDrive = normalized.replace(/^([a-zA-Z]):\//, "");
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-  return [
-    normalized,
-    `${normalized}/**`,
-    `**/${withoutDrive}`,
-    `**/${withoutDrive}/**`,
-  ];
+const WINDOWS_SYSTEM_REGEXES = WINDOWS_SYSTEM_PATHS.map((systemPath) => {
+  const withoutDrive = systemPath.replace(/^([a-zA-Z]):[\\/]/, "");
+  const escapedPath = escapeRegex(withoutDrive).replace(/\\\\/g, "[\\\\/]");
+
+  return new RegExp(`(?:^|[\\\\/])${escapedPath}(?:$|[\\\\/])`, "i");
 });
 
 const nextConfig = {
@@ -41,7 +38,7 @@ const nextConfig = {
           "**/build/**",
           "**/dist/**",
           "**/public/static/**",
-          ...WINDOWS_SYSTEM_GLOBS,
+          ...WINDOWS_SYSTEM_REGEXES,
         ],
       };
     }
