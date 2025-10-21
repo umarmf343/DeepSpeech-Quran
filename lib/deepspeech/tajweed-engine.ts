@@ -24,7 +24,7 @@ export const generateTajweedForRange = cache(
     }
 
     try {
-      const module = (await import("deepspeech-quran/tajweed").catch(() => null)) as
+      const module = (await import(/* webpackIgnore: true */ "deepspeech-quran/tajweed").catch(() => null)) as
         | {
             generateTajweedMushaf?: (
               surahNumber: number,

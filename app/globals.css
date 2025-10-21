@@ -388,8 +388,46 @@
   }
 }
 
-    --celebration-primary: rgba(250, 204, 21, 0.5);
+@layer components {
+  .celebration-card {
+    position: relative;
+    z-index: 0;
+    isolation: isolate;
+    --celebration-primary: rgba(250, 204, 21, 0.45);
     --celebration-secondary: rgba(251, 113, 133, 0.35);
+  }
+
+  .celebration-card__glow {
+    position: absolute;
+    inset: -35%;
+    z-index: -1;
+    background: radial-gradient(circle at center, var(--celebration-primary), transparent 65%);
+    filter: blur(45px);
+    opacity: 0.85;
+    pointer-events: none;
+  }
+
+  .celebration-card__burst {
+    position: absolute;
+    z-index: -1;
+    width: 220px;
+    height: 220px;
+    border-radius: 9999px;
+    background: radial-gradient(circle, var(--celebration-primary) 0%, transparent 55%),
+      radial-gradient(circle, var(--celebration-secondary) 0%, transparent 70%);
+    opacity: 0.35;
+    animation: celebration-pop 3.2s ease-in-out infinite;
+  }
+
+  .celebration-card__burst--one {
+    top: -60px;
+    left: -60px;
+  }
+
+  .celebration-card__burst--two {
+    bottom: -70px;
+    right: -70px;
+    animation-delay: 1.2s;
   }
 
   .celebration-card--tree {
@@ -400,6 +438,17 @@
   .celebration-card--medal {
     --celebration-primary: rgba(253, 186, 116, 0.5);
     --celebration-secondary: rgba(59, 130, 246, 0.35);
+  }
+
+  .confetti-piece {
+    position: absolute;
+    top: -10%;
+    width: 0.35rem;
+    height: 1.1rem;
+    border-radius: 9999px;
+    opacity: 0;
+    animation: celebration-shimmer 2.6s linear infinite;
+    pointer-events: none;
   }
 }
 
