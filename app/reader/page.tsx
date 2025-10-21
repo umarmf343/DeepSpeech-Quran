@@ -704,18 +704,14 @@ export default function AlfawzReaderPage() {
                       nightMode={nightMode}
                     />
                   ) : (
-                    <div className="rounded-2xl bg-gradient-to-br from-white to-emerald-50 p-8 shadow-inner">
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="inline-flex items-center justify-center border w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700">
-                          Ayah {currentAyahDisplay} of {totalAyahDisplay}
-                        </span>
-                        <span className="text-xs font-medium text-emerald-600">
-                          Repetitions {repetitionsCompleted} / {dailyGoal}
-                        </span>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between gap-3 text-xs text-emerald-600">
+                        <span>Ayah {currentAyahDisplay} of {totalAyahDisplay}</span>
+                        <span>Repetitions {repetitionsCompleted} / {dailyGoal}</span>
                       </div>
                       <p
                         className={cn(
-                          "mt-6 leading-relaxed text-slate-900 md:text-[1.875rem]",
+                          "leading-relaxed text-slate-900 md:text-[1.875rem]",
                           fontSizeClass,
                           "font-arabic text-right",
                         )}
@@ -728,7 +724,7 @@ export default function AlfawzReaderPage() {
                               key={`${translation.translator}-${index}`}
                               className={cn(
                                 "text-base leading-relaxed text-slate-600",
-                                index === 0 ? "mt-4" : "mt-2",
+                                index === 0 ? "" : "mt-2",
                               )}
                             >
                               {translation.text}
