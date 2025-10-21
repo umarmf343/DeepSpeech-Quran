@@ -354,54 +354,6 @@ export default function AlfawzReaderPage() {
     })
   }, [ayahList])
 
-  const handleNextAyah = useCallback(() => {
-    if (!selectedSurahNumber) return
-    if (currentAyahIndex < 0) return
-
-    const currentAyah = ayahList[currentAyahIndex]
-    if (!currentAyah) return
-
-    const nextAyah = ayahList[currentAyahIndex + 1] ?? null
-    const shouldCountLetters = !profile.showTajweed && !profile.showTranslation && !profile.showTransliteration
-
-    recordRecitation({
-      surahNumber: selectedSurahNumber,
-      surahName: surahMeta?.englishName,
-      verses: shouldCountLetters
-        ? [
-            {
-              verseKey: buildVerseKey(selectedSurahNumber, currentAyah.numberInSurah),
-              text: currentAyah.text,
-              juz: currentAyah.juz,
-            },
-          ]
-        : [],
-      shouldCount: shouldCountLetters,
-      completedGoal: versesCompleted + 1 >= dailyGoal,
-      isSurahCompletion: !nextAyah,
-      completedJuzIds:
-        !nextAyah || nextAyah.juz !== currentAyah.juz ? [currentAyah.juz] : [],
-    })
-
-    setSelectedAyahNumber((previous) => {
-      if (nextAyah) {
-        return nextAyah.numberInSurah
-      }
-      return previous
-    })
-  }, [
-    ayahList,
-    currentAyahIndex,
-    dailyGoal,
-    profile.showTajweed,
-    profile.showTranslation,
-    profile.showTransliteration,
-    recordRecitation,
-    selectedSurahNumber,
-    surahMeta?.englishName,
-    versesCompleted,
-  ])
-
   const markAyahCompleted = useCallback(() => {
     setVersesCompleted((previous) => {
       if (previous >= dailyGoal) {
@@ -415,6 +367,53 @@ export default function AlfawzReaderPage() {
       return next
     })
   }, [dailyGoal])
+
+  const handleNextAyah = useCallback(() => {
+    if (!selectedSurahNumber) return
+    if (currentAyahIndex < 0) return
+
+    const currentAyah = ayahList[currentAyahIndex]
+    if (!currentAyah) return
+
+    const nextAyah = ayahList[currentAyahIndex + 1] ?? null
+
+    const result = recordRecitation({
+      surahNumber: selectedSurahNumber,
+      surahName: surahMeta?.englishName,
+      verses: [
+        {
+          verseKey: buildVerseKey(selectedSurahNumber, currentAyah.numberInSurah),
+          text: currentAyah.text,
+          juz: currentAyah.juz,
+        },
+      ],
+      shouldCount: true,
+      completedGoal: versesCompleted + 1 >= dailyGoal,
+      isSurahCompletion: !nextAyah,
+      completedJuzIds:
+        !nextAyah || nextAyah.juz !== currentAyah.juz ? [currentAyah.juz] : [],
+    })
+
+    if (result) {
+      markAyahCompleted()
+    }
+
+    setSelectedAyahNumber((previous) => {
+      if (nextAyah) {
+        return nextAyah.numberInSurah
+      }
+      return previous
+    })
+  }, [
+    ayahList,
+    currentAyahIndex,
+    dailyGoal,
+    markAyahCompleted,
+    recordRecitation,
+    selectedSurahNumber,
+    surahMeta?.englishName,
+    versesCompleted,
+  ])
 
   const closeCelebration = useCallback(() => {
     setShouldCelebrate(false)

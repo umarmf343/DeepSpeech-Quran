@@ -7,6 +7,14 @@ import { countArabicLetters, hasanatFromLetters } from "@/lib/hasanat"
 const STORAGE_KEY = "alfawz::hasanat-tracker"
 const MAGHRIB_KEY = "alfawz::maghrib-reset"
 
+export const HASANAT_PROGRESS_EVENT = "alfawz:hasanat-progress"
+
+export interface HasanatProgressDetail {
+  total: number
+  daily: number
+  session: number
+}
+
 export interface VerseInput {
   verseKey: string
   text: string
@@ -445,6 +453,16 @@ export function useHasanatTracker({ initialDailyGoal }: UseHasanatTrackerOptions
   const dismissCelebration = useCallback(() => {
     setCelebration(null)
   }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const detail: HasanatProgressDetail = {
+      total: state.totalHasanat,
+      daily: state.dailyHasanat,
+      session: state.sessionHasanat,
+    }
+    window.dispatchEvent(new CustomEvent<HasanatProgressDetail>(HASANAT_PROGRESS_EVENT, { detail }))
+  }, [state.dailyHasanat, state.sessionHasanat, state.totalHasanat])
 
   const preparedState = useMemo(() => state, [state])
 

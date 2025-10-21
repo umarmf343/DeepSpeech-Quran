@@ -24,6 +24,7 @@ import type {
   UserRecord,
   UserStats,
 } from "@/lib/data/mock-db"
+import { HASANAT_PROGRESS_EVENT, type HasanatProgressDetail } from "@/hooks/use-hasanat-tracker"
 
 export type UserRole = "visitor" | "student" | "teacher" | "parent" | "admin"
 export type SubscriptionPlan = "free" | "premium"
@@ -378,6 +379,23 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       window.localStorage.setItem(STORAGE_KEYS.activeNav, activeNav)
     }
   }, [activeNav])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const handleHasanatProgress = (event: Event) => {
+      const detail = (event as CustomEvent<HasanatProgressDetail>).detail
+      if (!detail) return
+
+      setStats((previous) => ({ ...previous, hasanat: detail.total }))
+      setGamification((previous) => ({ ...previous, hasanat: detail.total }))
+    }
+
+    window.addEventListener(HASANAT_PROGRESS_EVENT, handleHasanatProgress as EventListener)
+    return () => {
+      window.removeEventListener(HASANAT_PROGRESS_EVENT, handleHasanatProgress as EventListener)
+    }
+  }, [setGamification, setStats])
 
   const isPremium = profile.plan === "premium"
 
