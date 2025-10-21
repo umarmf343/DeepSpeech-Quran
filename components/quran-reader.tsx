@@ -312,20 +312,12 @@ export function QuranReader({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <Button onClick={previousAyah} disabled={currentAyahIndex === 0} variant="outline" size="sm">
-                  <SkipBack className="w-4 h-4" />
-                </Button>
-
                 <Button
                   onClick={isPlaying ? pauseAyah : () => playAyah(currentAyahIndex)}
                   className="bg-maroon-600 hover:bg-maroon-700 text-white"
                   size="sm"
                 >
                   {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                </Button>
-
-                <Button onClick={nextAyah} disabled={currentAyahIndex === ayahs.length - 1} variant="outline" size="sm">
-                  <SkipForward className="w-4 h-4" />
                 </Button>
 
                 <Button
@@ -428,8 +420,34 @@ export function QuranReader({
                 </div>
 
                 {/* Arabic Text */}
-                <div className="text-right text-2xl md:text-3xl leading-relaxed font-arabic text-maroon-800 mb-6 p-4 bg-cream-50 rounded-lg">
-                  {ayah.text}
+                <div className="relative mb-6">
+                  {isCurrentAyah && (
+                    <>
+                      <Button
+                        onClick={previousAyah}
+                        disabled={currentAyahIndex === 0}
+                        variant="secondary"
+                        size="icon"
+                        aria-label="Previous ayah"
+                        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full shadow-md bg-white/80 backdrop-blur-sm hover:bg-white"
+                      >
+                        <SkipBack className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        onClick={nextAyah}
+                        disabled={currentAyahIndex === ayahs.length - 1}
+                        variant="secondary"
+                        size="icon"
+                        aria-label="Next ayah"
+                        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 rounded-full shadow-md bg-white/80 backdrop-blur-sm hover:bg-white"
+                      >
+                        <SkipForward className="w-4 h-4" />
+                      </Button>
+                    </>
+                  )}
+                  <div className="text-right text-2xl md:text-3xl leading-relaxed font-arabic text-maroon-800 p-4 bg-cream-50 rounded-lg px-12">
+                    {ayah.text}
+                  </div>
                 </div>
 
                 {/* Translations */}
