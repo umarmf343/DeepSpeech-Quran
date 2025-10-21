@@ -681,15 +681,25 @@ export default function AlfawzReaderPage() {
                             Repetitions {repetitionsCompleted} / {dailyGoal}
                           </span>
                         </div>
-                        <p
-                          className={cn(
-                            "mt-6 text-3xl leading-relaxed text-slate-900 md:text-[2.25rem]",
-                            fontSizeClass,
-                            "font-arabic text-right",
-                          )}
-                        >
-                          {ayahDetail.arabic.text}
-                        </p>
+                        <div className="mt-6 space-y-3">
+                          <p
+                            className={cn(
+                              "text-3xl leading-relaxed text-slate-900 md:text-[2.25rem]",
+                              fontSizeClass,
+                              "font-arabic text-right",
+                            )}
+                          >
+                            {ayahDetail.arabic.text}
+                          </p>
+                          {showTransliteration && ayahDetail.transliteration ? (
+                            <p
+                              className="text-base leading-relaxed text-emerald-700 dark:text-emerald-300"
+                              dir="ltr"
+                            >
+                              {ayahDetail.transliteration.text}
+                            </p>
+                          ) : null}
+                        </div>
                         {showTranslation && ayahDetail.translations.length
                           ? ayahDetail.translations.map((translation, index) => (
                               <p
@@ -704,11 +714,6 @@ export default function AlfawzReaderPage() {
                               </p>
                             ))
                           : null}
-                        {showTransliteration && ayahDetail.transliteration ? (
-                          <p className="mt-4 text-sm italic leading-relaxed text-slate-600 dark:text-slate-300">
-                            {ayahDetail.transliteration.text}
-                          </p>
-                        ) : null}
                       </div>
                     </div>
                   )}
