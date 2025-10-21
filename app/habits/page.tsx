@@ -182,7 +182,7 @@ export default function HabitQuestPage() {
                   <>
                     <div className="space-y-4">
                       <Progress value={selectedHabit.progress} className="h-2" />
-                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                         <div className="rounded-lg border border-maroon-100 bg-maroon-50 p-3">
                           <p className="text-xs text-maroon-600">Current Streak</p>
                           <p className="text-lg font-semibold text-maroon-900">{selectedHabit.streak} days</p>
@@ -238,7 +238,7 @@ export default function HabitQuestPage() {
                 <CardTitle className="text-xl">Weekly Quest Board</CardTitle>
                 <CardDescription>Select a quest to view details and power-ups.</CardDescription>
               </CardHeader>
-              <CardContent className="grid gap-4 sm:grid-cols-2">
+              <CardContent className="grid grid-cols-2 gap-4 md:grid-cols-3">
                 {habits.map((habit) => {
                   const Icon = habit.icon in habitIconMap ? habitIconMap[habit.icon as keyof typeof habitIconMap] : Target
                   return (
