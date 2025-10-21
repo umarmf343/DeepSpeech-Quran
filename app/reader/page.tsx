@@ -38,6 +38,8 @@ import {
   RotateCcw,
   Settings,
   Share,
+  SkipBack,
+  SkipForward,
   Sparkles,
 } from "lucide-react"
 
@@ -384,6 +386,8 @@ export default function AlfawzReaderPage() {
   const nightModeBackground = nightMode ? "bg-slate-950 text-slate-100" : "bg-gradient-cream text-slate-900"
   const goalReached = versesCompleted >= dailyGoal
   const cardBackground = nightMode ? "border-slate-700 bg-slate-900/70" : "border-border/50 bg-white/90"
+  const hasPreviousAyah = selectedAyahNumber !== null && selectedAyahNumber > 1
+  const hasNextAyah = selectedAyahNumber !== null && selectedAyahNumber < ayahList.length
 
   return (
     <div className={cn("min-h-screen pb-16 transition-colors", nightModeBackground)}>
@@ -549,12 +553,69 @@ export default function AlfawzReaderPage() {
 
             <div
               className={cn(
-                "rounded-xl border-2 px-6 py-8 shadow-sm",
+                "relative overflow-hidden rounded-xl border-2 px-6 py-8 shadow-sm",
                 selectedMushaf.visualStyle.border,
                 nightMode ? "bg-slate-950/60" : "bg-white/90",
                 showMushafView && "px-0 py-0",
               )}
             >
+              {!showMushafView && hasPreviousAyah && (
+                <>
+                  <div
+                    aria-hidden="true"
+                    className={cn(
+                      "pointer-events-none absolute inset-y-0 left-0 z-0 w-20 bg-gradient-to-r",
+                      nightMode
+                        ? "from-slate-950/80 via-slate-900/50 to-transparent"
+                        : "from-white/95 via-emerald-50/60 to-transparent",
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Previous ayah"
+                    onClick={handlePreviousAyah}
+                    className={cn(
+                      "absolute left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 hover:-translate-y-0.5",
+                      nightMode
+                        ? "border-emerald-500/40 bg-slate-900/70 text-emerald-200 hover:bg-slate-900/60"
+                        : "border-emerald-200/70 bg-white/90 text-emerald-700 hover:bg-white",
+                    )}
+                  >
+                    <SkipBack className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
+              {!showMushafView && hasNextAyah && (
+                <>
+                  <div
+                    aria-hidden="true"
+                    className={cn(
+                      "pointer-events-none absolute inset-y-0 right-0 z-0 w-20 bg-gradient-to-l",
+                      nightMode
+                        ? "from-slate-950/80 via-slate-900/50 to-transparent"
+                        : "from-white/95 via-emerald-50/60 to-transparent",
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Next ayah"
+                    onClick={handleNextAyah}
+                    className={cn(
+                      "absolute right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 hover:-translate-y-0.5",
+                      nightMode
+                        ? "border-emerald-500/40 bg-slate-900/70 text-emerald-200 hover:bg-slate-900/60"
+                        : "border-emerald-200/70 bg-white/90 text-emerald-700 hover:bg-white",
+                    )}
+                  >
+                    <SkipForward className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
+
               {isLoadingAyah ? (
                 <Skeleton className="h-24 w-full" />
               ) : showMushafView ? (
