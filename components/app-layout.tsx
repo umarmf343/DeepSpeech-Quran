@@ -18,7 +18,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
       </div>
       <div className="relative flex-1 lg:ml-64">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(209,145,102,0.18),transparent_65%)]" />
-        <main className="relative z-10 min-h-screen overflow-x-hidden pb-28 pl-0 pr-0 lg:pb-0">{children}</main>
+        <main className="relative z-10 min-h-screen overflow-x-hidden pb-[calc(7rem+env(safe-area-inset-bottom))] pl-0 pr-0 lg:pb-24 xl:pb-12 2xl:pb-10">
+          {children}
+        </main>
       </div>
       <CelebrationOverlay />
       <BottomNavigation />

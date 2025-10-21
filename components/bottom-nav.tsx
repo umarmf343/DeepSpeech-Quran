@@ -1,19 +1,22 @@
 "use client"
 
 import type { ComponentType } from "react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   BarChart3,
   BookOpen,
   Calendar,
+  ChevronLeft,
+  ChevronRight,
   ClipboardList,
   Crown,
   CreditCard,
   Flame,
   Gamepad2,
   Home,
+  ScrollText,
   Shield,
   Sparkles,
   Target,
@@ -24,6 +27,50 @@ import {
 
 import { cn } from "@/lib/utils"
 import { useUser } from "@/hooks/use-user"
+import type { UserRole } from "@/components/user-provider"
+
+type TabSlug =
+  | "dashboard"
+  | "reader"
+  | "memorization"
+  | "qaidah"
+  | "leaderboard"
+  | "game"
+  | "teacher-dashboard"
+  | "admin-dashboard"
+  | "profile"
+
+interface TabDefinition {
+  slug: TabSlug
+  label: string
+  href: string
+  icon: string
+}
+
+const TAB_REGISTRY: Record<TabSlug, TabDefinition> = {
+  dashboard: { slug: "dashboard", label: "Dashboard", href: "/dashboard", icon: "home" },
+  reader: { slug: "reader", label: "Reader", href: "/reader", icon: "book" },
+  memorization: { slug: "memorization", label: "Memorization", href: "/memorization", icon: "target" },
+  qaidah: { slug: "qaidah", label: "Qa'idah", href: "/qaidah", icon: "scroll" },
+  leaderboard: { slug: "leaderboard", label: "Leaderboard", href: "/leaderboard", icon: "crown" },
+  game: { slug: "game", label: "Game Lab", href: "/game", icon: "gamepad" },
+  "teacher-dashboard": {
+    slug: "teacher-dashboard",
+    label: "Teacher Hub",
+    href: "/teacher/dashboard",
+    icon: "users",
+  },
+  "admin-dashboard": { slug: "admin-dashboard", label: "Admin", href: "/admin", icon: "shield" },
+  profile: { slug: "profile", label: "Profile", href: "/auth/profile", icon: "user" },
+}
+
+const ROLE_TAB_MAP: Record<UserRole, TabSlug[]> = {
+  visitor: ["dashboard", "reader", "profile"],
+  student: ["dashboard", "reader", "memorization", "qaidah", "profile"],
+  teacher: ["dashboard", "reader", "memorization", "qaidah", "teacher-dashboard", "profile"],
+  admin: ["dashboard", "reader", "memorization", "qaidah", "leaderboard", "game", "admin-dashboard", "profile"],
+  parent: ["dashboard", "reader", "profile"],
+}
 
 const iconMap: Record<string, ComponentType<{ className?: string }>> = {
   home: Home,
@@ -41,9 +88,20 @@ const iconMap: Record<string, ComponentType<{ className?: string }>> = {
   practice: Gamepad2,
   flame: Flame,
   calendar: Calendar,
+  scroll: ScrollText,
+  gamepad: Gamepad2,
 }
 
-const SENIOR_MODE_TABS = new Set(["dashboard", "reader", "progress", "profile"])
+const SENIOR_MODE_TABS = new Set<TabSlug>(["dashboard", "reader", "qaidah", "profile"])
+
+export function alfawz_get_bottom_nav_url(slug: TabSlug): string {
+  return TAB_REGISTRY[slug]?.href ?? "/"
+}
+
+export function alfawz_get_nav_tabs(role: UserRole): TabDefinition[] {
+  const tabSlugs = ROLE_TAB_MAP[role] ?? ROLE_TAB_MAP.student
+  return tabSlugs.map((slug) => TAB_REGISTRY[slug])
+}
 
 function renderIcon(name: string) {
   const Icon = iconMap[name] ?? Sparkles
@@ -52,6 +110,7 @@ function renderIcon(name: string) {
 
 export function BottomNavigation() {
   const {
+    profile,
     navigation,
     notifications,
     preferences,
@@ -77,12 +136,33 @@ export function BottomNavigation() {
     return () => query.removeEventListener("change", handleChange)
   }, [])
 
-  const filteredNavigation = useMemo(() => {
-    if (preferences.seniorMode) {
-      return navigation.filter((link) => SENIOR_MODE_TABS.has(link.slug))
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    document.body.classList.add("has-bottom-nav")
+    return () => {
+      document.body.classList.remove("has-bottom-nav")
     }
-    return navigation
-  }, [navigation, preferences.seniorMode])
+  }, [])
+
+  const defaultTabs = useMemo(() => alfawz_get_nav_tabs(profile.role), [profile.role])
+
+  const navLookup = useMemo(() => new Map(navigation.map((link) => [link.slug, link])), [navigation])
+
+  const filteredNavigation = useMemo(() => {
+    const merged = defaultTabs
+      .map((tab) => {
+        const override = navLookup.get(tab.slug)
+        return override
+          ? { ...tab, label: override.label, href: override.href, icon: override.icon }
+          : tab
+      })
+
+    if (preferences.seniorMode) {
+      return merged.filter((link) => SENIOR_MODE_TABS.has(link.slug))
+    }
+
+    return merged
+  }, [defaultTabs, navLookup, preferences.seniorMode])
 
   useEffect(() => {
     const current = filteredNavigation.find((link) => pathname.startsWith(link.href))
@@ -97,7 +177,7 @@ export function BottomNavigation() {
 
     const handleScroll = () => {
       const { scrollLeft, scrollWidth, clientWidth } = container
-      setShadow({ left: scrollLeft > 8, right: scrollLeft + clientWidth < scrollWidth - 8 })
+      setShadow({ left: scrollLeft > 4, right: scrollLeft + clientWidth < scrollWidth - 4 })
     }
 
     handleScroll()
@@ -105,17 +185,43 @@ export function BottomNavigation() {
     return () => container.removeEventListener("scroll", handleScroll)
   }, [])
 
+  const scrollBy = useCallback(
+    (direction: "left" | "right") => {
+      const container = scrollRef.current
+      if (!container) return
+      container.scrollBy({
+        left: direction === "left" ? -160 : 160,
+        behavior: reduceMotion ? "auto" : "smooth",
+      })
+    },
+    [reduceMotion],
+  )
+
+  const qaidaUpdates = useMemo(
+    () =>
+      notifications.filter((notification) => {
+        if (notification.read) return false
+        if (notification.type === "challenge") return true
+        const text = `${notification.title} ${notification.message}`.toLowerCase()
+        return text.includes("assignment") || text.includes("qaidah")
+      }).length,
+    [notifications],
+  )
+
   const unreadCount = notifications.filter((notification) => !notification.read).length
   const streak = gamification.streak
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-maroon-100 bg-gradient-to-r from-cream-50/95 via-white/95 to-cream-50/95 backdrop-blur-xl shadow-[0_-12px_40px_rgba(122,46,37,0.08)] lg:hidden">
-      <div className="flex items-center justify-between px-4 pt-2">
+    <nav
+      className="fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-4xl flex-col gap-2 border-t border-maroon-100/70 bg-gradient-to-r from-cream-50/95 via-white/95 to-cream-50/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl shadow-[0_-18px_42px_rgba(122,46,37,0.15)] sm:rounded-t-3xl lg:bottom-6 lg:max-w-5xl lg:rounded-3xl lg:border lg:px-6 lg:pb-4"
+      aria-label="AlFawz navigation"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-maroon-600">
         <button
           type="button"
           onClick={() => toggleSeniorMode()}
           className={cn(
-            "rounded-full border border-maroon-200 bg-white px-3 py-1 text-xs font-medium text-maroon-700 transition-all",
+            "rounded-full border border-maroon-200 bg-white px-3 py-1 font-medium text-maroon-700 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maroon-400",
             preferences.seniorMode
               ? "shadow-inner shadow-maroon-200"
               : "hover:-translate-y-0.5 hover:shadow-lg hover:shadow-maroon-100",
@@ -124,7 +230,7 @@ export function BottomNavigation() {
         >
           {preferences.seniorMode ? "Senior mode on" : "Senior mode"}
         </button>
-        <div className="flex items-center gap-2 text-xs text-maroon-600">
+        <div className="flex flex-1 items-center justify-end gap-2 sm:flex-initial">
           <span className="inline-flex items-center gap-1 rounded-full bg-maroon-50 px-3 py-1 font-semibold">
             <Sparkles className="h-4 w-4 text-amber-500" aria-hidden="true" />
             {celebration.active ? "Takbir!" : "Streak"} {celebration.active ? "" : `${streak}d`}
@@ -136,18 +242,30 @@ export function BottomNavigation() {
           )}
         </div>
       </div>
-      <div className="relative mt-2">
+      <div className="relative">
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-1 text-maroon-400">
+          <button
+            type="button"
+            className={cn(
+              "pointer-events-auto hidden rounded-full border border-transparent bg-white/90 p-1 text-maroon-600 shadow-sm transition hover:text-maroon-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maroon-400 sm:flex",
+              shadow.left ? "opacity-100" : "opacity-0",
+            )}
+            aria-label="Scroll navigation left"
+            onClick={() => scrollBy("left")}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+        </div>
         <div
           ref={scrollRef}
           className={cn(
-            "flex snap-x snap-mandatory gap-2 overflow-x-auto px-4 pb-3",
-            reduceMotion ? "scroll-smooth" : "scroll-smooth",
+            "flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1 pt-1",
+            reduceMotion ? "" : "scroll-smooth",
           )}
           role="tablist"
-          aria-label="Primary navigation"
         >
           {filteredNavigation.map((item) => {
-            const isActive = activeNav === item.slug
+            const isActive = activeNav === item.slug || pathname.startsWith(item.href)
             const Icon = () => renderIcon(item.icon)
             return (
               <Link
@@ -157,7 +275,7 @@ export function BottomNavigation() {
                 aria-selected={isActive}
                 data-current={isActive}
                 className={cn(
-                  "group relative flex min-w-[5.5rem] snap-center flex-col items-center justify-center gap-1 rounded-3xl border border-transparent px-4 py-2 text-xs font-semibold text-maroon-700 transition-all duration-300",
+                  "group relative flex min-w-[5.5rem] snap-center flex-col items-center justify-center gap-1 rounded-3xl border border-transparent px-4 py-2 text-xs font-semibold text-maroon-700 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-cream-50",
                   "bg-white/80 backdrop-blur hover:-translate-y-1",
                   isActive
                     ? "shadow-lg shadow-amber-200/40 ring-2 ring-maroon-200"
@@ -167,29 +285,43 @@ export function BottomNavigation() {
               >
                 <span
                   className={cn(
-                    "flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-r from-maroon-500 to-maroon-600 text-white transition-all duration-300",
+                    "relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-r from-maroon-500 to-maroon-600 text-white transition-all duration-300",
                     isActive ? "scale-105 shadow-inner" : "group-hover:scale-105",
                   )}
                 >
                   <Icon />
+                  {item.slug === "qaidah" && qaidaUpdates > 0 && (
+                    <span className="absolute -right-1 -top-1 inline-flex h-4 w-4 items-center justify-center">
+                      <span
+                        className={cn(
+                          "absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75",
+                          reduceMotion ? "" : "animate-ping",
+                        )}
+                      />
+                      <span className="relative inline-flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[0.6rem] font-bold text-white">
+                        {qaidaUpdates}
+                      </span>
+                    </span>
+                  )}
                 </span>
                 <span className="text-[0.7rem] capitalize tracking-wide">{item.label}</span>
               </Link>
             )
           })}
         </div>
-        <div
-          className={cn(
-            "pointer-events-none absolute inset-y-2 left-0 w-8 bg-gradient-to-r from-cream-50 via-cream-50/40 to-transparent transition-opacity",
-            shadow.left ? "opacity-100" : "opacity-0",
-          )}
-        />
-        <div
-          className={cn(
-            "pointer-events-none absolute inset-y-2 right-0 w-8 bg-gradient-to-l from-cream-50 via-cream-50/40 to-transparent transition-opacity",
-            shadow.right ? "opacity-100" : "opacity-0",
-          )}
-        />
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1 text-maroon-400">
+          <button
+            type="button"
+            className={cn(
+              "pointer-events-auto hidden rounded-full border border-transparent bg-white/90 p-1 text-maroon-600 shadow-sm transition hover:text-maroon-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maroon-400 sm:flex",
+              shadow.right ? "opacity-100" : "opacity-0",
+            )}
+            aria-label="Scroll navigation right"
+            onClick={() => scrollBy("right")}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </nav>
   )

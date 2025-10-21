@@ -181,14 +181,16 @@ function cloneUser(user: UserRecord): UserRecord {
 const navigationLinks: NavigationLink[] = [
   { slug: "dashboard", label: "Dashboard", href: "/dashboard", icon: "home", roles: ["student", "teacher", "admin", "visitor"] },
   { slug: "reader", label: "Qur'an Reader", href: "/reader", icon: "book", roles: ["student", "teacher", "admin", "visitor"] },
+  { slug: "memorization", label: "Memorization", href: "/memorization", icon: "target", roles: ["student", "teacher", "admin"] },
+  { slug: "qaidah", label: "Qa'idah", href: "/qaidah", icon: "scroll", roles: ["student", "teacher", "admin"] },
+  { slug: "leaderboard", label: "Leaderboard", href: "/leaderboard", icon: "crown", roles: ["admin"] },
+  { slug: "game", label: "Game Lab", href: "/game", icon: "gamepad", roles: ["admin"] },
+  { slug: "teacher-dashboard", label: "My Classroom", href: "/teacher/dashboard", icon: "users", roles: ["teacher", "admin"] },
+  { slug: "assignments", label: "Assignments", href: "/teacher/assignments", icon: "clipboard", roles: ["teacher"] },
+  { slug: "admin-dashboard", label: "Admin Dashboard", href: "/admin", icon: "shield", roles: ["admin"] },
   { slug: "practice", label: "Practice Lab", href: "/practice", icon: "sparkles", roles: ["student", "teacher", "admin"] },
-  { slug: "memorization", label: "Memorization", href: "/memorization", icon: "target", roles: ["student", "teacher"] },
   { slug: "progress", label: "Progress", href: "/progress", icon: "chart", roles: ["student", "teacher"] },
   { slug: "achievements", label: "Achievements", href: "/achievements", icon: "trophy", roles: ["student", "teacher", "admin"] },
-  { slug: "leaderboard", label: "Leaderboard", href: "/leaderboard", icon: "crown", roles: ["student", "teacher", "admin"] },
-  { slug: "teacher-dashboard", label: "My Classroom", href: "/teacher/dashboard", icon: "users", roles: ["teacher"] },
-  { slug: "assignments", label: "Assignments", href: "/teacher/assignments", icon: "clipboard", roles: ["teacher"] },
-  { slug: "admin", label: "Admin", href: "/admin", icon: "shield", roles: ["admin"] },
   { slug: "billing", label: "Billing", href: "/billing", icon: "credit", roles: ["student", "teacher", "admin"] },
   { slug: "profile", label: "Profile", href: "/auth/profile", icon: "user", roles: ["student", "teacher", "admin", "visitor"] },
 ]
@@ -477,7 +479,10 @@ const userRecords: Record<string, UserRecord> = {
     joinedAt: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString(),
     stats: { ...baseStats, rank: 3, hasanat: 4120 },
     habits: baseHabits,
-    preferences: { ...basePreferences, navOrder: ["dashboard", "teacher-dashboard", "assignments", "reader", "progress", "profile"] },
+    preferences: {
+      ...basePreferences,
+      navOrder: ["dashboard", "reader", "memorization", "qaidah", "teacher-dashboard", "profile"],
+    },
     gamification: {
       ...baseGamification,
       heroCopy: {
@@ -518,7 +523,11 @@ const userRecords: Record<string, UserRecord> = {
     joinedAt: new Date(Date.now() - 200 * 24 * 60 * 60 * 1000).toISOString(),
     stats: { ...baseStats, rank: 1, hasanat: 6020, weeklyXP: [150, 180, 170, 160, 190, 200, 190] },
     habits: baseHabits,
-    preferences: { ...basePreferences, challengeOptIn: false, navOrder: ["dashboard", "admin", "leaderboard", "reader", "profile"] },
+    preferences: {
+      ...basePreferences,
+      challengeOptIn: false,
+      navOrder: ["dashboard", "reader", "memorization", "qaidah", "leaderboard", "game", "admin-dashboard", "profile"],
+    },
     gamification: {
       ...baseGamification,
       heroCopy: {
