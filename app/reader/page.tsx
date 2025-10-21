@@ -866,50 +866,6 @@ export default function AlfawzReaderPage() {
                 </CardContent>
               </Card>
 
-              <Card className={cn("border border-slate-200 bg-white/80", nightMode && "border-slate-700 bg-slate-900/60") }>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-slate-800 dark:text-slate-200">Reader shortcuts</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 gap-3 text-xs text-slate-700 dark:text-slate-200 md:grid-cols-2">
-                  <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-600">
-                    <p className="font-semibold text-maroon-700 dark:text-amber-200">Reset layout</p>
-                    <p>Restore default font, translation, and Mushaf settings.</p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="mt-2 text-maroon-700 dark:text-amber-200"
-                      onClick={() => {
-                        setFontScale(4)
-                        setRawShowTranslation(true)
-                        setRawShowTransliteration(false)
-                        setSelectedMushaf(mushafVariants[0])
-                      }}
-                    >
-                      <RotateCcw className="mr-1 h-4 w-4" /> Reset
-                    </Button>
-                  </div>
-                  <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-600">
-                    <p className="font-semibold text-maroon-700 dark:text-amber-200">Toggle visibility</p>
-                    <p>Show or hide translations and transliteration instantly.</p>
-                    <div className="mt-2 flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setRawShowTranslation(!showTranslation)}
-                      >
-                        {showTranslation ? "Hide" : "Show"} translation
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setRawShowTransliteration(!showTransliteration)}
-                      >
-                        {showTransliteration ? "Hide" : "Show"} transliteration
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           </CardContent>
         </Card>
