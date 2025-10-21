@@ -80,12 +80,15 @@ export default function DashboardPage() {
                   {gamification.streak} day streak
                 </Badge>
               </div>
-              <div className="flex flex-wrap gap-3">
-                <Button className="rounded-full bg-white text-maroon-700 hover:bg-amber-100">
+              <div className="grid w-full grid-cols-2 gap-3 sm:w-auto sm:flex sm:flex-wrap">
+                <Button className="w-full rounded-full bg-white text-maroon-700 hover:bg-amber-100 sm:w-auto">
                   <Play className="mr-2 h-4 w-4" />
                   {localization.hero.action}
                 </Button>
-                <Button variant="outline" className="rounded-full border-white/40 text-white hover:bg-white/20">
+                <Button
+                  variant="outline"
+                  className="w-full rounded-full border-white/40 text-white hover:bg-white/20 sm:w-auto"
+                >
                   View celebration feed
                 </Button>
               </div>
@@ -227,14 +230,14 @@ export default function DashboardPage() {
                     <Badge className="border-0 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white">Level {featuredHabit?.level ?? 1}</Badge>
                   </div>
                   <Progress value={featuredHabit?.progress ?? 0} className="mb-4" />
-                  <div className="flex space-x-3">
-                    <Link href="/reader" className="flex-1">
-                      <Button className="w-full border-0 bg-gradient-to-r from-maroon-600 to-maroon-700 text-white">
+                  <div className="grid gap-3 sm:flex sm:space-x-3 sm:gap-0">
+                    <Link href="/reader" className="w-full sm:w-auto">
+                      <Button className="w-full border-0 bg-gradient-to-r from-maroon-600 to-maroon-700 text-white sm:w-auto">
                         <Play className="mr-2 h-4 w-4" />
                         Continue Reading
                       </Button>
                     </Link>
-                    <Button variant="outline" className="bg-white">
+                    <Button variant="outline" className="w-full bg-white sm:w-auto">
                       <Target className="mr-2 h-4 w-4" />
                       View Habit
                     </Button>

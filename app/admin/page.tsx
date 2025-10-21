@@ -122,17 +122,17 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-cream-50 to-maroon-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
           <div>
             <h1 className="text-4xl font-bold text-maroon-900 mb-2">Admin Dashboard</h1>
             <p className="text-lg text-maroon-700">Manage and monitor the AlFawz Qur'an Institute platform</p>
           </div>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" className="bg-white">
+          <div className="grid w-full max-w-xs grid-cols-2 gap-3 sm:max-w-none sm:flex sm:w-auto sm:items-center sm:gap-4">
+            <Button variant="outline" className="w-full bg-white sm:w-auto">
               <Calendar className="h-4 w-4 mr-2" />
               Export Report
             </Button>
-            <Button className="bg-gradient-to-r from-maroon-600 to-maroon-700">
+            <Button className="w-full bg-gradient-to-r from-maroon-600 to-maroon-700 sm:w-auto">
               <Settings className="h-4 w-4 mr-2" />
               Settings
             </Button>
