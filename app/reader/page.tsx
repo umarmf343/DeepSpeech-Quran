@@ -7,6 +7,7 @@ import Link from "next/link"
 import { AudioPlayer } from "@/components/reader/audio-player"
 import { MilestoneCelebration } from "@/components/reader/milestone-celebration"
 import { GwaniSurahPlayer } from "@/components/reader/gwani-surah-player"
+import { MushafView } from "@/components/reader/mushaf-view"
 import { NightModeToggle } from "@/components/reader/night-mode-toggle"
 import { MorphologyBreakdown } from "@/components/morphology-breakdown"
 import { Badge } from "@/components/ui/badge"
@@ -96,6 +97,7 @@ export default function AlfawzReaderPage() {
   const [shouldCelebrate, setShouldCelebrate] = useState(false)
   const [nightMode, setNightMode] = useState(false)
   const [selectedMushaf, setSelectedMushaf] = useState(() => mushafVariants[0])
+  const [showMushafView, setShowMushafView] = useState(false)
 
   const mushafOptions = useMemo(() => mushafVariants, [])
 
@@ -550,12 +552,24 @@ export default function AlfawzReaderPage() {
                 "rounded-xl border-2 px-6 py-8 shadow-sm",
                 selectedMushaf.visualStyle.border,
                 nightMode ? "bg-slate-950/60" : "bg-white/90",
+                showMushafView && "px-0 py-0",
               )}
             >
               {isLoadingAyah ? (
                 <Skeleton className="h-24 w-full" />
+              ) : showMushafView ? (
+                <MushafView
+                  ayahs={ayahList}
+                  selectedAyahNumber={selectedAyahNumber}
+                  nightMode={nightMode}
+                />
               ) : (
-                <p className={cn("font-arabic text-right leading-relaxed text-maroon-900 dark:text-amber-100", fontSizeClass)}>
+                <p
+                  className={cn(
+                    "font-arabic text-right leading-relaxed text-maroon-900 dark:text-amber-100",
+                    fontSizeClass,
+                  )}
+                >
                   {ayahDetail?.arabic?.text ?? ""}
                 </p>
               )}
@@ -580,6 +594,16 @@ export default function AlfawzReaderPage() {
                 />
                 <Label htmlFor="toggle-transliteration" className="text-sm text-muted-foreground">
                   Show transliteration
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={showMushafView}
+                  onCheckedChange={(checked) => setShowMushafView(checked === true)}
+                  id="toggle-mushaf"
+                />
+                <Label htmlFor="toggle-mushaf" className="text-sm text-muted-foreground">
+                  Mushaf view
                 </Label>
               </div>
               <div className="flex items-center gap-2">
