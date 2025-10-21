@@ -54,6 +54,8 @@ const TRANSLATION_OPTIONS = [
 ]
 
 const TRANSLITERATION_EDITION = "en.transliteration"
+const TRANSLATION_VISIBILITY_STORAGE_KEY = "alfawz_reader_show_translation"
+const TRANSLITERATION_VISIBILITY_STORAGE_KEY = "alfawz_reader_show_transliteration"
 const NIGHT_MODE_STORAGE_KEY = "alfawz_reader_night_mode"
 
 interface AyahDetail {
@@ -78,8 +80,18 @@ export default function AlfawzReaderPage() {
   const [isLoadingAudio, setIsLoadingAudio] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fontScale, setFontScale] = useState(4)
-  const [showTranslation, setShowTranslation] = useState(true)
-  const [showTransliteration, setShowTransliteration] = useState(false)
+  const [showTranslation, setShowTranslation] = useState(() => {
+    if (typeof window === "undefined") return true
+    const stored = window.localStorage.getItem(TRANSLATION_VISIBILITY_STORAGE_KEY)
+    if (stored === null) return true
+    return stored === "true"
+  })
+  const [showTransliteration, setShowTransliteration] = useState(() => {
+    if (typeof window === "undefined") return false
+    const stored = window.localStorage.getItem(TRANSLITERATION_VISIBILITY_STORAGE_KEY)
+    if (stored === null) return false
+    return stored === "true"
+  })
   const [versesCompleted, setVersesCompleted] = useState(0)
   const [shouldCelebrate, setShouldCelebrate] = useState(false)
   const [nightMode, setNightMode] = useState(false)
@@ -233,6 +245,16 @@ export default function AlfawzReaderPage() {
   }, [selectedSurahNumber, selectedReciter])
 
   useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(TRANSLATION_VISIBILITY_STORAGE_KEY, showTranslation ? "true" : "false")
+  }, [showTranslation])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(TRANSLITERATION_VISIBILITY_STORAGE_KEY, showTransliteration ? "true" : "false")
+  }, [showTransliteration])
+
+  useEffect(() => {
     if (!selectedSurahNumber || !selectedAyahNumber) return
     let active = true
     setIsLoadingAyah(true)
@@ -240,8 +262,15 @@ export default function AlfawzReaderPage() {
 
     ;(async () => {
       try {
-        const editions = Array.from(new Set(["quran-uthmani", selectedTranslation, TRANSLITERATION_EDITION]))
-        const detail = await quranAPI.getAyah(selectedSurahNumber, selectedAyahNumber, editions)
+        const editions = new Set<string>(["quran-uthmani"])
+        if (showTranslation) {
+          editions.add(selectedTranslation)
+        }
+        if (showTransliteration) {
+          editions.add(TRANSLITERATION_EDITION)
+        }
+        const editionsArray = Array.from(editions)
+        const detail = await quranAPI.getAyah(selectedSurahNumber, selectedAyahNumber, editionsArray)
         if (!active) return
         if (!detail) {
           setError("Unable to load ayah details.")
@@ -263,7 +292,7 @@ export default function AlfawzReaderPage() {
     return () => {
       active = false
     }
-  }, [selectedSurahNumber, selectedAyahNumber, selectedTranslation])
+  }, [selectedSurahNumber, selectedAyahNumber, selectedTranslation, showTranslation, showTransliteration])
 
   const audioUrl = useMemo(() => {
     if (!selectedAyahNumber) return undefined
@@ -334,6 +363,10 @@ export default function AlfawzReaderPage() {
 
   const markAyahCompleted = useCallback(() => {
     setVersesCompleted((prev) => {
+      if (prev >= dailyGoal) {
+        return prev
+      }
+
       const next = prev + 1
       if (next >= dailyGoal) {
         setShouldCelebrate(true)
@@ -347,6 +380,7 @@ export default function AlfawzReaderPage() {
   }, [])
 
   const nightModeBackground = nightMode ? "bg-slate-950 text-slate-100" : "bg-gradient-cream text-slate-900"
+  const goalReached = versesCompleted >= dailyGoal
   const cardBackground = nightMode ? "border-slate-700 bg-slate-900/70" : "border-border/50 bg-white/90"
 
   return (
@@ -529,7 +563,11 @@ export default function AlfawzReaderPage() {
 
             <div className="flex flex-wrap items-center gap-4 text-sm">
               <div className="flex items-center gap-2">
-                <Switch checked={showTranslation} onCheckedChange={setShowTranslation} id="toggle-translation" />
+                <Switch
+                  checked={showTranslation}
+                  onCheckedChange={(checked) => setShowTranslation(checked === true)}
+                  id="toggle-translation"
+                />
                 <Label htmlFor="toggle-translation" className="text-sm text-muted-foreground">
                   Show translation
                 </Label>
@@ -537,7 +575,7 @@ export default function AlfawzReaderPage() {
               <div className="flex items-center gap-2">
                 <Switch
                   checked={showTransliteration}
-                  onCheckedChange={setShowTransliteration}
+                  onCheckedChange={(checked) => setShowTransliteration(checked === true)}
                   id="toggle-transliteration"
                 />
                 <Label htmlFor="toggle-transliteration" className="text-sm text-muted-foreground">
@@ -545,11 +583,11 @@ export default function AlfawzReaderPage() {
                 </Label>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={markAyahCompleted}>
+                <Button variant="outline" size="sm" onClick={markAyahCompleted} disabled={goalReached}>
                   <Check className="mr-2 h-4 w-4" /> Mark ayah complete
                 </Button>
                 <Badge variant="outline" className="text-xs">
-                  {versesCompleted} / {dailyGoal} today
+                  {Math.min(versesCompleted, dailyGoal)} / {dailyGoal} today
                 </Badge>
               </div>
             </div>
@@ -674,10 +712,18 @@ export default function AlfawzReaderPage() {
                     <p className="font-semibold text-maroon-700 dark:text-amber-200">Toggle visibility</p>
                     <p>Show or hide translations and transliteration instantly.</p>
                     <div className="mt-2 flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setShowTranslation((prev) => !prev)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowTranslation((prev) => !prev)}
+                      >
                         {showTranslation ? "Hide" : "Show"} translation
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => setShowTransliteration((prev) => !prev)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowTransliteration((prev) => !prev)}
+                      >
                         {showTransliteration ? "Hide" : "Show"} transliteration
                       </Button>
                     </div>
