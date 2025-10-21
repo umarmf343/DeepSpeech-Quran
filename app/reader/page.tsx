@@ -649,14 +649,14 @@ export default function AlfawzReaderPage() {
                 </Button>
               </div>
 
-              {selectedSurahNumber && selectedAyahNumber ? (
-                <MorphologyBreakdown ayahReference={`${selectedSurahNumber}:${selectedAyahNumber}`} />
-              ) : null}
-
             </CardContent>
           </Card>
 
           <div className="space-y-6">
+            {selectedSurahNumber && selectedAyahNumber ? (
+              <MorphologyBreakdown ayahReference={`${selectedSurahNumber}:${selectedAyahNumber}`} />
+            ) : null}
+
             <Card className={cn("border border-emerald-200/60 bg-emerald-50/70", nightMode && "border-emerald-600/40 bg-emerald-900/20") }>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-emerald-800 dark:text-emerald-200">Today's Milestone</CardTitle>
