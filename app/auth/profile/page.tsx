@@ -81,9 +81,16 @@ export default function ProfilePage() {
                     <Settings className="mr-2 h-4 w-4" /> Manage profile
                   </Link>
                 </Button>
-                <Button asChild variant="secondary" className="bg-white text-maroon-700 hover:bg-white/90">
+                <Button
+                  asChild
+                  variant="secondary"
+                  className={[
+                    "bg-gradient-to-r from-amber-400 via-rose-500 to-fuchsia-500",
+                    "text-white shadow-md transition-all hover:shadow-lg hover:brightness-105 focus-visible:ring-offset-2",
+                  ].join(" ")}
+                >
                   <Link href="/billing">
-                    <Star className="mr-2 h-4 w-4" /> View plans
+                    <Star className="mr-2 h-4 w-4" /> Donate
                   </Link>
                 </Button>
               </div>
