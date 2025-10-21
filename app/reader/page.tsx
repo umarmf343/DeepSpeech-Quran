@@ -562,21 +562,42 @@ export default function AlfawzReaderPage() {
             >
               {isLoadingAyah ? (
                 <Skeleton className="h-24 w-full" />
-              ) : showMushafView ? (
-                <MushafView
-                  ayahs={ayahList}
-                  selectedAyahNumber={selectedAyahNumber}
-                  nightMode={nightMode}
-                />
               ) : (
-                <p
-                  className={cn(
-                    "font-arabic text-right leading-relaxed text-maroon-900 dark:text-amber-100",
-                    fontSizeClass,
+                <div className={cn("space-y-6", showMushafView && "px-6 py-6")}>
+                  {showMushafView ? (
+                    <MushafView
+                      ayahs={ayahList}
+                      selectedAyahNumber={selectedAyahNumber}
+                      nightMode={nightMode}
+                    />
+                  ) : (
+                    <p
+                      className={cn(
+                        "font-arabic text-right leading-relaxed text-maroon-900 dark:text-amber-100",
+                        fontSizeClass,
+                      )}
+                    >
+                      {ayahDetail?.arabic?.text ?? ""}
+                    </p>
                   )}
-                >
-                  {ayahDetail?.arabic?.text ?? ""}
-                </p>
+
+                  {showTranslation && ayahDetail?.translations?.length ? (
+                    <div className="rounded-lg bg-slate-50/80 p-4 text-sm leading-relaxed text-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
+                      {ayahDetail.translations.map((translation) => (
+                        <div key={translation.translator} className="space-y-2">
+                          <p>{translation.text}</p>
+                          <p className="text-xs text-muted-foreground">— {translation.translator}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {showTransliteration && ayahDetail?.transliteration ? (
+                    <p className="text-sm italic text-slate-600 dark:text-slate-300">
+                      {ayahDetail.transliteration.text}
+                    </p>
+                  ) : null}
+                </div>
               )}
             </div>
 
@@ -620,23 +641,6 @@ export default function AlfawzReaderPage() {
                 </Badge>
               </div>
             </div>
-
-            {showTranslation && ayahDetail?.translations?.length ? (
-              <div className="rounded-lg bg-slate-50/80 p-4 text-sm leading-relaxed text-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
-                {ayahDetail.translations.map((translation) => (
-                  <div key={translation.translator} className="space-y-2">
-                    <p>{translation.text}</p>
-                    <p className="text-xs text-muted-foreground">— {translation.translator}</p>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-
-            {showTransliteration && ayahDetail?.transliteration && (
-              <p className="text-sm italic text-slate-600 dark:text-slate-300">
-                {ayahDetail.transliteration.text}
-              </p>
-            )}
 
             <AudioPlayer
               source={audioUrl}
