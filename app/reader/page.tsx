@@ -151,10 +151,10 @@ export default function AlfawzReaderPage() {
 
   const fontSizeClass = useMemo(() => {
     const map: Record<number, string> = {
-      3: "text-xl",
-      4: "text-2xl",
-      5: "text-3xl",
-      6: "text-4xl",
+      3: "text-lg",
+      4: "text-xl",
+      5: "text-2xl",
+      6: "text-3xl",
     }
     return map[fontScale] ?? "text-2xl"
   }, [fontScale])
@@ -663,7 +663,7 @@ export default function AlfawzReaderPage() {
                       </div>
                       <p
                         className={cn(
-                          "mt-6 leading-relaxed text-slate-900 md:text-[2.25rem]",
+                          "mt-6 leading-relaxed text-slate-900 md:text-[1.875rem]",
                           fontSizeClass,
                           "font-arabic text-right",
                         )}
