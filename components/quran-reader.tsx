@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Play, Pause, SkipBack, SkipForward, Volume2, Bookmark, BookmarkCheck, Languages, Repeat } from "lucide-react"
 import { EggChallengeWidget } from "@/components/egg-challenge-widget"
+import { GwaniDahiruPlayer } from "@/components/gwani-dahiru-player"
 import { quranAPI, type Surah, type Ayah, type Translation, type Reciter } from "@/lib/quran-api"
 import type { EggChallengeSnapshot } from "@/lib/egg-challenge-store"
 import type { DailyGoalSnapshot } from "@/lib/daily-goal-store"
@@ -426,6 +427,8 @@ export function QuranReader({
           </CardContent>
         </Card>
       )}
+
+      <GwaniDahiruPlayer />
 
       {/* Egg Challenge Widget */}
       {eggChallengeEnabled && <EggChallengeWidget state={eggChallengeState} />}
