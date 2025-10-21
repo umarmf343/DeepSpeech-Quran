@@ -70,6 +70,7 @@ interface PlanProgressState {
   completed: boolean
   mode: ConfirmationMode
   targetRepetitions: number
+  targetStrategy: "default" | "grace"
   failureCount: number
   pausedUntil?: string | null
 }
@@ -150,6 +151,21 @@ export default function MemorizationPage() {
   const fallbackMode = useMemo(
     () => preferences.defaultMode ?? (preferences.publicMode ? "heart" : "voice"),
     [preferences.defaultMode, preferences.publicMode],
+  )
+
+  const createDefaultProgressState = useCallback(
+    (overrides: Partial<PlanProgressState> = {}): PlanProgressState => ({
+      levelIndex: 0,
+      repeatCount: 0,
+      completed: false,
+      mode: fallbackMode,
+      targetRepetitions: baseTarget,
+      targetStrategy: "default",
+      failureCount: 0,
+      pausedUntil: null,
+      ...overrides,
+    }),
+    [baseTarget, fallbackMode],
   )
 
   const [verses, setVerses] = useState<VerseDetail[]>([])
@@ -269,7 +285,27 @@ export default function MemorizationPage() {
       const storedProgress = window.localStorage.getItem(LOCAL_STORAGE_KEYS.progress)
       if (storedProgress) {
         const parsedProgress: Record<string, PlanProgressState> = JSON.parse(storedProgress)
-        setPlanProgress(parsedProgress)
+        const normalizedProgress = Object.fromEntries(
+          Object.entries(parsedProgress).map(([planId, progress]) => {
+            const targetStrategy = progress?.targetStrategy
+              ? progress.targetStrategy
+              : progress?.targetRepetitions !== undefined && progress.targetRepetitions <= GRACE_TARGET
+                ? "grace"
+                : "default"
+            return [
+              planId,
+              createDefaultProgressState({
+                ...progress,
+                targetRepetitions:
+                  targetStrategy === "grace"
+                    ? Math.min(progress?.targetRepetitions ?? GRACE_TARGET, GRACE_TARGET)
+                    : progress?.targetRepetitions ?? baseTarget,
+                targetStrategy,
+              }),
+            ]
+          }),
+        )
+        setPlanProgress(normalizedProgress)
       }
 
       const storedPreferences = window.localStorage.getItem(LOCAL_STORAGE_KEYS.preferences)
@@ -283,7 +319,7 @@ export default function MemorizationPage() {
     } catch (error) {
       console.error("Unable to restore memorization state", error)
     }
-  }, [])
+  }, [baseTarget, createDefaultProgressState])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -299,6 +335,45 @@ export default function MemorizationPage() {
     if (typeof window === "undefined") return
     window.localStorage.setItem(LOCAL_STORAGE_KEYS.preferences, JSON.stringify(preferences))
   }, [preferences])
+
+  useEffect(() => {
+    setPlanProgress((previous) => {
+      let changed = false
+      const nextEntries: Record<string, PlanProgressState> = {}
+
+      for (const [planId, state] of Object.entries(previous)) {
+        const ensuredStrategy = state.targetStrategy
+          ? state
+          : {
+              ...state,
+              targetStrategy: state.targetRepetitions <= GRACE_TARGET ? "grace" : "default",
+            }
+
+        let updatedState = ensuredStrategy
+        if (ensuredStrategy.targetStrategy === "default") {
+          const clampedRepeat = Math.min(ensuredStrategy.repeatCount ?? 0, baseTarget)
+          if (
+            ensuredStrategy.targetRepetitions !== baseTarget ||
+            ensuredStrategy.repeatCount !== clampedRepeat
+          ) {
+            updatedState = {
+              ...ensuredStrategy,
+              targetRepetitions: baseTarget,
+              repeatCount: clampedRepeat,
+            }
+          }
+        }
+
+        if (updatedState !== state) {
+          changed = true
+        }
+
+        nextEntries[planId] = updatedState
+      }
+
+      return changed ? nextEntries : previous
+    })
+  }, [baseTarget])
 
   useEffect(() => {
     const loadPlanVerses = async () => {
@@ -342,14 +417,9 @@ export default function MemorizationPage() {
 
         setVerses(selectedAyahs)
 
-        const progressState = planProgress[activePlan.id] ?? {
-          levelIndex: 0,
-          repeatCount: 0,
-          completed: false,
-          mode: fallbackMode,
-          targetRepetitions: baseTarget,
-          failureCount: 0,
-        }
+        const progressState = planProgress[activePlan.id]
+          ? createDefaultProgressState(planProgress[activePlan.id])
+          : createDefaultProgressState()
 
         setRepeatCount(progressState.repeatCount ?? 0)
       } catch (error) {
@@ -361,7 +431,14 @@ export default function MemorizationPage() {
     }
 
     loadPlanVerses()
-  }, [selectedPlanId, plans, planProgress, baseTarget, fallbackMode])
+  }, [
+    selectedPlanId,
+    plans,
+    planProgress,
+    baseTarget,
+    fallbackMode,
+    createDefaultProgressState,
+  ])
 
   const activePlan = useMemo(() => plans.find((plan) => plan.id === selectedPlanId) ?? null, [plans, selectedPlanId])
 
@@ -410,15 +487,7 @@ export default function MemorizationPage() {
     setPlans((previous) => [...previous, newPlan])
     setPlanProgress((previous) => ({
       ...previous,
-      [newPlan.id]: {
-        levelIndex: 0,
-        repeatCount: 0,
-        completed: false,
-        mode: fallbackMode,
-        targetRepetitions: baseTarget,
-        failureCount: 0,
-        pausedUntil: null,
-      },
+      [newPlan.id]: createDefaultProgressState(),
     }))
 
     setSelectedPlanId(newPlan.id)
@@ -434,22 +503,16 @@ export default function MemorizationPage() {
   const updatePlanProgress = useCallback(
     (planId: string, updater: (previous: PlanProgressState) => PlanProgressState) => {
       setPlanProgress((previous) => {
-        const existing = previous[planId] ?? {
-          levelIndex: 0,
-          repeatCount: 0,
-          completed: false,
-          mode: fallbackMode,
-          targetRepetitions: baseTarget,
-          failureCount: 0,
-          pausedUntil: null,
-        }
+        const existing = previous[planId]
+          ? createDefaultProgressState(previous[planId])
+          : createDefaultProgressState()
         return {
           ...previous,
           [planId]: updater(existing),
         }
       })
     },
-    [baseTarget, fallbackMode],
+    [createDefaultProgressState],
   )
 
   const markPlanCompleted = useCallback(
@@ -607,6 +670,7 @@ export default function MemorizationPage() {
       ...existing,
       targetRepetitions: GRACE_TARGET,
       repeatCount: Math.min(existing.repeatCount, GRACE_TARGET),
+      targetStrategy: "grace",
     }))
     setRepeatCount((previous) => Math.min(previous, GRACE_TARGET))
   }, [activePlan, updatePlanProgress])
@@ -615,6 +679,18 @@ export default function MemorizationPage() {
     setShowGracePrompt(false)
     setEncouragement("Take a breath and continue when ready.")
   }, [])
+
+  const restoreDefaultTarget = useCallback(() => {
+    if (!activePlan) return
+    updatePlanProgress(activePlan.id, (existing) => ({
+      ...existing,
+      targetRepetitions: baseTarget,
+      repeatCount: Math.min(existing.repeatCount, baseTarget),
+      targetStrategy: "default",
+    }))
+    setRepeatCount((previous) => Math.min(previous, baseTarget))
+    setEncouragement("Default repetitions restored. Continue with renewed focus.")
+  }, [activePlan, baseTarget, updatePlanProgress])
 
   const isPlanPaused = useMemo(() => {
     if (!activePlanProgress?.pausedUntil) return false
@@ -861,6 +937,33 @@ export default function MemorizationPage() {
     return preferred
   }, [activePlanProgress?.mode, isUltraLowPower, preferences.defaultMode, preferences.publicMode])
 
+  const intentionProfile = useMemo(() => {
+    const targetLabel = preferences.childMode
+      ? `Child-friendly focus • ${CHILD_TARGET} repetitions`
+      : preferences.elderMode
+        ? `Elder support • ${ELDER_TARGET} repetitions`
+        : `Standard devotion • ${DEFAULT_TARGET} repetitions`
+
+    const baseMode = preferences.defaultMode ?? (preferences.publicMode ? "heart" : "voice")
+    const modeLabelMap: Record<ConfirmationMode, string> = {
+      voice: "Voice witness",
+      heart: "Heart hold",
+      gesture: "Gesture rhythm",
+      writing: "Writing reflection",
+    }
+
+    const modeLabel = preferences.publicMode && baseMode === "heart"
+      ? `${modeLabelMap[baseMode]} (public mode)`
+      : modeLabelMap[baseMode]
+
+    return { targetLabel, modeLabel, mode: baseMode }
+  }, [
+    preferences.childMode,
+    preferences.defaultMode,
+    preferences.elderMode,
+    preferences.publicMode,
+  ])
+
   const micStatusDetails = useMemo(() => {
     switch (micStatus) {
       case "requesting":
@@ -936,23 +1039,58 @@ export default function MemorizationPage() {
       setEncouragement("This plan is resting. Resume when the pause concludes.")
       return
     }
+
+    if (!activePlanProgress?.mode && !preferences.defaultMode) {
+      setEncouragement("Choose how you would like to witness each repetition before beginning.")
+      setShowModeDialog(true)
+      return
+    }
+
     setLevelCelebrationMessage(null)
     setLastAttemptFailed(false)
     setVoiceError(null)
-    setSessionActive(true)
-    setEncouragement("Breathe, intend, and let your recitation begin.")
+    setShowGracePrompt(false)
 
-    if (activeMode !== "voice") {
-      handleModeSelection("voice")
+    const modeToUse = activePlanProgress?.mode ?? fallbackMode
+
+    if (!activePlanProgress?.mode) {
+      updatePlanProgress(activePlan.id, (existing) => ({ ...existing, mode: modeToUse }))
     }
 
-    void handleVoiceRecitation()
+    setSessionActive(true)
+
+    switch (modeToUse) {
+      case "voice":
+        setEncouragement("Breathe, intend, and let your recitation begin.")
+        void handleVoiceRecitation()
+        break
+      case "heart":
+        setHoldingHeart(false)
+        setEncouragement("Hold the heart button until it glows to honour each recitation.")
+        break
+      case "gesture":
+        setTapCount(0)
+        setLastTapTimestamp(null)
+        setEncouragement(
+          `Tap the witness button ${GESTURE_REQUIRED_TAPS} times within ${Math.round(GESTURE_WINDOW_MS / 1000)} seconds.`,
+        )
+        break
+      case "writing":
+        setWritingInput("")
+        setEncouragement("Type the opening words or a reflection to mark each repetition.")
+        break
+      default:
+        setEncouragement("Breathe, intend, and let your recitation begin.")
+        break
+    }
   }, [
-    activeMode,
     activePlan,
-    handleModeSelection,
+    activePlanProgress?.mode,
+    fallbackMode,
     handleVoiceRecitation,
     isPlanPaused,
+    preferences.defaultMode,
+    updatePlanProgress,
     versesForActiveLevel.length,
   ])
 
@@ -1633,16 +1771,42 @@ export default function MemorizationPage() {
         <DialogContent className="max-w-xl border-emerald-100 bg-white/95">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-slate-900">Intention settings</DialogTitle>
-            <DialogDescription className="text-sm text-slate-600">
-              Shape the repetition goals to honour your current season of memorisation.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50/60 p-4">
-              <div>
-                <p className="text-sm font-semibold text-slate-900">Graceful repetitions</p>
-                <p className="text-xs text-slate-600">Allow the system to suggest a reduced repetition count when effort feels heavy.</p>
-              </div>
+          <DialogDescription className="text-sm text-slate-600">
+            Shape the repetition goals to honour your current season of memorisation.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="rounded-xl border border-emerald-100 bg-white/70 p-4 text-sm text-slate-700">
+            <p className="font-semibold text-slate-900">Current intention profile</p>
+            <div className="mt-2 space-y-1 text-xs text-slate-600">
+              <p>{intentionProfile.targetLabel}</p>
+              <p>Default confirmation: {intentionProfile.modeLabel}</p>
+              {activePlan ? (
+                <p>
+                  Active plan target: {activePlanProgress?.targetRepetitions ?? baseTarget} repetitions
+                  {activePlanProgress?.targetStrategy === "grace" ? " (grace applied)" : ""}
+                </p>
+              ) : (
+                <p>New plans will begin at {baseTarget} repetitions.</p>
+              )}
+            </div>
+            {activePlan && activePlanProgress?.targetStrategy === "grace" && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-3 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                onClick={restoreDefaultTarget}
+              >
+                Restore recommended target
+              </Button>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50/60 p-4">
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Graceful repetitions</p>
+              <p className="text-xs text-slate-600">Allow the system to suggest a reduced repetition count when effort feels heavy.</p>
+            </div>
               <Switch checked={preferences.graceEnabled} onCheckedChange={(checked) => setPreferences((previous) => ({ ...previous, graceEnabled: checked }))} />
             </div>
 
