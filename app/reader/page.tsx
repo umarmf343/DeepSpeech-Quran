@@ -82,18 +82,8 @@ export default function AlfawzReaderPage() {
   const [isLoadingAudio, setIsLoadingAudio] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fontScale, setFontScale] = useState(4)
-  const [showTranslation, setShowTranslation] = useState(() => {
-    if (typeof window === "undefined") return true
-    const stored = window.localStorage.getItem(TRANSLATION_VISIBILITY_STORAGE_KEY)
-    if (stored === null) return true
-    return stored === "true"
-  })
-  const [showTransliteration, setShowTransliteration] = useState(() => {
-    if (typeof window === "undefined") return false
-    const stored = window.localStorage.getItem(TRANSLITERATION_VISIBILITY_STORAGE_KEY)
-    if (stored === null) return false
-    return stored === "true"
-  })
+  const [showTranslation, setShowTranslation] = useState(true)
+  const [showTransliteration, setShowTransliteration] = useState(false)
   const [versesCompleted, setVersesCompleted] = useState(0)
   const [shouldCelebrate, setShouldCelebrate] = useState(false)
   const [nightMode, setNightMode] = useState(false)
@@ -131,6 +121,38 @@ export default function AlfawzReaderPage() {
     }
     return map[fontScale] ?? "text-2xl"
   }, [fontScale])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const stored = window.localStorage.getItem(TRANSLATION_VISIBILITY_STORAGE_KEY)
+    if (stored !== null) {
+      setShowTranslation(stored === "true")
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(
+      TRANSLATION_VISIBILITY_STORAGE_KEY,
+      showTranslation ? "true" : "false",
+    )
+  }, [showTranslation])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const stored = window.localStorage.getItem(TRANSLITERATION_VISIBILITY_STORAGE_KEY)
+    if (stored !== null) {
+      setShowTransliteration(stored === "true")
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(
+      TRANSLITERATION_VISIBILITY_STORAGE_KEY,
+      showTransliteration ? "true" : "false",
+    )
+  }, [showTransliteration])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -464,7 +486,7 @@ export default function AlfawzReaderPage() {
               <div className="space-y-2">
                 <Label className="text-xs uppercase tracking-wide text-muted-foreground">Select Surah</Label>
                 <Select
-                  value={selectedSurahNumber?.toString()}
+                  value={selectedSurahNumber?.toString() ?? ""}
                   onValueChange={(value) => {
                     const surahNumber = Number.parseInt(value)
                     if (!Number.isNaN(surahNumber)) {
@@ -487,7 +509,7 @@ export default function AlfawzReaderPage() {
 
               <div className="space-y-2">
                 <Label className="text-xs uppercase tracking-wide text-muted-foreground">Select Ayah</Label>
-                <Select value={selectedAyahNumber?.toString()} onValueChange={handleAyahSelection}>
+                <Select value={selectedAyahNumber?.toString() ?? ""} onValueChange={handleAyahSelection}>
                   <SelectTrigger className="bg-white/90 dark:bg-slate-900/70">
                     <SelectValue placeholder="Ayah" />
                   </SelectTrigger>
