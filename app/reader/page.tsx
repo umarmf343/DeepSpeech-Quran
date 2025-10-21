@@ -62,6 +62,32 @@ const TRANSLATION_VISIBILITY_STORAGE_KEY = "alfawz_reader_show_translation"
 const TRANSLITERATION_VISIBILITY_STORAGE_KEY = "alfawz_reader_show_transliteration"
 const NIGHT_MODE_STORAGE_KEY = "alfawz_reader_night_mode"
 
+function usePersistentBoolean(key: string, defaultValue: boolean) {
+  const [value, setValue] = useState(defaultValue)
+  const [isLoaded, setIsLoaded] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const stored = window.localStorage.getItem(key)
+    if (stored !== null) {
+      setValue(stored === "true")
+    }
+    setIsLoaded(true)
+  }, [key])
+
+  const updateValue = useCallback(
+    (next: boolean) => {
+      setValue(next)
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(key, next ? "true" : "false")
+      }
+    },
+    [key],
+  )
+
+  return [value, updateValue, isLoaded] as const
+}
+
 interface AyahDetail {
   arabic: Ayah
   translations: Translation[]
@@ -84,11 +110,16 @@ export default function AlfawzReaderPage() {
   const [isLoadingAudio, setIsLoadingAudio] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fontScale, setFontScale] = useState(4)
-  const [showTranslation, setShowTranslation] = useState(true)
-  const [showTransliteration, setShowTransliteration] = useState(false)
+  const [rawShowTranslation, setRawShowTranslation, showTranslationLoaded] =
+    usePersistentBoolean(TRANSLATION_VISIBILITY_STORAGE_KEY, true)
+  const [rawShowTransliteration, setRawShowTransliteration, showTransliterationLoaded] =
+    usePersistentBoolean(TRANSLITERATION_VISIBILITY_STORAGE_KEY, false)
   const [versesCompleted, setVersesCompleted] = useState(0)
   const [shouldCelebrate, setShouldCelebrate] = useState(false)
-  const [nightMode, setNightMode] = useState(false)
+  const [rawNightMode, setRawNightMode, nightModeLoaded] = usePersistentBoolean(
+    NIGHT_MODE_STORAGE_KEY,
+    false,
+  )
   const [selectedMushaf, setSelectedMushaf] = useState(() => mushafVariants[0])
   const [showMushafView, setShowMushafView] = useState(false)
 
@@ -109,6 +140,10 @@ export default function AlfawzReaderPage() {
   const [playbackSpeed, setPlaybackSpeed] = useState(preferences.playbackSpeed ?? 1)
   const [volume, setVolume] = useState(0.8)
 
+  const showTranslation = showTranslationLoaded ? rawShowTranslation : true
+  const showTransliteration = showTransliterationLoaded ? rawShowTransliteration : false
+  const nightMode = nightModeLoaded ? rawNightMode : false
+
   const dailyGoal = useMemo(() => {
     const ayahCount = surahMeta?.numberOfAyahs ?? 5
     return Math.min(Math.max(ayahCount, 3), 10)
@@ -123,51 +158,6 @@ export default function AlfawzReaderPage() {
     }
     return map[fontScale] ?? "text-2xl"
   }, [fontScale])
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    const stored = window.localStorage.getItem(TRANSLATION_VISIBILITY_STORAGE_KEY)
-    if (stored !== null) {
-      setShowTranslation(stored === "true")
-    }
-  }, [])
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    window.localStorage.setItem(
-      TRANSLATION_VISIBILITY_STORAGE_KEY,
-      showTranslation ? "true" : "false",
-    )
-  }, [showTranslation])
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    const stored = window.localStorage.getItem(TRANSLITERATION_VISIBILITY_STORAGE_KEY)
-    if (stored !== null) {
-      setShowTransliteration(stored === "true")
-    }
-  }, [])
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    window.localStorage.setItem(
-      TRANSLITERATION_VISIBILITY_STORAGE_KEY,
-      showTransliteration ? "true" : "false",
-    )
-  }, [showTransliteration])
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    const storedNightMode = window.localStorage.getItem(NIGHT_MODE_STORAGE_KEY)
-    if (storedNightMode !== null) {
-      setNightMode(storedNightMode === "true")
-    }
-  }, [])
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    window.localStorage.setItem(NIGHT_MODE_STORAGE_KEY, nightMode ? "true" : "false")
-  }, [nightMode])
 
   useEffect(() => {
     setSelectedReciter(defaultReciterEdition)
@@ -327,9 +317,12 @@ export default function AlfawzReaderPage() {
     return audioSegments[index]?.url
   }, [audioSegments, selectedAyahNumber])
 
-  const handleNightModeToggle = useCallback((value: boolean) => {
-    setNightMode(value)
-  }, [])
+  const handleNightModeToggle = useCallback(
+    (value: boolean) => {
+      setRawNightMode(value)
+    },
+    [setRawNightMode],
+  )
 
   const handleReciterChange = useCallback(
     (edition: string) => {
@@ -688,7 +681,7 @@ export default function AlfawzReaderPage() {
               <div className="flex items-center gap-2">
                 <Switch
                   checked={showTranslation}
-                  onCheckedChange={(checked) => setShowTranslation(checked === true)}
+                  onCheckedChange={(checked) => setRawShowTranslation(checked === true)}
                   id="toggle-translation"
                 />
                 <Label htmlFor="toggle-translation" className="text-sm text-muted-foreground">
@@ -698,7 +691,7 @@ export default function AlfawzReaderPage() {
               <div className="flex items-center gap-2">
                 <Switch
                   checked={showTransliteration}
-                  onCheckedChange={(checked) => setShowTransliteration(checked === true)}
+                  onCheckedChange={(checked) => setRawShowTransliteration(checked === true)}
                   id="toggle-transliteration"
                 />
                 <Label htmlFor="toggle-transliteration" className="text-sm text-muted-foreground">
@@ -816,8 +809,8 @@ export default function AlfawzReaderPage() {
                       className="mt-2 text-maroon-700 dark:text-amber-200"
                       onClick={() => {
                         setFontScale(4)
-                        setShowTranslation(true)
-                        setShowTransliteration(false)
+                        setRawShowTranslation(true)
+                        setRawShowTransliteration(false)
                         setSelectedMushaf(mushafVariants[0])
                       }}
                     >
@@ -831,14 +824,14 @@ export default function AlfawzReaderPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setShowTranslation((prev) => !prev)}
+                        onClick={() => setRawShowTranslation(!showTranslation)}
                       >
                         {showTranslation ? "Hide" : "Show"} translation
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setShowTransliteration((prev) => !prev)}
+                        onClick={() => setRawShowTransliteration(!showTransliteration)}
                       >
                         {showTransliteration ? "Hide" : "Show"} transliteration
                       </Button>
