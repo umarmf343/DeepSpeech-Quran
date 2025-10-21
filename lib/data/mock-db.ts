@@ -135,6 +135,32 @@ export interface UserStats {
   weeklyXP: number[]
 }
 
+export interface StoredHasanatHistoryEntry {
+  id: string
+  verseKey: string
+  letters: number
+  hasanat: number
+  multiplier: number
+  recordedAt: string
+}
+
+export interface StoredHasanatProgress {
+  totalHasanat: number
+  dailyHasanat: number
+  sessionHasanat: number
+  today: string
+  nextResetAt: string
+  resetStrategy: "maghrib" | "midnight"
+  milestones: {
+    surahsCompleted: string[]
+    goalsMet: string[]
+    juzCompleted: string[]
+    hundredSteps: number[]
+    ramadanMoments: string[]
+  }
+  history: StoredHasanatHistoryEntry[]
+}
+
 export interface HabitQuest {
   id: string
   title: string
@@ -172,10 +198,33 @@ export interface UserRecord {
   localization: LocalizationStrings
   recommendations: Recommendation[]
   runtime: RuntimeData
+  hasanatProgress: StoredHasanatProgress
 }
 
 function cloneUser(user: UserRecord): UserRecord {
   return JSON.parse(JSON.stringify(user))
+}
+
+function createEmptyHasanatProgress(totalHasanat = 0): StoredHasanatProgress {
+  const now = new Date()
+  const today = now.toISOString().slice(0, 10)
+  const nextResetAt = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1)).toISOString()
+  return {
+    totalHasanat,
+    dailyHasanat: 0,
+    sessionHasanat: 0,
+    today,
+    nextResetAt,
+    resetStrategy: "midnight",
+    milestones: {
+      surahsCompleted: [],
+      goalsMet: [],
+      juzCompleted: [],
+      hundredSteps: [],
+      ramadanMoments: [],
+    },
+    history: [],
+  }
 }
 
 const navigationLinks: NavigationLink[] = [
@@ -485,6 +534,7 @@ const userRecords: Record<string, UserRecord> = {
       featuredEvent: "Night Recitation Retreat",
       onlineUsers: 128,
     },
+    hasanatProgress: createEmptyHasanatProgress(baseStats.hasanat),
   },
   user_teacher: {
     id: "user_teacher",
@@ -529,6 +579,7 @@ const userRecords: Record<string, UserRecord> = {
       featuredEvent: "Teacher Summit",
       onlineUsers: 58,
     },
+    hasanatProgress: createEmptyHasanatProgress(4120),
   },
   user_admin: {
     id: "user_admin",
@@ -573,6 +624,7 @@ const userRecords: Record<string, UserRecord> = {
       featuredEvent: "System Maintenance",
       onlineUsers: 12,
     },
+    hasanatProgress: createEmptyHasanatProgress(6020),
   },
 }
 
@@ -732,4 +784,41 @@ export function recordBadgeEarned(userId: string, badgeId: string) {
 
 export function getNavigationLinks() {
   return navigationLinks
+}
+
+export function getHasanatProgress(userId: string) {
+  const user = userRecords[userId]
+  if (!user) return null
+  return JSON.parse(JSON.stringify(user.hasanatProgress ?? createEmptyHasanatProgress()))
+}
+
+export function updateHasanatProgress(userId: string, progress: StoredHasanatProgress) {
+  const user = userRecords[userId]
+  if (!user) return null
+
+  const base = createEmptyHasanatProgress(progress.totalHasanat ?? user.stats.hasanat)
+  const history = Array.isArray(progress.history) ? progress.history.slice(-50) : base.history
+
+  user.hasanatProgress = {
+    ...base,
+    ...progress,
+    totalHasanat: Number.isFinite(progress.totalHasanat) ? progress.totalHasanat : base.totalHasanat,
+    dailyHasanat: Number.isFinite(progress.dailyHasanat) ? progress.dailyHasanat : base.dailyHasanat,
+    sessionHasanat: Number.isFinite(progress.sessionHasanat) ? progress.sessionHasanat : base.sessionHasanat,
+    today: typeof progress.today === "string" ? progress.today : base.today,
+    nextResetAt: typeof progress.nextResetAt === "string" ? progress.nextResetAt : base.nextResetAt,
+    resetStrategy: progress.resetStrategy === "maghrib" ? "maghrib" : "midnight",
+    milestones: {
+      surahsCompleted: progress.milestones?.surahsCompleted ?? base.milestones.surahsCompleted,
+      goalsMet: progress.milestones?.goalsMet ?? base.milestones.goalsMet,
+      juzCompleted: progress.milestones?.juzCompleted ?? base.milestones.juzCompleted,
+      hundredSteps: progress.milestones?.hundredSteps ?? base.milestones.hundredSteps,
+      ramadanMoments: progress.milestones?.ramadanMoments ?? base.milestones.ramadanMoments,
+    },
+    history,
+  }
+
+  user.stats.hasanat = user.hasanatProgress.totalHasanat
+  invalidateCache(`user:${userId}`)
+  return JSON.parse(JSON.stringify(user.hasanatProgress))
 }
