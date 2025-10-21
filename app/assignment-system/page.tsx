@@ -29,6 +29,7 @@ import {
   Sparkles,
   Wand2,
 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface Hotspot {
   id: string
@@ -204,10 +205,12 @@ export default function AssignmentSystemPage() {
   }
 
   const updateHotspot = (id: string, updates: Partial<Hotspot>) => {
+    if (role !== "teacher") return
     setHotspots((prev) => prev.map((hotspot) => (hotspot.id === id ? { ...hotspot, ...updates } : hotspot)))
   }
 
   const removeHotspot = (id: string) => {
+    if (role !== "teacher") return
     setHotspots((prev) => prev.filter((hotspot) => hotspot.id !== id))
     if (selectedHotspotId === id) {
       setSelectedHotspotId(null)
@@ -238,6 +241,7 @@ export default function AssignmentSystemPage() {
   }
 
   const handleHotspotAudioUpload = (id: string, file: File | null) => {
+    if (role !== "teacher") return
     if (!file) return
     const reader = new FileReader()
     reader.onload = (event) => {
@@ -250,7 +254,7 @@ export default function AssignmentSystemPage() {
   }
 
   const handleHotspotPlacement = (event: MouseEvent<HTMLDivElement>) => {
-    if (!isAddingHotspot || !hotspotCanvasRef.current) return
+    if (role !== "teacher" || !isAddingHotspot || !hotspotCanvasRef.current) return
 
     const bounds = hotspotCanvasRef.current.getBoundingClientRect()
     const x = ((event.clientX - bounds.left) / bounds.width) * 100
@@ -519,8 +523,14 @@ export default function AssignmentSystemPage() {
       </section>
 
       <section className="px-4 pt-16">
-        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.15fr,0.85fr]">
-          <Card className="border-maroon-100/60 bg-white/80 shadow-xl backdrop-blur">
+        <div
+          className={cn(
+            "mx-auto max-w-6xl",
+            role === "teacher" ? "grid gap-10 lg:grid-cols-[1.15fr,0.85fr]" : "flex flex-col gap-10",
+          )}
+        >
+          {role === "teacher" && (
+            <Card className="border-maroon-100/60 bg-white/80 shadow-xl backdrop-blur">
             <CardHeader className="space-y-2">
               <Badge className="w-fit bg-gradient-to-r from-[#7c1d2f] to-[#d9486e] text-white">Teacher Workspace</Badge>
               <CardTitle className="text-2xl text-maroon-950">Craft a new assignment</CardTitle>
@@ -863,7 +873,20 @@ export default function AssignmentSystemPage() {
                 </div>
               </form>
             </CardContent>
-          </Card>
+            </Card>
+          )}
+
+          {role === "student" && (
+            <Card className="border-maroon-100/60 bg-white/80 shadow-xl backdrop-blur">
+              <CardHeader className="space-y-2">
+                <Badge className="w-fit bg-gradient-to-r from-[#7c1d2f] to-[#d9486e] text-white">Assignment Page</Badge>
+                <CardTitle className="text-2xl text-maroon-950">Hotspots prepared by your teacher</CardTitle>
+                <CardDescription className="text-maroon-900/80">
+                  Interactive hotspots are created here by your teacher. Review them in the assignments below as they are published.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          )}
 
           <div className="space-y-6">
             <Card className="border-maroon-100/60 bg-white/80 shadow-xl backdrop-blur">

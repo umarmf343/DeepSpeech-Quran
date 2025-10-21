@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -10,20 +10,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { BookOpen, Users, ImageIcon, Plus, ArrowLeft, Save, Send, Target } from "lucide-react"
+import { BookOpen, Users, Plus, ArrowLeft, Save, Send, Target } from "lucide-react"
 import Link from "next/link"
-import { HotspotEditor } from "@/components/hotspot-editor"
-
-interface Hotspot {
-  id: string
-  x: number
-  y: number
-  width: number
-  height: number
-  title: string
-  description: string
-  audioUrl?: string
-}
 
 export default function CreateAssignmentPage() {
   const [activeTab, setActiveTab] = useState("basic")
@@ -39,39 +27,8 @@ export default function CreateAssignmentPage() {
     instructions: "",
   })
 
-  const [hotspots, setHotspots] = useState<Hotspot[]>([])
-  const [selectedImage, setSelectedImage] = useState<string | null>("/arabic-calligraphy-with-quranic-verses.jpg")
-  const [isAddingHotspot, setIsAddingHotspot] = useState(false)
-  const imageRef = useRef<HTMLDivElement>(null)
-
-  const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isAddingHotspot || !imageRef.current) return
-
-    const rect = imageRef.current.getBoundingClientRect()
-    const x = ((e.clientX - rect.left) / rect.width) * 100
-    const y = ((e.clientY - rect.top) / rect.height) * 100
-
-    const newHotspot: Hotspot = {
-      id: Date.now().toString(),
-      x,
-      y,
-      width: 0,
-      height: 0,
-      title: "New Hotspot",
-      description: "Click to edit this hotspot",
-    }
-
-    setHotspots([...hotspots, newHotspot])
-    setIsAddingHotspot(false)
-  }
-
-  const removeHotspot = (id: string) => {
-    setHotspots(hotspots.filter((h) => h.id !== id))
-  }
-
   const handleSubmit = (action: "save" | "publish") => {
     console.log("Assignment data:", assignmentData)
-    console.log("Hotspots:", hotspots)
     console.log("Action:", action)
     // In real app, this would save to database
     alert(`Assignment ${action === "save" ? "saved as draft" : "published"} successfully!`)
@@ -326,46 +283,18 @@ export default function CreateAssignmentPage() {
           <TabsContent value="interactive" className="space-y-6">
             <Card className="border-border/50 shadow-lg">
               <CardHeader>
-                <CardTitle className="text-xl">Interactive Elements</CardTitle>
-                <CardDescription>Add interactive hotspots to images for enhanced learning</CardDescription>
+                <CardTitle className="text-xl">Interactive Hotspots</CardTitle>
+                <CardDescription>
+                  Hotspot creation is now handled from the Assignment Page so everything lives in one workspace.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label>Assignment Image</Label>
-                    <Button
-                      variant="outline"
-                      className="bg-transparent"
-                      onClick={() => {
-                        const images = [
-                          "/arabic-calligraphy-with-quranic-verses.jpg",
-                          "/islamic-geometric-patterns-with-arabic-text.jpg",
-                          "/mushaf-page-with-highlighted-verses.jpg",
-                        ]
-                        setSelectedImage(images[Math.floor(Math.random() * images.length)])
-                      }}
-                    >
-                      <ImageIcon className="w-4 h-4 mr-2" />
-                      Upload Image
-                    </Button>
-                  </div>
-
-                  {selectedImage && (
-                    <HotspotEditor
-                      imageUrl={selectedImage}
-                      hotspots={hotspots}
-                      onHotspotsChange={setHotspots}
-                      mode="edit"
-                    />
-                  )}
-
-                  {!selectedImage && (
-                    <div className="border-2 border-dashed border-border rounded-lg p-12 text-center">
-                      <ImageIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground">Upload an image to start adding interactive hotspots</p>
-                    </div>
-                  )}
+              <CardContent className="space-y-4">
+                <div className="rounded-lg border border-dashed border-border bg-muted/40 p-6 text-sm text-muted-foreground">
+                  Upload your worksheet and place hotspots on the Assignment Page. When you publish an assignment, students will automatically see the annotated image in their assignment view.
                 </div>
+                <Button asChild className="gradient-maroon text-white border-0">
+                  <Link href="/assignment-system">Open Assignment Page</Link>
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
