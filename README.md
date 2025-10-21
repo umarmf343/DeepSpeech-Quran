@@ -63,6 +63,28 @@ Copy the provided `.env.example` into a new `.env.local` file before running the
 - `PAYSTACK_SECRET_KEY` – Secret key from your Paystack dashboard for initializing payments and verifying webhooks.
 - `OPENAI_API_KEY` – Whisper API key used to transcribe recitations.
 
+#### DeepSpeech inference bridge
+
+The API route at `/api/deepspeech/transcribe` now shells into the bundled `DeepSpeech/native_client/python/client.py` script so
+recorded recitations can be scored against the real TensorFlow graph. Configure the following variables to enable it:
+
+- `DEEPSPEECH_MODEL_PATH` – Absolute path to a trained `.pbmm` DeepSpeech acoustic model.
+- `DEEPSPEECH_SCORER_PATH` – Optional path to the KenLM scorer (`.scorer`).
+- `DEEPSPEECH_PYTHON` – Python executable that has the `deepspeech` wheel installed (defaults to `python3`).
+- `DEEPSPEECH_CLIENT_PATH` – Override location of `client.py` if you relocate the DeepSpeech repo.
+- `DEEPSPEECH_CANDIDATES` – Number of transcript hypotheses to request from DeepSpeech metadata (defaults to `3`).
+
+Make sure the selected Python environment has all DeepSpeech dependencies installed, e.g.:
+
+```bash
+python3 -m venv .venv-deepspeech
+source .venv-deepspeech/bin/activate
+pip install -r DeepSpeech/requirements_transcribe.txt
+```
+
+The route converts uploaded WebM audio to mono 16kHz WAV using the `ffmpeg-static` binary bundled via npm, so no extra system p
+ackages are required.
+
 ### cPanel deployment notes
 
 1. Build the production bundle locally:
