@@ -80,35 +80,6 @@ export default function DashboardPage() {
                   {gamification.streak} day streak
                 </Badge>
               </div>
-              <div className="grid w-full grid-cols-2 gap-3 sm:w-auto sm:flex sm:flex-wrap">
-                <Button className="w-full rounded-full bg-white text-maroon-700 hover:bg-amber-100 sm:w-auto">
-                  <Play className="mr-2 h-4 w-4" />
-                  {localization.hero.action}
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full rounded-full border-white/40 text-white hover:bg-white/20 sm:w-auto"
-                >
-                  View celebration feed
-                </Button>
-              </div>
-            </div>
-            <div className="rounded-3xl bg-white/10 p-4 text-sm shadow-lg backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-widest text-white/70">Dynamic Highlights</p>
-              <div className="mt-3 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span>XP to next level</span>
-                  <span className="font-semibold">{gamification.xpToNext} XP</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Weekly Hasanat</span>
-                  <span className="font-semibold">{weeklyXpTotal} XP</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Current celebration</span>
-                  <span className="font-semibold">{heroCopy.title}</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>
