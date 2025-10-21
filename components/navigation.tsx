@@ -12,9 +12,11 @@ import {
   BookOpen,
   ClipboardList,
   Crown,
+  Gamepad2,
   Home,
   LogOut,
   Menu,
+  ScrollText,
   Settings,
   Shield,
   Sparkles,
@@ -33,6 +35,8 @@ const iconForSlug = (slug: string) => {
       return BookOpen
     case "practice":
       return Sparkles
+    case "qaidah":
+      return ScrollText
     case "memorization":
       return Target
     case "progress":
@@ -45,8 +49,10 @@ const iconForSlug = (slug: string) => {
       return Users
     case "assignments":
       return ClipboardList
-    case "admin":
+    case "admin-dashboard":
       return Shield
+    case "game":
+      return Gamepad2
     case "billing":
       return Settings
     case "profile":
@@ -68,7 +74,7 @@ export default function Navigation() {
 
   const segmentedNavigation = useMemo(() => {
     const teacher = navigation.filter((item) => item.slug.startsWith("teacher"))
-    const admin = navigation.filter((item) => item.slug === "admin")
+    const admin = navigation.filter((item) => item.slug === "admin-dashboard")
     const primary = navigation.filter((item) => !teacher.includes(item) && !admin.includes(item))
     return { primary, teacher, admin }
   }, [navigation])
@@ -184,7 +190,7 @@ export default function Navigation() {
                     >
                       <Icon className="h-4 w-4" />
                       {item.label}
-                      {item.slug === "admin" && (
+                      {item.slug === "admin-dashboard" && (
                         <Badge className="ml-auto bg-red-100 text-red-800 border-red-200">Live</Badge>
                       )}
                     </Link>

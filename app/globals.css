@@ -119,6 +119,16 @@
     @apply bg-background text-foreground;
   }
 
+  body.has-bottom-nav {
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  }
+
+  @media (min-width: 1024px) {
+    body.has-bottom-nav {
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    }
+  }
+
   /* Enhanced Arabic typography with multiple font options and better RTL support */
   .font-arabic {
     font-family: "Amiri", "Scheherazade New", "Noto Naskh Arabic", serif;
