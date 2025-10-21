@@ -88,6 +88,7 @@ export type MushafVariant = {
     arabic: string
     guidance: string
   }
+  quranComMushafId?: number
 }
 
 export const mushafVariants: MushafVariant[] = [
@@ -112,6 +113,7 @@ export const mushafVariants: MushafVariant[] = [
       arabic: "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيمِ",
       guidance: "Every page aligns with the Madinah print, making cross-referencing physical mushaf copies effortless during hifdh circles.",
     },
+    quranComMushafId: 4,
   },
   {
     id: "tajweed",
@@ -134,6 +136,7 @@ export const mushafVariants: MushafVariant[] = [
       arabic: "وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا",
       guidance: "Color gradients mirror the tajweed legend from the reference Mushaf, making real-time corrections intuitive.",
     },
+    quranComMushafId: 16,
   },
 ]
 

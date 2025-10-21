@@ -23,6 +23,7 @@ import {
   quranAPI,
   type AudioSegment,
   type Ayah,
+  type MushafPage,
   type Surah,
   type Transliteration,
   type Translation,
@@ -56,6 +57,7 @@ const TRANSLATION_OPTIONS = [
 const TRANSLITERATION_EDITION = "en.transliteration"
 const TRANSLATION_VISIBILITY_STORAGE_KEY = "alfawz_reader_show_translation"
 const TRANSLITERATION_VISIBILITY_STORAGE_KEY = "alfawz_reader_show_transliteration"
+const MUSHAF_VIEW_VISIBILITY_STORAGE_KEY = "alfawz_reader_show_mushaf"
 const NIGHT_MODE_STORAGE_KEY = "alfawz_reader_night_mode"
 
 interface AyahDetail {
@@ -92,10 +94,19 @@ export default function AlfawzReaderPage() {
     if (stored === null) return false
     return stored === "true"
   })
+  const [showMushafView, setShowMushafView] = useState(() => {
+    if (typeof window === "undefined") return false
+    const stored = window.localStorage.getItem(MUSHAF_VIEW_VISIBILITY_STORAGE_KEY)
+    if (stored === null) return false
+    return stored === "true"
+  })
   const [versesCompleted, setVersesCompleted] = useState(0)
   const [shouldCelebrate, setShouldCelebrate] = useState(false)
   const [nightMode, setNightMode] = useState(false)
   const [selectedMushaf, setSelectedMushaf] = useState(() => mushafVariants[0])
+  const [mushafPage, setMushafPage] = useState<MushafPage | null>(null)
+  const [isLoadingMushafPage, setIsLoadingMushafPage] = useState(false)
+  const [mushafViewError, setMushafViewError] = useState<string | null>(null)
 
   const mushafOptions = useMemo(() => mushafVariants, [])
 
@@ -128,6 +139,13 @@ export default function AlfawzReaderPage() {
     }
     return map[fontScale] ?? "text-4xl"
   }, [fontScale])
+
+  const selectedVerseKey = useMemo(() => {
+    if (!selectedSurahNumber || !selectedAyahNumber) return null
+    return `${selectedSurahNumber}:${selectedAyahNumber}`
+  }, [selectedSurahNumber, selectedAyahNumber])
+
+  const activeMushafId = useMemo(() => selectedMushaf.quranComMushafId ?? null, [selectedMushaf])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -255,6 +273,14 @@ export default function AlfawzReaderPage() {
   }, [showTransliteration])
 
   useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(
+      MUSHAF_VIEW_VISIBILITY_STORAGE_KEY,
+      showMushafView ? "true" : "false",
+    )
+  }, [showMushafView])
+
+  useEffect(() => {
     if (!selectedSurahNumber || !selectedAyahNumber) return
     let active = true
     setIsLoadingAyah(true)
@@ -293,6 +319,58 @@ export default function AlfawzReaderPage() {
       active = false
     }
   }, [selectedSurahNumber, selectedAyahNumber, selectedTranslation, showTranslation, showTransliteration])
+
+  useEffect(() => {
+    if (!showMushafView) {
+      setIsLoadingMushafPage(false)
+      return
+    }
+
+    if (!activeMushafId) {
+      setMushafViewError("Mushaf view is not available for this variant.")
+      setMushafPage(null)
+      setIsLoadingMushafPage(false)
+      return
+    }
+
+    const pageNumber = ayahDetail?.arabic.page
+    if (!pageNumber) {
+      setMushafPage(null)
+      setIsLoadingMushafPage(false)
+      return
+    }
+
+    let active = true
+    setIsLoadingMushafPage(true)
+    setMushafViewError(null)
+
+    ;(async () => {
+      try {
+        const page = await quranAPI.getMushafPage(pageNumber, activeMushafId)
+        if (!active) return
+        if (!page) {
+          setMushafPage(null)
+          setMushafViewError("Unable to load Mushaf page. Please try again later.")
+        } else {
+          setMushafPage(page)
+        }
+      } catch (err) {
+        console.error("Failed to load mushaf page", err)
+        if (active) {
+          setMushafPage(null)
+          setMushafViewError("Unable to load Mushaf page. Please try again later.")
+        }
+      } finally {
+        if (active) {
+          setIsLoadingMushafPage(false)
+        }
+      }
+    })()
+
+    return () => {
+      active = false
+    }
+  }, [showMushafView, activeMushafId, ayahDetail?.arabic.page])
 
   const audioUrl = useMemo(() => {
     if (!selectedAyahNumber) return undefined
@@ -583,6 +661,16 @@ export default function AlfawzReaderPage() {
                 </Label>
               </div>
               <div className="flex items-center gap-2">
+                <Switch
+                  checked={showMushafView}
+                  onCheckedChange={(checked) => setShowMushafView(checked === true)}
+                  id="toggle-mushaf-view"
+                />
+                <Label htmlFor="toggle-mushaf-view" className="text-sm text-muted-foreground">
+                  Mushaf view
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={markAyahCompleted} disabled={goalReached}>
                   <Check className="mr-2 h-4 w-4" /> Mark ayah complete
                 </Button>
@@ -591,6 +679,71 @@ export default function AlfawzReaderPage() {
                 </Badge>
               </div>
             </div>
+
+            {showMushafView && (
+              <div
+                className={cn(
+                  "rounded-3xl border-2 p-6 shadow-inner transition-colors",
+                  selectedMushaf.visualStyle.border,
+                  nightMode ? "border-slate-700 bg-slate-950/60" : selectedMushaf.visualStyle.background,
+                )}
+              >
+                <div className="mb-4 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>
+                    Page {mushafPage?.pageNumber ?? ayahDetail?.arabic.page ?? "—"}
+                  </span>
+                  <span>{selectedMushaf.name}</span>
+                </div>
+                {isLoadingMushafPage ? (
+                  <div className="space-y-2">
+                    {Array.from({ length: 7 }).map((_, index) => (
+                      <Skeleton key={index} className="h-8 w-full" />
+                    ))}
+                  </div>
+                ) : mushafViewError ? (
+                  <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+                    {mushafViewError}
+                  </div>
+                ) : mushafPage ? (
+                  <div
+                    className={cn(
+                      "rounded-2xl border-2 p-6 font-arabic text-3xl leading-[3] text-right",
+                      nightMode
+                        ? "border-slate-700 bg-slate-900/40 text-amber-100"
+                        : cn("bg-white/80", selectedMushaf.visualStyle.text, selectedMushaf.visualStyle.border),
+                    )}
+                  >
+                    <div className="flex flex-col gap-3">
+                      {mushafPage.lines.map((line) => (
+                        <div key={line.lineNumber} className="flex flex-wrap justify-end gap-2">
+                          {line.words.map((word) => {
+                            const isSelected = selectedVerseKey === word.verseKey
+                            return (
+                              <span
+                                key={`${word.id}-${word.position}`}
+                                className={cn(
+                                  "px-1",
+                                  isSelected &&
+                                    (nightMode
+                                      ? "rounded-md bg-amber-500/20 text-amber-200"
+                                      : "rounded-md bg-amber-100 text-maroon-900 shadow-sm"),
+                                )}
+                              >
+                                {word.text}
+                              </span>
+                            )
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Mushaf view will appear once the ayah loads.
+                  </p>
+                )}
+              </div>
+            )}
 
             {showTranslation && ayahDetail?.translations?.length ? (
               <div className="rounded-lg bg-slate-50/80 p-4 text-sm leading-relaxed text-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
