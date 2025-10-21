@@ -1,11 +1,9 @@
-import ffmpeg from "fluent-ffmpeg"
 import ffmpegStatic from "ffmpeg-static"
+import { spawn } from "node:child_process"
 import { mkdir } from "node:fs/promises"
 import { dirname, resolve } from "node:path"
 
-if (ffmpegStatic) {
-  ffmpeg.setFfmpegPath(ffmpegStatic)
-}
+const ffmpegPath = ffmpegStatic ?? "ffmpeg"
 
 export type ConvertOptions = {
   inputPath: string
@@ -25,13 +23,35 @@ export async function convertWebmToWav({
   await mkdir(parentDir, { recursive: true })
 
   await new Promise<void>((resolvePromise, rejectPromise) => {
-    ffmpeg(inputPath)
-      .noVideo()
-      .audioChannels(channels)
-      .audioFrequency(sampleRate)
-      .format("wav")
-      .on("end", () => resolvePromise())
-      .on("error", (error) => rejectPromise(error))
-      .save(resolvedOutput)
+    const ffmpegArgs = [
+      "-i",
+      inputPath,
+      "-vn",
+      "-ac",
+      channels.toString(),
+      "-ar",
+      sampleRate.toString(),
+      "-f",
+      "wav",
+      resolvedOutput,
+    ]
+
+    const process = spawn(ffmpegPath, ffmpegArgs)
+
+    process.on("error", (error) => rejectPromise(error))
+
+    process.on("close", (code, signal) => {
+      if (code === 0) {
+        resolvePromise()
+      } else {
+        const reason =
+          typeof code === "number"
+            ? `exit code ${code}`
+            : signal
+              ? `signal ${signal}`
+              : "an unknown error"
+        rejectPromise(new Error(`ffmpeg failed with ${reason}`))
+      }
+    })
   })
 }
