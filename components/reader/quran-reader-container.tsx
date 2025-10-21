@@ -14,7 +14,7 @@ import type { ReaderProfile } from "@/lib/reader/preference-manager"
 import { generateTajweedForRange } from "@/lib/deepspeech/tajweed-engine"
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion"
 
-import { Pause, Volume2, Mic } from "lucide-react"
+import { Pause, Volume2, Mic, ChevronLeft, ChevronRight } from "lucide-react"
 
 interface VerseRenderData {
   arabic: Ayah
@@ -62,6 +62,38 @@ export function QuranReaderContainer({
   const prefersReducedMotion = usePrefersReducedMotion()
 
   const translationDir = rtlLanguages.has(profile.translationLanguage) ? "rtl" : "ltr"
+
+  const selectedAyahIndex = useMemo(() => {
+    if (selectedAyahNumber == null) {
+      return -1
+    }
+    return ayahs.findIndex((ayah) => ayah.numberInSurah === selectedAyahNumber)
+  }, [ayahs, selectedAyahNumber])
+
+  const showNavigation = useMemo(() => {
+    return !profile.fullSurahView && selectedAyahIndex !== -1 && ayahs.length > 0
+  }, [ayahs.length, profile.fullSurahView, selectedAyahIndex])
+
+  const canGoPrevious = showNavigation && selectedAyahIndex > 0
+  const canGoNext = showNavigation && selectedAyahIndex < ayahs.length - 1
+
+  const handleNavigate = useCallback(
+    (direction: "previous" | "next") => {
+      if (profile.fullSurahView || selectedAyahIndex === -1) {
+        return
+      }
+      const delta = direction === "next" ? 1 : -1
+      const targetIndex = selectedAyahIndex + delta
+      if (targetIndex < 0 || targetIndex >= ayahs.length) {
+        return
+      }
+      const targetAyah = ayahs[targetIndex]
+      if (targetAyah) {
+        onAyahSelect(targetAyah.numberInSurah)
+      }
+    },
+    [ayahs, onAyahSelect, profile.fullSurahView, selectedAyahIndex],
+  )
 
   const versesToRender = useMemo(() => {
     if (!surahNumber || ayahs.length === 0) return []
@@ -354,12 +386,44 @@ export function QuranReaderContainer({
                 verseRefs.current.set(ayah.numberInSurah, element)
               }}
               className={cn(
-                "group rounded-2xl border border-transparent bg-white/90 p-4 transition-all duration-300 ease-in-out dark:bg-slate-900/70",
+                "group relative rounded-2xl border border-transparent bg-white/90 p-4 transition-all duration-300 ease-in-out dark:bg-slate-900/70",
                 isActive && "shadow-xl ring-2 ring-emerald-500/60",
                 nightMode && "border-slate-800/60 bg-slate-900/70",
               )}
               role="listitem"
             >
+              {showNavigation ? (
+                <>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className={cn(
+                      "absolute left-0 top-1/2 z-20 h-12 w-12 -translate-y-1/2 -translate-x-1/2 rounded-full bg-gradient-to-br from-emerald-500 via-teal-400 to-sky-500 text-white shadow-lg shadow-emerald-500/40 transition-transform hover:-translate-y-1/2 hover:scale-105 hover:from-emerald-400 hover:via-teal-300 hover:to-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 dark:shadow-emerald-900/50",
+                      !canGoPrevious && "pointer-events-none opacity-40",
+                    )}
+                    onClick={() => handleNavigate("previous")}
+                    aria-label="Go to previous verse"
+                    disabled={!canGoPrevious}
+                  >
+                    <ChevronLeft className="h-6 w-6" aria-hidden="true" />
+                  </Button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className={cn(
+                      "absolute right-0 top-1/2 z-20 h-12 w-12 -translate-y-1/2 translate-x-1/2 rounded-full bg-gradient-to-br from-sky-500 via-indigo-500 to-violet-500 text-white shadow-lg shadow-sky-500/40 transition-transform hover:-translate-y-1/2 hover:scale-105 hover:from-sky-400 hover:via-indigo-400 hover:to-violet-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 dark:shadow-sky-900/50",
+                      !canGoNext && "pointer-events-none opacity-40",
+                    )}
+                    onClick={() => handleNavigate("next")}
+                    aria-label="Go to next verse"
+                    disabled={!canGoNext}
+                  >
+                    <ChevronRight className="h-6 w-6" aria-hidden="true" />
+                  </Button>
+                </>
+              ) : null}
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-2">
                   <Badge
