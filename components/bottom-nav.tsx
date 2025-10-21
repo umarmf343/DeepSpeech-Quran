@@ -276,17 +276,20 @@ export function BottomNavigation() {
                 data-current={isActive}
                 className={cn(
                   "group relative flex min-w-[5.5rem] snap-center flex-col items-center justify-center gap-1 rounded-3xl border border-transparent px-4 py-2 text-xs font-semibold text-maroon-700 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-cream-50",
-                  "bg-white/80 backdrop-blur hover:-translate-y-1",
+                  "bg-gradient-to-br from-amber-50/95 via-white/95 to-rose-50/90 text-maroon-800 shadow-[0_6px_18px_rgba(190,24,93,0.12)] backdrop-blur",
+                  "hover:-translate-y-1 hover:bg-gradient-to-br hover:from-amber-100/85 hover:via-rose-100/85 hover:to-white/85 hover:shadow-[0_14px_28px_rgba(249,168,212,0.4)] hover:ring-2 hover:ring-amber-200/70",
                   isActive
-                    ? "shadow-lg shadow-amber-200/40 ring-2 ring-maroon-200"
-                    : "hover:shadow hover:shadow-maroon-100",
+                    ? "ring-2 ring-rose-300/80 shadow-[0_16px_32px_rgba(244,114,182,0.45)] text-maroon-900"
+                    : "hover:text-maroon-900/90",
                 )}
                 onClick={() => setActiveNav(item.slug)}
               >
                 <span
                   className={cn(
-                    "relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-r from-maroon-500 to-maroon-600 text-white transition-all duration-300",
-                    isActive ? "scale-105 shadow-inner" : "group-hover:scale-105",
+                    "relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-maroon-600 text-white transition-all duration-300 shadow-[0_10px_25px_rgba(190,24,93,0.35)]",
+                    isActive
+                      ? "scale-110 shadow-[0_14px_32px_rgba(190,24,93,0.45)] ring-2 ring-white/40"
+                      : "group-hover:scale-110 group-hover:shadow-[0_14px_32px_rgba(251,191,36,0.45)]",
                   )}
                 >
                   <Icon />
