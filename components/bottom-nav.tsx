@@ -116,9 +116,6 @@ export function BottomNavigation() {
     preferences,
     activeNav,
     setActiveNav,
-    toggleSeniorMode,
-    gamification,
-    celebration,
   } = useUser()
   const pathname = usePathname()
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -208,40 +205,11 @@ export function BottomNavigation() {
     [notifications],
   )
 
-  const unreadCount = notifications.filter((notification) => !notification.read).length
-  const streak = gamification.streak
-
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-4xl flex-col gap-2 border-t border-maroon-100/70 bg-gradient-to-r from-cream-50/95 via-white/95 to-cream-50/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl shadow-[0_-18px_42px_rgba(122,46,37,0.15)] sm:rounded-t-3xl lg:hidden"
       aria-label="AlFawz navigation"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-maroon-600">
-        <button
-          type="button"
-          onClick={() => toggleSeniorMode()}
-          className={cn(
-            "rounded-full border border-maroon-200 bg-white px-3 py-1 font-medium text-maroon-700 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maroon-400",
-            preferences.seniorMode
-              ? "shadow-inner shadow-maroon-200"
-              : "hover:-translate-y-0.5 hover:shadow-lg hover:shadow-maroon-100",
-          )}
-          aria-pressed={preferences.seniorMode}
-        >
-          {preferences.seniorMode ? "Senior mode on" : "Senior mode"}
-        </button>
-        <div className="flex flex-1 items-center justify-end gap-2 sm:flex-initial">
-          <span className="inline-flex items-center gap-1 rounded-full bg-maroon-50 px-3 py-1 font-semibold">
-            <Sparkles className="h-4 w-4 text-amber-500" aria-hidden="true" />
-            {celebration.active ? "Takbir!" : "Streak"} {celebration.active ? "" : `${streak}d`}
-          </span>
-          {unreadCount > 0 && (
-            <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 font-semibold text-amber-700">
-              {unreadCount} alerts
-            </span>
-          )}
-        </div>
-      </div>
       <div className="relative">
         <div
           aria-hidden="true"
