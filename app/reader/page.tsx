@@ -637,60 +637,24 @@ export default function AlfawzReaderPage() {
               )}
             >
               {!showMushafView && hasPreviousAyah && (
-                <>
-                  <div
-                    aria-hidden="true"
-                    className={cn(
-                      "pointer-events-none absolute inset-y-0 left-0 z-0 w-20 bg-gradient-to-r",
-                      nightMode
-                        ? "from-slate-950/80 via-slate-900/50 to-transparent"
-                        : "from-white/95 via-emerald-50/60 to-transparent",
-                    )}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Previous ayah"
-                    onClick={handlePreviousAyah}
-                    className={cn(
-                      "absolute bottom-6 left-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 md:top-1/2 md:bottom-auto md:-translate-y-1/2 hover:-translate-y-0.5",
-                      nightMode
-                        ? "border-emerald-500/40 bg-slate-900/70 text-emerald-200 hover:bg-slate-900/60"
-                        : "border-emerald-200/70 bg-white/90 text-emerald-700 hover:bg-white",
-                    )}
-                  >
-                    <SkipBack className="h-4 w-4" />
-                  </Button>
-                </>
+                <button
+                  type="button"
+                  aria-label="Previous ayah"
+                  onClick={handlePreviousAyah}
+                  className="gap-2 whitespace-nowrap text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground dark:hover:bg-accent/50 size-9 absolute bottom-6 left-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 md:top-1/2 md:bottom-auto md:-translate-y-1/2 hover:-translate-y-0.5 border-emerald-200/70 bg-white/90 text-emerald-700 hover:bg-white"
+                >
+                  <SkipBack className="h-4 w-4" />
+                </button>
               )}
               {!showMushafView && hasNextAyah && (
-                <>
-                  <div
-                    aria-hidden="true"
-                    className={cn(
-                      "pointer-events-none absolute inset-y-0 right-0 z-0 w-20 bg-gradient-to-l",
-                      nightMode
-                        ? "from-slate-950/80 via-slate-900/50 to-transparent"
-                        : "from-white/95 via-emerald-50/60 to-transparent",
-                    )}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Next ayah"
-                    onClick={handleNextAyah}
-                    className={cn(
-                      "absolute bottom-6 right-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 md:top-1/2 md:bottom-auto md:-translate-y-1/2 hover:-translate-y-0.5",
-                      nightMode
-                        ? "border-emerald-500/40 bg-slate-900/70 text-emerald-200 hover:bg-slate-900/60"
-                        : "border-emerald-200/70 bg-white/90 text-emerald-700 hover:bg-white",
-                    )}
-                  >
-                    <SkipForward className="h-4 w-4" />
-                  </Button>
-                </>
+                <button
+                  type="button"
+                  aria-label="Next ayah"
+                  onClick={handleNextAyah}
+                  className="gap-2 whitespace-nowrap text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground dark:hover:bg-accent/50 size-9 absolute bottom-6 right-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 md:top-1/2 md:bottom-auto md:-translate-y-1/2 hover:-translate-y-0.5 border-emerald-200/70 bg-white/90 text-emerald-700 hover:bg-white"
+                >
+                  <SkipForward className="h-4 w-4" />
+                </button>
               )}
 
               {!ayahDetail ? (
@@ -704,42 +668,51 @@ export default function AlfawzReaderPage() {
                       nightMode={nightMode}
                     />
                   ) : (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between gap-3 text-xs text-emerald-600">
-                        <span>Ayah {currentAyahDisplay} of {totalAyahDisplay}</span>
-                        <span>Repetitions {repetitionsCompleted} / {dailyGoal}</span>
+                    <div className="relative">
+                      <div className="rounded-2xl bg-gradient-to-br from-white to-emerald-50 p-8 shadow-inner">
+                        <div className="flex items-center justify-between gap-3">
+                          <span
+                            data-slot="badge"
+                            className="inline-flex items-center justify-center border w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700"
+                          >
+                            Ayah {currentAyahDisplay} of {totalAyahDisplay}
+                          </span>
+                          <span className="text-xs font-medium text-emerald-600">
+                            Repetitions {repetitionsCompleted} / {dailyGoal}
+                          </span>
+                        </div>
+                        <p
+                          className={cn(
+                            "mt-6 text-3xl leading-relaxed text-slate-900 md:text-[2.25rem]",
+                            fontSizeClass,
+                            "font-arabic text-right",
+                          )}
+                        >
+                          {ayahDetail.arabic.text}
+                        </p>
+                        {showTranslation && ayahDetail.translations.length
+                          ? ayahDetail.translations.map((translation, index) => (
+                              <p
+                                key={`${translation.translator}-${index}`}
+                                className={cn(
+                                  "text-base leading-relaxed text-slate-600",
+                                  index === 0 ? "mt-4" : "mt-2",
+                                )}
+                              >
+                                {translation.text}
+                                {translation.translator ? ` — ${translation.translator}` : ""}
+                              </p>
+                            ))
+                          : null}
+                        {showTransliteration && ayahDetail.transliteration ? (
+                          <p className="mt-4 text-sm italic leading-relaxed text-slate-600 dark:text-slate-300">
+                            {ayahDetail.transliteration.text}
+                          </p>
+                        ) : null}
                       </div>
-                      <p
-                        className={cn(
-                          "leading-relaxed text-slate-900 md:text-[1.875rem]",
-                          fontSizeClass,
-                          "font-arabic text-right",
-                        )}
-                      >
-                        {ayahDetail.arabic.text}
-                      </p>
-                      {showTranslation && ayahDetail.translations.length
-                        ? ayahDetail.translations.map((translation, index) => (
-                            <p
-                              key={`${translation.translator}-${index}`}
-                              className={cn(
-                                "text-base leading-relaxed text-slate-600",
-                                index === 0 ? "" : "mt-2",
-                              )}
-                            >
-                              {translation.text}
-                              {translation.translator ? ` — ${translation.translator}` : ""}
-                            </p>
-                          ))
-                        : null}
                     </div>
                   )}
 
-                  {showTransliteration && ayahDetail.transliteration ? (
-                    <p className="text-sm italic text-slate-600 dark:text-slate-300">
-                      {ayahDetail.transliteration.text}
-                    </p>
-                  ) : null}
                 </div>
               )}
             </div>
