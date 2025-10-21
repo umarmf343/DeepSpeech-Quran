@@ -95,6 +95,16 @@ const VOICE_TIMEOUT_MS = 8000
 const VOICE_MIN_DURATION_MS = 1500
 const VOICE_THRESHOLD = 0.02
 
+const formatOrdinal = (value: number) => {
+  const remainderTen = value % 10
+  const remainderHundred = value % 100
+
+  if (remainderTen === 1 && remainderHundred !== 11) return `${value}st`
+  if (remainderTen === 2 && remainderHundred !== 12) return `${value}nd`
+  if (remainderTen === 3 && remainderHundred !== 13) return `${value}rd`
+  return `${value}th`
+}
+
 const LOCAL_STORAGE_KEYS = {
   plans: "memorization-plans",
   progress: "memorization-progress",
@@ -110,6 +120,9 @@ const affirmationMessages = [
   "Every repetition is a seed in Jannah.",
   "Take your time—presence over perfection.",
 ]
+
+const pickRandomAffirmation = () =>
+  affirmationMessages[Math.floor(Math.random() * affirmationMessages.length)]
 
 export default function MemorizationPage() {
   const [surahs, setSurahs] = useState<SurahSummary[]>([])
@@ -162,6 +175,7 @@ export default function MemorizationPage() {
   const [lastTapTimestamp, setLastTapTimestamp] = useState<number | null>(null)
   const [writingInput, setWritingInput] = useState("")
   const [holdingHeart, setHoldingHeart] = useState(false)
+  const [levelCelebrationMessage, setLevelCelebrationMessage] = useState<string | null>(null)
   const heartTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const gestureTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const sessionStartRef = useRef<number | null>(null)
@@ -512,18 +526,19 @@ export default function MemorizationPage() {
     return Math.min(100, ((levelsCompleted + levelProgress) / totalLevels) * 100)
   }, [activePlan, totalLevels, activePlanProgress?.completed, safeLevelIndex, repeatCount, activeTarget])
 
-  const randomAffirmation = useCallback(() => {
-    return affirmationMessages[Math.floor(Math.random() * affirmationMessages.length)]
-  }, [])
-
   const handleRepetitionSuccess = useCallback(() => {
     if (!activePlan || !activeLevelDefinition) return
     failureCountRef.current = 0
     setLastAttemptFailed(false)
-    setEncouragement(randomAffirmation())
     setShowGracePrompt(false)
 
     const nextCount = Math.min(activeTarget, repeatCount + 1)
+    const levelCompleted = nextCount >= activeTarget
+    const completedLevelNumber = safeLevelIndex + 1
+
+    setEncouragement(
+      levelCompleted ? `You have completed the ${formatOrdinal(completedLevelNumber)} level!` : pickRandomAffirmation(),
+    )
     setRepeatCount(nextCount)
 
     updatePlanProgress(activePlan.id, (existing) => ({
@@ -533,30 +548,30 @@ export default function MemorizationPage() {
       mode: existing.mode ?? fallbackMode,
     }))
 
-    if (nextCount >= activeTarget) {
+    if (levelCompleted) {
       if (safeLevelIndex >= totalLevels - 1 || levelDefinitions.length === 1) {
+        setLevelCelebrationMessage(null)
         markPlanCompleted(activePlan.id)
       } else {
+        setLevelCelebrationMessage(`You have completed the ${formatOrdinal(completedLevelNumber)} level!`)
         setRepeatCount(0)
         updatePlanProgress(activePlan.id, (existing) => ({
           ...existing,
           levelIndex: safeLevelIndex + 1,
           repeatCount: 0,
         }))
-        setEncouragement("MashaAllah! The next level awaits when you are ready.")
       }
     }
   }, [
     activePlan,
     activeLevelDefinition,
     activeTarget,
+    fallbackMode,
     levelDefinitions.length,
     markPlanCompleted,
-    randomAffirmation,
     repeatCount,
     safeLevelIndex,
     totalLevels,
-    fallbackMode,
     updatePlanProgress,
   ])
 
@@ -566,7 +581,7 @@ export default function MemorizationPage() {
       const nextFailureCount = failureCountRef.current + 1
       failureCountRef.current = nextFailureCount
       setLastAttemptFailed(true)
-      setEncouragement(randomAffirmation())
+      setEncouragement("Please Recite (Again)")
       updatePlanProgress(activePlan.id, (existing) => ({
         ...existing,
         failureCount: nextFailureCount,
@@ -581,7 +596,7 @@ export default function MemorizationPage() {
         setShowGracePrompt(true)
       }
     },
-    [activePlan, activeTarget, preferences.graceEnabled, randomAffirmation, updatePlanProgress],
+    [activePlan, activeTarget, preferences.graceEnabled, updatePlanProgress],
   )
 
   const acceptGraceReduction = useCallback(() => {
@@ -725,7 +740,7 @@ export default function MemorizationPage() {
   ])
 
   const handleHeartHoldStart = useCallback(() => {
-    if (!activePlan) return
+    if (!activePlan || !sessionActive) return
     setHoldingHeart(true)
     if (heartTimeoutRef.current) {
       clearTimeout(heartTimeoutRef.current)
@@ -734,7 +749,7 @@ export default function MemorizationPage() {
       setHoldingHeart(false)
       handleRepetitionSuccess()
     }, HEART_HOLD_DURATION)
-  }, [activePlan, handleRepetitionSuccess])
+  }, [activePlan, handleRepetitionSuccess, sessionActive])
 
   const handleHeartHoldEnd = useCallback(() => {
     setHoldingHeart(false)
@@ -745,7 +760,7 @@ export default function MemorizationPage() {
   }, [])
 
   const handleGestureTap = useCallback(() => {
-    if (!activePlan) return
+    if (!activePlan || !sessionActive) return
     const now = Date.now()
     if (!lastTapTimestamp || now - lastTapTimestamp > GESTURE_WINDOW_MS) {
       setTapCount(1)
@@ -773,7 +788,14 @@ export default function MemorizationPage() {
       setTapCount(0)
       setLastTapTimestamp(null)
     }, GESTURE_WINDOW_MS)
-  }, [activePlan, gestureTimeoutRef, handleRepetitionSuccess, lastTapTimestamp, tapCount])
+  }, [
+    activePlan,
+    gestureTimeoutRef,
+    handleRepetitionSuccess,
+    lastTapTimestamp,
+    sessionActive,
+    tapCount,
+  ])
 
   const writingExpectedWords = useMemo(() => {
     const verse = versesForActiveLevel[0]
@@ -788,7 +810,7 @@ export default function MemorizationPage() {
   const handleWritingSubmit = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault()
-      if (!activePlan) return
+      if (!activePlan || !sessionActive) return
       const normalizedInput = writingInput
         .trim()
         .toLowerCase()
@@ -807,7 +829,14 @@ export default function MemorizationPage() {
         handleRepetitionFailure()
       }
     },
-    [activePlan, handleRepetitionFailure, handleRepetitionSuccess, writingExpectedWords, writingInput],
+    [
+      activePlan,
+      handleRepetitionFailure,
+      handleRepetitionSuccess,
+      sessionActive,
+      writingExpectedWords,
+      writingInput,
+    ],
   )
 
   useEffect(() => {
@@ -886,8 +915,9 @@ export default function MemorizationPage() {
   useEffect(() => {
     setSessionActive(false)
     setEncouragement(null)
-    setRepeatCount(activePlanProgress?.repeatCount ?? 0)
-  }, [activePlan?.id, activePlanProgress?.repeatCount])
+    setLevelCelebrationMessage(null)
+    setLastAttemptFailed(false)
+  }, [activePlan?.id])
 
   const handleModeSelection = useCallback(
     (mode: ConfirmationMode) => {
@@ -906,9 +936,25 @@ export default function MemorizationPage() {
       setEncouragement("This plan is resting. Resume when the pause concludes.")
       return
     }
+    setLevelCelebrationMessage(null)
+    setLastAttemptFailed(false)
+    setVoiceError(null)
     setSessionActive(true)
     setEncouragement("Breathe, intend, and let your recitation begin.")
-  }, [activePlan, isPlanPaused, versesForActiveLevel.length])
+
+    if (activeMode !== "voice") {
+      handleModeSelection("voice")
+    }
+
+    void handleVoiceRecitation()
+  }, [
+    activeMode,
+    activePlan,
+    handleModeSelection,
+    handleVoiceRecitation,
+    isPlanPaused,
+    versesForActiveLevel.length,
+  ])
 
   const handleManualCompletion = useCallback(() => {
     if (!activePlan) return
@@ -1243,12 +1289,20 @@ export default function MemorizationPage() {
                   </div>
 
                   <div className="space-y-5 rounded-2xl border border-emerald-100 bg-white/90 p-6 shadow-inner">
-                    {versesForActiveLevel.map((verse) => (
-                      <div key={verse.numberInSurah} className="space-y-2">
-                        <p className="text-3xl leading-relaxed text-slate-900 md:text-[2.25rem]">{verse.arabicText}</p>
-                        <p className="text-sm leading-relaxed text-slate-600">{verse.translation}</p>
+                    {sessionActive ? (
+                      versesForActiveLevel.map((verse) => (
+                        <div key={verse.numberInSurah} className="space-y-2">
+                          <p className="text-3xl leading-relaxed text-slate-900 md:text-[2.25rem]">{verse.arabicText}</p>
+                          <p className="text-sm leading-relaxed text-slate-600">{verse.translation}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="flex flex-col items-center justify-center gap-3 py-8 text-center text-slate-600">
+                        <Mic className="h-6 w-6 text-emerald-600" />
+                        <p className="text-sm font-semibold text-slate-700">Press start to reveal your verses</p>
+                        <p className="text-xs text-slate-500">Begin the sitting to activate voice witnessing for each recitation.</p>
                       </div>
-                    ))}
+                    )}
                   </div>
 
                   <div className="space-y-3">
@@ -1261,7 +1315,7 @@ export default function MemorizationPage() {
 
                   {!sessionActive && !activePlan.completed && !isPlanPaused && (
                     <Button className="w-full bg-emerald-600 text-white hover:bg-emerald-700" onClick={handleStartMemorization}>
-                      <Sparkles className="mr-2 h-4 w-4" /> Start this memorisation sitting
+                      <Sparkles className="mr-2 h-4 w-4" /> Start memorization
                     </Button>
                   )}
 
@@ -1273,7 +1327,7 @@ export default function MemorizationPage() {
 
                   {lastAttemptFailed && (
                     <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
-                      Please recite or engage once more. Your tongue and heart are the keys—no rush.
+                      Please Recite (Again).
                     </div>
                   )}
 
@@ -1315,7 +1369,13 @@ export default function MemorizationPage() {
                         {voiceError && <p className="text-xs text-red-600">{voiceError}</p>}
                         <Button
                           className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
-                          disabled={micStatus === "requesting" || isListening || isPlanPaused || activePlan.completed}
+                          disabled={
+                            !sessionActive ||
+                            micStatus === "requesting" ||
+                            isListening ||
+                            isPlanPaused ||
+                            activePlan.completed
+                          }
                           onClick={handleVoiceRecitation}
                         >
                           <Mic className="mr-2 h-4 w-4" /> Recite aloud to witness a repetition
@@ -1341,7 +1401,7 @@ export default function MemorizationPage() {
                             handleHeartHoldStart()
                           }}
                           onTouchEnd={handleHeartHoldEnd}
-                          disabled={activePlan.completed || isPlanPaused}
+                          disabled={activePlan.completed || isPlanPaused || !sessionActive}
                         >
                           <Heart className="mr-2 h-4 w-4" /> Hold for {HEART_HOLD_DURATION / 1000} seconds with intention
                         </Button>
@@ -1356,7 +1416,7 @@ export default function MemorizationPage() {
                         <Button
                           className="w-full border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50"
                           onClick={handleGestureTap}
-                          disabled={activePlan.completed || isPlanPaused}
+                          disabled={activePlan.completed || isPlanPaused || !sessionActive}
                         >
                           Tap rhythm • {tapCount} / {GESTURE_REQUIRED_TAPS}
                         </Button>
@@ -1377,10 +1437,14 @@ export default function MemorizationPage() {
                               : "Share a reflection on what you just recited..."
                           }
                           className="border-emerald-200"
-                          disabled={activePlan.completed || isPlanPaused}
+                          disabled={activePlan.completed || isPlanPaused || !sessionActive}
                         />
                         <div className="flex flex-wrap items-center gap-3">
-                          <Button type="submit" className="bg-emerald-600 text-white hover:bg-emerald-700" disabled={activePlan.completed || isPlanPaused}>
+                          <Button
+                            type="submit"
+                            className="bg-emerald-600 text-white hover:bg-emerald-700"
+                            disabled={activePlan.completed || isPlanPaused || !sessionActive}
+                          >
                             Submit reflection
                           </Button>
                           <Button type="button" variant="outline" onClick={() => setWritingInput("")}>
@@ -1675,6 +1739,42 @@ export default function MemorizationPage() {
             </Button>
             <Button className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={handlePauseSession}>
               Pause with intention
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={levelCelebrationMessage !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setLevelCelebrationMessage(null)
+          }
+        }}
+      >
+        <DialogContent className="max-w-md border-emerald-100 bg-white/95 text-center">
+          <DialogHeader>
+            <div className="flex flex-col items-center gap-3">
+              <Sparkles className="h-8 w-8 text-emerald-600" />
+              <DialogTitle className="text-xl font-semibold text-slate-900">
+                {levelCelebrationMessage ?? "Level complete"}
+              </DialogTitle>
+              <DialogDescription className="text-sm text-slate-600">
+                The next verses are now revealed. Recite them aloud twenty times to continue your journey.
+              </DialogDescription>
+            </div>
+          </DialogHeader>
+          <DialogFooter className="flex-row justify-center">
+            <Button
+              className="bg-emerald-600 text-white hover:bg-emerald-700"
+              onClick={() => {
+                setLevelCelebrationMessage(null)
+                if (sessionActive) {
+                  void handleVoiceRecitation()
+                }
+              }}
+            >
+              Continue reciting
             </Button>
           </DialogFooter>
         </DialogContent>
