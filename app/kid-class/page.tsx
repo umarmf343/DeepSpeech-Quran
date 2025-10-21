@@ -140,7 +140,7 @@ export default function KidClassPage() {
               <Badge className="bg-gradient-to-r from-amber-400 to-rose-500 text-white shadow">New Habit Journey</Badge>
               <div className="space-y-4">
                 <h1 className="text-4xl font-bold tracking-tight text-maroon-900 sm:text-5xl">
-                  Kid Class: build luminous Qur'an habits with {firstName}
+                  Kids Class: build luminous Qur'an habits with {firstName}
                 </h1>
                 <p className="text-lg text-maroon-700 sm:max-w-xl">
                   Each week is a story-powered mission that keeps little reciters excited, confident, and consistent. We combine

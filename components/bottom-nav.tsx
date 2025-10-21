@@ -51,7 +51,7 @@ interface TabDefinition {
 const TAB_REGISTRY: Record<TabSlug, TabDefinition> = {
   dashboard: { slug: "dashboard", label: "Dashboard", href: "/dashboard", icon: "home" },
   reader: { slug: "reader", label: "Reader", href: "/reader", icon: "book" },
-  "kid-class": { slug: "kid-class", label: "Kid Class", href: "/kid-class", icon: "sparkles" },
+  "kid-class": { slug: "kid-class", label: "Kids Class", href: "/kid-class", icon: "sparkles" },
   memorization: { slug: "memorization", label: "Memorization", href: "/memorization", icon: "target" },
   qaidah: { slug: "qaidah", label: "Qa'idah", href: "/qaidah", icon: "scroll" },
   leaderboard: { slug: "leaderboard", label: "Leaderboard", href: "/leaderboard", icon: "crown" },
