@@ -434,14 +434,14 @@ export function QuranReader({
                 {/* Arabic Text */}
                 <div className="relative mb-6">
                   {isCurrentAyah && (
-                    <>
+                    <div className="absolute -top-8 left-1/2 z-10 flex -translate-x-1/2 items-center gap-3">
                       <Button
                         onClick={previousAyah}
                         disabled={currentAyahIndex === 0}
                         variant="secondary"
                         size="icon"
                         aria-label="Previous ayah"
-                        className="absolute bottom-4 left-2 rounded-full shadow-md bg-white/80 backdrop-blur-sm hover:bg-white md:left-0 md:top-1/2 md:bottom-auto md:-translate-y-1/2 md:-translate-x-1/2"
+                        className="h-12 w-12 rounded-full border border-white/40 bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-600 text-white shadow-lg transition-all duration-300 hover:from-emerald-500 hover:via-teal-500 hover:to-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-200/80 disabled:opacity-60 disabled:saturate-75"
                       >
                         <SkipBack className="w-4 h-4" />
                       </Button>
@@ -451,11 +451,11 @@ export function QuranReader({
                         variant="secondary"
                         size="icon"
                         aria-label="Next ayah"
-                        className="absolute bottom-4 right-2 rounded-full shadow-md bg-white/80 backdrop-blur-sm hover:bg-white md:right-0 md:top-1/2 md:bottom-auto md:-translate-y-1/2 md:translate-x-1/2"
+                        className="h-12 w-12 rounded-full border border-white/40 bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-600 text-white shadow-lg transition-all duration-300 hover:from-emerald-500 hover:via-teal-500 hover:to-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-200/80 disabled:opacity-60 disabled:saturate-75"
                       >
                         <SkipForward className="w-4 h-4" />
                       </Button>
-                    </>
+                    </div>
                   )}
                   <div className="text-right text-2xl md:text-3xl leading-relaxed font-arabic text-maroon-800 p-4 bg-cream-50 rounded-lg px-12">
                     {ayah.text}
