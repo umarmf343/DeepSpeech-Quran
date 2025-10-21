@@ -44,6 +44,12 @@ const encouragementMessage = "May Allah accept your effort. You’re growing bea
 
 const parentSummaryPrefixes = ["Today’s focus", "Practice intention", "Suggested family activity"]
 
+const studentProfile = {
+  id: "amina",
+  name: "Amina Rahman",
+  classes: ["foundation"],
+}
+
 export default function QaidahAssignmentsPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [loading, setLoading] = useState(false)
@@ -62,9 +68,28 @@ export default function QaidahAssignmentsPage() {
   const [parentView, setParentView] = useState(false)
   const [syncingOffline, setSyncingOffline] = useState(false)
 
+  const visibleAssignments = useMemo(() => {
+    const classSet = new Set(studentProfile.classes)
+    return assignments.filter((assignment) => {
+      if (assignment.status && assignment.status !== "sent") {
+        return false
+      }
+
+      if (!assignment.recipients) {
+        return false
+      }
+
+      if (assignment.recipients.type === "class") {
+        return assignment.recipients.ids.some((id) => classSet.has(id))
+      }
+
+      return assignment.recipients.ids.includes(studentProfile.id)
+    })
+  }, [assignments])
+
   const selectedAssignment = useMemo(
-    () => assignments.find((assignment) => assignment.id === selectedAssignmentId) ?? null,
-    [assignments, selectedAssignmentId],
+    () => visibleAssignments.find((assignment) => assignment.id === selectedAssignmentId) ?? null,
+    [visibleAssignments, selectedAssignmentId],
   )
 
   useEffect(() => {
@@ -90,6 +115,15 @@ export default function QaidahAssignmentsPage() {
       audioRef.current?.pause()
     }
   }, [])
+
+  useEffect(() => {
+    if (!selectedAssignmentId) return
+    const stillVisible = visibleAssignments.some((assignment) => assignment.id === selectedAssignmentId)
+    if (!stillVisible) {
+      setSelectedAssignmentId(null)
+      setViewerOpen(false)
+    }
+  }, [selectedAssignmentId, visibleAssignments])
 
   const openAssignment = (assignment: Assignment) => {
     setSelectedAssignmentId(assignment.id)
@@ -311,7 +345,7 @@ export default function QaidahAssignmentsPage() {
           </TabsList>
           <TabsContent value="assignments" className="mt-4 space-y-4">
             {loading && <p className="text-sm text-muted-foreground">Loading assignments…</p>}
-            {!loading && assignments.length === 0 && (
+            {!loading && visibleAssignments.length === 0 && (
               <Alert>
                 <AlertTitle>No assignments yet</AlertTitle>
                 <AlertDescription>
@@ -321,7 +355,7 @@ export default function QaidahAssignmentsPage() {
             )}
 
             <div className="grid gap-4 lg:grid-cols-2">
-              {assignments.map((assignment) => (
+              {visibleAssignments.map((assignment) => (
                 <Card key={assignment.id} className="border border-maroon-100/60 bg-white/80">
                   <CardHeader className="space-y-2">
                     <CardTitle className="text-xl text-maroon-900">{assignment.title}</CardTitle>
@@ -340,6 +374,11 @@ export default function QaidahAssignmentsPage() {
                       <Badge variant="secondary">Mode: {assignment.mode}</Badge>
                       {assignment.recipients.type === "class" && (
                         <Badge variant="outline">Class assignment</Badge>
+                      )}
+                      {assignment.recipients.type === "student" && (
+                        <Badge variant="outline" className="border-emerald-200 text-emerald-700">
+                          Personal practice
+                        </Badge>
                       )}
                     </div>
                     <Button className="w-full bg-maroon-600" onClick={() => openAssignment(assignment)}>
@@ -408,7 +447,12 @@ export default function QaidahAssignmentsPage() {
                       onClick={() => syncOfflineResources(selectedAssignment)}
                       disabled={syncingOffline}
                     >
-                      {syncingOffline ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}Download for offline
+                      {syncingOffline ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="mr-2 h-4 w-4" />
+                      )}
+                      Download for offline
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => requestHelp(selectedAssignment)}>
                       <HelpCircle className="mr-2 h-4 w-4" /> I don’t understand
@@ -417,6 +461,11 @@ export default function QaidahAssignmentsPage() {
                       <Sparkles className="mr-2 h-4 w-4" /> {parentView ? "Student view" : "Parent summary"}
                     </Button>
                   </div>
+                  <p className="text-xs text-muted-foreground">
+                    Assigned to {selectedAssignment.recipients.type === "class"
+                      ? `class ${selectedAssignment.recipients.ids.join(", ")}`
+                      : studentProfile.name}
+                  </p>
                 </div>
 
                 {parentView ? (

@@ -24,9 +24,10 @@ interface Assignment {
   imageUrl?: string
   recipients: { type: "class" | "student"; ids: string[] }
   hotspots: Hotspot[]
-  status: "draft" | "sent"
+  status: "draft" | "sent" | "archived"
   createdAt: string
   createdBy: string
+  teacherName?: string
   expiresAt?: string
   consentVersion?: string
 }
