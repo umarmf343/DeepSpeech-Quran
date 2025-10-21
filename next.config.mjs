@@ -3,8 +3,6 @@ const WINDOWS_SYSTEM_PATHS = [
   "C:/DumpStack.log.tmp",
   "C:/System Volume Information",
   "C:/hiberfil.sys",
-  "C:/pagefile.sys",
-  "C:/swapfile.sys",
 ];
 
 const WINDOWS_SYSTEM_GLOBS = WINDOWS_SYSTEM_PATHS.map((systemPath) => {
@@ -15,15 +13,27 @@ const WINDOWS_SYSTEM_GLOBS = WINDOWS_SYSTEM_PATHS.map((systemPath) => {
   const globSafePath = normalizedPath
     .split("/")
     .filter((segment) => segment.length > 0)
-    .map((segment) => segment.replace(/\s/g, "\\ "))
     .join("/");
 
   if (!globSafePath) {
     return null;
   }
 
-  return `**/${globSafePath}`;
+  return globSafePath;
 }).filter(Boolean);
+
+const ESCAPE_REGEX = /[.*+?^${}()|[\]\\]/g;
+const escapeRegExp = (value) => value.replace(ESCAPE_REGEX, "\\$&");
+
+const CUSTOM_WATCH_IGNORE_PATTERNS = [
+  "node_modules",
+  ".next",
+  ".git",
+  "build",
+  "dist",
+  "public/static",
+  ...WINDOWS_SYSTEM_GLOBS,
+];
 
 const nextConfig = {
   eslint: {
@@ -38,31 +48,54 @@ const nextConfig = {
   output: "standalone",
   webpack: (config, { dev }) => {
     if (dev) {
-      const existingIgnored = config.watchOptions?.ignored ?? [];
-      const ignoredArray = Array.isArray(existingIgnored)
-        ? existingIgnored
-        : [existingIgnored];
-      const ignored = [
-        ...ignoredArray,
-        "**/node_modules/**",
-        "**/.next/**",
-        "**/.git/**",
-        "**/build/**",
-        "**/dist/**",
-        "**/public/static/**",
-        ...WINDOWS_SYSTEM_GLOBS,
-      ].filter((pattern) => {
-        if (typeof pattern === "string") {
-          return pattern.trim().length > 0;
-        }
+      const existingIgnored = config.watchOptions?.ignored;
+      const customStrings = CUSTOM_WATCH_IGNORE_PATTERNS.filter(
+        (pattern) => typeof pattern === "string" && pattern.trim().length > 0
+      );
 
-        return pattern instanceof RegExp;
-      });
+      const customRegexSource = customStrings
+        .map((pattern) =>
+          `(?:^|[\\\\/])${escapeRegExp(
+            pattern.replace(/\\\\/g, "/")
+          )}(?:$|[\\\\/])`
+        )
+        .join("|");
 
-      config.watchOptions = {
+      let ignoredValue;
+
+      if (existingIgnored instanceof RegExp) {
+        const combinedSource = [existingIgnored.source, customRegexSource]
+          .filter((source) => source && source.length > 0)
+          .join("|");
+        const combinedFlags = Array.from(
+          new Set(`${existingIgnored.flags}i`.split(""))
+        )
+          .sort()
+          .join("");
+
+        ignoredValue = new RegExp(combinedSource, combinedFlags);
+      } else if (Array.isArray(existingIgnored)) {
+        ignoredValue = [
+          ...existingIgnored.filter(
+            (value) => typeof value === "string" && value.trim().length > 0
+          ),
+          ...customStrings,
+        ];
+      } else if (typeof existingIgnored === "string") {
+        ignoredValue = [existingIgnored, ...customStrings];
+      } else if (customStrings.length > 0) {
+        ignoredValue = customStrings;
+      }
+
+      const watchOptions = {
         ...(config.watchOptions ?? {}),
-        ignored,
       };
+
+      if (ignoredValue) {
+        watchOptions.ignored = ignoredValue;
+      }
+
+      config.watchOptions = watchOptions;
     }
 
     return config;
