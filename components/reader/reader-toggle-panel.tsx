@@ -3,6 +3,11 @@
 import { useEffect, useMemo, useState } from "react"
 
 import { Button } from "@/components/ui/button"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
@@ -265,31 +270,48 @@ export function ReaderTogglePanel({
 
   if (!isMobile) {
     return (
-      <div
+      <Collapsible
+        open={isOpen}
+        onOpenChange={setIsOpen}
         className="fixed top-20 right-4 z-20 flex flex-col items-end gap-3"
         data-state={profile.fullSurahView ? "expanded" : "condensed"}
       >
-        <div className="flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-slate-600 shadow-sm dark:bg-slate-900/80 dark:text-slate-200">
-          <Cog className="h-4 w-4" aria-hidden="true" /> Preferences
-        </div>
-        {panelContent}
-      </div>
+        <CollapsibleTrigger asChild>
+          <button
+            type="button"
+            className="flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-slate-600 shadow-sm transition-colors hover:bg-white dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-900"
+            aria-expanded={isOpen}
+          >
+            <Cog className="h-4 w-4" aria-hidden="true" />
+            <span>Preferences</span>
+            <span className="ml-1 text-slate-500 dark:text-slate-400">
+              {isOpen ? <PanelRightClose className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </span>
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent asChild>{panelContent}</CollapsibleContent>
+      </Collapsible>
     )
   }
 
   return (
-    <div className="fixed bottom-6 right-4 z-30 flex flex-col items-end gap-3">
-      <Button
-        size="icon"
-        variant="default"
-        className="h-14 w-14 rounded-full shadow-xl"
-        aria-label={isOpen ? "Hide reader preferences" : "Show reader preferences"}
-        onClick={() => setIsOpen((previous) => !previous)}
-      >
-        {isOpen ? <PanelRightClose className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-      </Button>
-      {isOpen ? panelContent : null}
-    </div>
+    <Collapsible
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      className="fixed bottom-6 right-4 z-30 flex flex-col items-end gap-3"
+    >
+      <CollapsibleTrigger asChild>
+        <Button
+          size="icon"
+          variant="default"
+          className="h-14 w-14 rounded-full shadow-xl"
+          aria-label={isOpen ? "Hide reader preferences" : "Show reader preferences"}
+        >
+          {isOpen ? <PanelRightClose className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent asChild>{panelContent}</CollapsibleContent>
+    </Collapsible>
   )
 }
 
