@@ -181,7 +181,7 @@ function cloneUser(user: UserRecord): UserRecord {
 const navigationLinks: NavigationLink[] = [
   { slug: "dashboard", label: "Dashboard", href: "/dashboard", icon: "home", roles: ["student", "teacher", "admin", "visitor"] },
   { slug: "reader", label: "Qur'an Reader", href: "/reader", icon: "book", roles: ["student", "teacher", "admin", "visitor"] },
-  { slug: "kid-class", label: "Kid Class", href: "/kid-class", icon: "sparkles", roles: ["student", "teacher", "admin", "visitor"] },
+  { slug: "kid-class", label: "Kids Class", href: "/kid-class", icon: "sparkles", roles: ["student", "teacher", "admin", "visitor"] },
   {
     slug: "memorization",
     label: "Memorization",
