@@ -33,19 +33,26 @@ self.addEventListener("fetch", (event) => {
   }
 
   event.respondWith(
-    caches.open(CACHE_NAME).then(async (cache) => {
+    (async () => {
+      const cache = await caches.open(CACHE_NAME)
       const cached = await cache.match(request)
-      const fetchPromise = fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            cache.put(request, response.clone()).catch(() => {})
-          }
-          return response
-        })
-        .catch(() => cached)
 
-      return cached ?? fetchPromise
-    }),
+      try {
+        const response = await fetch(request)
+
+        if (response.ok) {
+          cache.put(request, response.clone()).catch(() => {})
+        }
+
+        return response
+      } catch (error) {
+        if (cached) {
+          return cached
+        }
+
+        return Response.error()
+      }
+    })(),
   )
 })
 
