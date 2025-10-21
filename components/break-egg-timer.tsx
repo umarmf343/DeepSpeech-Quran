@@ -176,7 +176,7 @@ function EggProgressIcon({ progress }: { progress: number }) {
             <g className="egg-icon">
               <path
                 className="egg-shell-base"
-                d="M32 6c-8.8 0-16 9.9-16 21.8 0 6.4 2 12.3 5.2 17.1 3.5 5.3 7.9 9.1 10.8 9.1s7.3-3.8 10.8-9.1C45.9 40.1 48 34.2 48 27.8 48 15.9 40.8 6 32 6z"
+                d="M32 6c-7.5 0-16 12.7-16 22.8 0 10.5 6.6 19.2 16 19.2s16-8.7 16-19.2C48 18.7 39.5 6 32 6z"
                 fill={`url(#${gradientId})`}
               />
               <path
