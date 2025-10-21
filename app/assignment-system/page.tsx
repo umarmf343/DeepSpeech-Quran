@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { EggChallengeWidget } from "@/components/egg-challenge-widget"
+import { NurBloomWidget } from "@/components/nur-bloom-widget"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
-import { useEggChallenge } from "@/hooks/use-egg-challenge"
+import { useNurBloomChallenge } from "@/hooks/use-nur-bloom-challenge"
 import {
   CalendarIcon,
   CheckCircle2,
@@ -90,10 +90,10 @@ const activityHighlights = [
     gradient: "from-[#ede9fe] via-[#ddd6fe] to-[#a78bfa]",
   },
   {
-    icon: "🥚",
-    title: "Break the Egg Challenge",
-    description: "Every completed hotspot pours progress into the memorisation egg until it finally hatches.",
-    gradient: "from-[#ede9fe] via-[#f3e8ff] to-[#fde68a]",
+    icon: "✨",
+    title: "Nur Bloom Companion",
+    description: "Guided recitations nurture a bloom of light that travels with students into their Quran reading journey.",
+    gradient: "from-[#ecfdf5] via-[#d1fae5] to-[#bfdbfe]",
   },
 ]
 
@@ -120,8 +120,19 @@ export default function AssignmentSystemPage() {
   const [openAssignmentId, setOpenAssignmentId] = useState<string | null>(null)
   const [progressMap, setProgressMap] = useState<Record<string, string[]>>({})
 
-  const { enabled: eggChallengeEnabled, state: eggChallengeState, trackProgress: trackEggChallengeProgress } =
-    useEggChallenge()
+  const {
+    state: nurBloomState,
+    actions: {
+      enable: enableNurBloom,
+      disable: disableNurBloom,
+      dismissPrompt: dismissNurPrompt,
+      setTheme: setNurTheme,
+      toggleGentleMode,
+      toggleSound,
+      acknowledgeCelebration,
+      markReflectionPromptSeen,
+    },
+  } = useNurBloomChallenge()
 
   const assignmentModalAudio = useRef<HTMLAudioElement | null>(null)
   const hotspotCanvasRef = useRef<HTMLDivElement>(null)
@@ -347,13 +358,10 @@ export default function AssignmentSystemPage() {
   }
 
   const handleHotspotInteraction = (assignment: Assignment, hotspot: Hotspot) => {
-    let shouldTrackEggProgress = false
-
     setProgressMap((prev) => {
       const existing = new Set(prev[assignment.id] ?? [])
       if (!existing.has(hotspot.id)) {
         existing.add(hotspot.id)
-        shouldTrackEggProgress = true
       }
 
       const nextState = { ...prev, [assignment.id]: Array.from(existing) }
@@ -371,10 +379,6 @@ export default function AssignmentSystemPage() {
 
       return nextState
     })
-
-    if (shouldTrackEggProgress && role === "student") {
-      void trackEggChallengeProgress(1)
-    }
 
     if (hotspot.audioUrl) {
       try {
@@ -1036,36 +1040,44 @@ export default function AssignmentSystemPage() {
               with every successful interaction.
             </p>
           </div>
-          {eggChallengeEnabled && (
-            <div className="grid gap-6 lg:grid-cols-[1.3fr,0.7fr]">
-              <EggChallengeWidget state={eggChallengeState} />
-              <div className="flex h-full flex-col justify-between gap-6 rounded-3xl border border-white/60 bg-white/80 p-6 text-maroon-900 shadow-xl backdrop-blur">
-                <div className="space-y-3">
-                  <h3 className="text-xl font-semibold text-maroon-950">How to hatch your egg companion</h3>
-                  <p className="text-sm text-maroon-900/80">
-                    Each hotspot you complete adds fresh verses to the Break the Egg challenge. Stay consistent and the celebration will follow.
-                  </p>
-                </div>
-                <div className="space-y-3 text-sm text-maroon-900/80">
-                  <div className="flex items-center gap-3">
-                    <MousePointerClick className="h-4 w-4 text-maroon-700" />
-                    Tap glowing hotspots to earn verse credits.
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Headphones className="h-4 w-4 text-maroon-700" />
-                    Listen to each audio prompt before moving on.
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Sparkles className="h-4 w-4 text-maroon-700" />
-                    Reach 100% and enjoy the confetti when your egg cracks.
-                  </div>
-                </div>
-                <p className="rounded-2xl bg-amber-50/70 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-amber-700">
-                  Hotspot completions count automatically—no extra submissions needed.
+          <div className="grid gap-6 lg:grid-cols-[1.3fr,0.7fr]">
+            <NurBloomWidget
+              state={nurBloomState}
+              onEnable={enableNurBloom}
+              onDisable={disableNurBloom}
+              onDismissPrompt={dismissNurPrompt}
+              onThemeChange={setNurTheme}
+              onToggleGentleMode={toggleGentleMode}
+              onToggleSound={toggleSound}
+              onAcknowledgeCelebration={acknowledgeCelebration}
+              onReflectionPromptSeen={markReflectionPromptSeen}
+            />
+            <div className="flex h-full flex-col justify-between gap-6 rounded-3xl border border-white/60 bg-white/80 p-6 text-maroon-900 shadow-xl backdrop-blur">
+              <div className="space-y-3">
+                <h3 className="text-xl font-semibold text-maroon-950">Invite your Nur Bloom companion</h3>
+                <p className="text-sm text-maroon-900/80">
+                  Each mindful interaction strengthens your recitation rhythm. When you feel ready, bring those verses into the reader and let Nur Bloom celebrate every bloom of light.
                 </p>
               </div>
+              <div className="space-y-3 text-sm text-maroon-900/80">
+                <div className="flex items-center gap-3">
+                  <MousePointerClick className="h-4 w-4 text-maroon-700" />
+                  Explore glowing hotspots to prepare verses for reflection.
+                </div>
+                <div className="flex items-center gap-3">
+                  <Headphones className="h-4 w-4 text-maroon-700" />
+                  Listen closely before advancing—every pause deepens tadabbur.
+                </div>
+                <div className="flex items-center gap-3">
+                  <Sparkles className="h-4 w-4 text-maroon-700" />
+                  Carry that focus into Nur Bloom to watch your light companion grow.
+                </div>
+              </div>
+              <p className="rounded-2xl bg-emerald-50/70 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                When you recite in the reader, Nur Bloom gently captures your progress—no extra taps required.
+              </p>
             </div>
-          )}
+          </div>
           {isLoadingAssignments ? (
             <div className="flex items-center gap-3 rounded-3xl border border-maroon-100 bg-white/80 px-5 py-6 text-maroon-900">
               <Loader2 className="h-5 w-5 animate-spin text-maroon-700" />

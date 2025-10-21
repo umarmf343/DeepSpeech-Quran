@@ -67,7 +67,7 @@ export interface GamificationMilestone {
   threshold: number
   celebrationText: string
   status: "locked" | "in-progress" | "completed"
-  asset: "egg" | "tree" | "medal"
+  asset: "nur" | "tree" | "medal"
   localizedCelebration: Record<string, string>
 }
 
@@ -226,7 +226,7 @@ const sharedLocalization: LocalizationStrings = {
     profile: "Profile",
   },
   gamification: {
-    celebrationEgg: "Takbir! The egg is hatching...",
+    celebrationEgg: "MashaAllah! Your nur companion is glowing.",
     celebrationTree: "Mashallah! Your tree is blooming.",
     streak: "Current streak",
   },
@@ -327,23 +327,23 @@ const baseGamification: GamificationState = {
   xpToNext: 400,
   streak: 12,
   heroCopy: {
-    title: "Takbir! The egg is hatching...",
-    subtitle: "Your consistent recitation is unlocking new blessings.",
+    title: "Nur Bloom is awakening",
+    subtitle: "Your consistent recitation is weaving light into every verse.",
     kicker: "Daily Quest",
   },
   milestones: [
     {
-      id: "egg",
-      title: "Egg Hatching",
-      description: "Complete daily recitations to hatch your egg companion.",
+      id: "nur",
+      title: "Nur Bloom Awakening",
+      description: "Complete daily recitations to help your light companion blossom.",
       progress: 80,
       threshold: 100,
-      celebrationText: "Takbir! The egg is hatching...",
+      celebrationText: "MashaAllah! Your nur companion is glowing brightly.",
       status: "in-progress",
-      asset: "egg",
+      asset: "nur",
       localizedCelebration: {
-        en: "Takbir! The egg is hatching...",
-        ar: "تكبير! البيضة تفقس...",
+        en: "MashaAllah! Your nur companion is glowing.",
+        ar: "ما شاء الله! نورك يزداد إشراقًا.",
       },
     },
     {
@@ -435,7 +435,7 @@ const baseNotifications: Notification[] = [
   {
     id: "notif-2",
     title: "Celebration",
-    message: "Takbir! Your egg companion is about to hatch.",
+    message: "MashaAllah! Your nur companion is glowing brightly.",
     type: "celebration",
     createdAt: now,
     read: true,
@@ -697,7 +697,7 @@ export function completeHabitForUser(userId: string, habitId: string) {
     user.gamification.xpToNext = 500
   }
 
-  const milestone = user.gamification.milestones.find((item) => item.id === "egg")
+  const milestone = user.gamification.milestones.find((item) => item.id === "nur")
   if (milestone) {
     milestone.progress = Math.min(100, milestone.progress + 25)
     if (milestone.progress >= milestone.threshold) {

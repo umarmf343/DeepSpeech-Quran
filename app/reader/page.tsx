@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 
 import Link from "next/link"
 
-import { BreakEggTimer } from "@/components/break-egg-timer"
 import { MilestoneCelebration } from "@/components/reader/milestone-celebration"
 import { GwaniSurahPlayer } from "@/components/reader/gwani-surah-player"
 import { MushafView } from "@/components/reader/mushaf-view"
@@ -532,7 +531,6 @@ export default function AlfawzReaderPage() {
                 <MorphologyBreakdown ayahReference={`${selectedSurahNumber}:${selectedAyahNumber}`} />
               ) : null}
 
-              <BreakEggTimer />
             </CardContent>
           </Card>
 

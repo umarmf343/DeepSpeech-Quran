@@ -9,10 +9,9 @@ import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Play, Pause, SkipBack, SkipForward, Volume2, Bookmark, BookmarkCheck, Languages, Repeat } from "lucide-react"
-import { BreakEggTimer } from "@/components/break-egg-timer"
-import { EggChallengeWidget } from "@/components/egg-challenge-widget"
-import { useEggChallenge } from "@/hooks/use-egg-challenge"
-import { quranAPI, type Surah, type Ayah, type Translation, type Reciter } from "@/lib/quran-api"
+import { NurBloomWidget } from "@/components/nur-bloom-widget"
+import { useNurBloomChallenge } from "@/hooks/use-nur-bloom-challenge"
+import { quranAPI, type Surah, type Ayah, type Translation } from "@/lib/quran-api"
 import type { DailyGoalSnapshot } from "@/lib/daily-goal-store"
 
 interface QuranReaderProps {
@@ -32,7 +31,6 @@ export function QuranReader({
   const [currentSurah, setCurrentSurah] = useState<Surah | null>(null)
   const [ayahs, setAyahs] = useState<Ayah[]>([])
   const [translations, setTranslations] = useState<{ [key: number]: Translation[] }>({})
-  const [reciters, setReciters] = useState<Reciter[]>([])
   const [selectedReciter, setSelectedReciter] = useState("ar.alafasy")
   const [currentAyahIndex, setCurrentAyahIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -45,62 +43,58 @@ export function QuranReader({
   const [audioUrls, setAudioUrls] = useState<string[]>([])
   const [, setDailyGoalState] = useState<DailyGoalSnapshot | null>(null)
 
-  const { enabled: eggChallengeEnabled, state: eggChallengeState, trackProgress: trackEggChallengeProgress } =
-    useEggChallenge()
+  const {
+    state: nurBloomState,
+    actions: {
+      enable: enableNurBloom,
+      disable: disableNurBloom,
+      dismissPrompt: dismissNurPrompt,
+      setTheme: setNurTheme,
+      toggleGentleMode,
+      toggleSound,
+      recordVerseProgress: recordNurProgress,
+      scheduleVerseObservation,
+      resetStreak: resetNurStreak,
+      acknowledgeCelebration,
+      markReflectionPromptSeen,
+    },
+  } = useNurBloomChallenge()
 
   const audioRef = useRef<HTMLAudioElement>(null)
 
   // Load initial data
   useEffect(() => {
-    loadInitialData()
+    let isMounted = true
+    void (async () => {
+      setIsLoading(true)
+      try {
+        const surahsData = await quranAPI.getSurahs()
+        if (!isMounted) {
+          return
+        }
+        setSurahs(surahsData)
+      } catch (error) {
+        console.error("Error loading initial data:", error)
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    })()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   // Load surah when selection changes
   useEffect(() => {
     if (initialSurah) {
-      loadSurah(initialSurah)
+      void loadSurah(initialSurah)
     }
-  }, [initialSurah])
+  }, [initialSurah, loadSurah])
 
-  const loadInitialData = async () => {
-    setIsLoading(true)
-    try {
-      const [surahsData, recitersData] = await Promise.all([quranAPI.getSurahs(), quranAPI.getReciters()])
-
-      setSurahs(surahsData)
-      setReciters(recitersData)
-    } catch (error) {
-      console.error("Error loading initial data:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const loadSurah = async (surahNumber: number) => {
-    setIsLoading(true)
-    try {
-      const surahData = await quranAPI.getSurah(surahNumber)
-      if (surahData) {
-        setCurrentSurah(surahData.surah)
-        setAyahs(surahData.ayahs)
-        setCurrentAyahIndex(initialAyah - 1)
-
-        // Load translations for all ayahs
-        if (showTranslations) {
-          await loadTranslations(surahData.ayahs, surahNumber)
-        }
-
-        // Load audio URLs
-        await loadAudio(surahNumber)
-      }
-    } catch (error) {
-      console.error("Error loading surah:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const loadTranslations = async (ayahList: Ayah[], surahNumber: number) => {
+  const loadTranslations = useCallback(async (ayahList: Ayah[], surahNumber: number) => {
     const translationPromises = ayahList.map(async (ayah) => {
       const ayahData = await quranAPI.getAyah(surahNumber, ayah.numberInSurah, ["en.sahih", "en.pickthall"])
       return { ayahNumber: ayah.numberInSurah, translations: ayahData?.translations || [] }
@@ -114,9 +108,9 @@ export function QuranReader({
     })
 
     setTranslations(translationMap)
-  }
+  }, [])
 
-  const loadAudio = async (surahNumber: number) => {
+  const loadAudio = useCallback(async (surahNumber: number) => {
     try {
       const audioSegments = await quranAPI.getSurahAudio(surahNumber, selectedReciter)
       const urls = audioSegments.map((segment) => segment.url)
@@ -124,12 +118,49 @@ export function QuranReader({
     } catch (error) {
       console.error("Error loading audio:", error)
     }
-  }
+  }, [selectedReciter])
+
+  const loadSurah = useCallback(
+    async (surahNumber: number) => {
+      setIsLoading(true)
+      try {
+        const surahData = await quranAPI.getSurah(surahNumber)
+        if (surahData) {
+          setCurrentSurah(surahData.surah)
+          setAyahs(surahData.ayahs)
+          setCurrentAyahIndex(initialAyah - 1)
+
+          if (showTranslations) {
+            await loadTranslations(surahData.ayahs, surahNumber)
+          }
+
+          await loadAudio(surahNumber)
+        }
+      } catch (error) {
+        console.error("Error loading surah:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [initialAyah, loadAudio, loadTranslations, showTranslations],
+  )
 
   const reportVerseProgress = useCallback(
     async (verses = 1) => {
       try {
-        const data = await trackEggChallengeProgress(verses)
+        const response = await fetch("/api/track-verse-progress", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ verses }),
+        })
+
+        if (!response.ok) {
+          return
+        }
+
+        const data = (await response.json()) as { dailyGoal?: DailyGoalSnapshot }
         if (data?.dailyGoal) {
           setDailyGoalState(data.dailyGoal as DailyGoalSnapshot)
         }
@@ -137,7 +168,7 @@ export function QuranReader({
         console.error("Error tracking verse progress:", error)
       }
     },
-    [trackEggChallengeProgress],
+    [],
   )
 
   const playAyah = (index: number) => {
@@ -166,6 +197,12 @@ export function QuranReader({
         playAyah(nextIndex)
       }
       void reportVerseProgress(1)
+
+      if (currentSurah) {
+        const nextAyahData = ayahs[nextIndex]
+        const verseKey = `${currentSurah.number}:${nextAyahData?.numberInSurah ?? nextIndex + 1}`
+        recordNurProgress({ verseKey, source: "next" })
+      }
     }
   }
 
@@ -215,6 +252,23 @@ export function QuranReader({
     }
   }, [])
 
+  useEffect(() => {
+    if (!currentSurah) {
+      return
+    }
+
+    resetNurStreak()
+  }, [currentSurah, resetNurStreak])
+
+  useEffect(() => {
+    if (!currentSurah || !ayahs[currentAyahIndex]) {
+      return
+    }
+
+    const verseKey = `${currentSurah.number}:${ayahs[currentAyahIndex].numberInSurah}`
+    return scheduleVerseObservation(verseKey)
+  }, [ayahs, currentAyahIndex, currentSurah, scheduleVerseObservation])
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12">
@@ -226,11 +280,22 @@ export function QuranReader({
     )
   }
 
-  const currentAyah = ayahs[currentAyahIndex]
-  const currentTranslations = currentAyah ? translations[currentAyah.numberInSurah] || [] : []
-
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="relative mx-auto max-w-6xl space-y-6">
+      <div className="absolute right-4 top-4 z-30 max-md:static max-md:mb-4 max-md:flex max-md:justify-end">
+        <NurBloomWidget
+          state={nurBloomState}
+          onEnable={enableNurBloom}
+          onDisable={disableNurBloom}
+          onDismissPrompt={dismissNurPrompt}
+          onThemeChange={setNurTheme}
+          onToggleGentleMode={toggleGentleMode}
+          onToggleSound={toggleSound}
+          onAcknowledgeCelebration={acknowledgeCelebration}
+          onReflectionPromptSeen={markReflectionPromptSeen}
+        />
+      </div>
+
       {/* Controls Header */}
       {showControls && (
         <Card className="border-border/50">
@@ -377,14 +442,6 @@ export function QuranReader({
             </div>
           </CardContent>
         </Card>
-      )}
-
-      {/* Break the Egg timer and progression */}
-      {eggChallengeEnabled && (
-        <div className="space-y-6">
-          <BreakEggTimer />
-          <EggChallengeWidget state={eggChallengeState} />
-        </div>
       )}
 
       {/* Ayahs Display */}
