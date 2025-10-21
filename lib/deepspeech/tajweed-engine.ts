@@ -16,6 +16,30 @@ export interface TajweedRenderResult {
 
 const tajweedCache = new Map<string, TajweedRenderResult>()
 
+let warnedMissingModule = false
+
+const loadTajweedModule = async () => {
+  try {
+    return (await import(/* webpackIgnore: true */ "deepspeech-quran/tajweed")) as
+      | {
+          generateTajweedMushaf?: (
+            surahNumber: number,
+            verseRange: { start: number; end: number },
+          ) => Promise<{ fragments: TajweedFragment[]; legend?: Record<string, string> }>
+        }
+      | null
+  } catch (error) {
+    if (!warnedMissingModule) {
+      warnedMissingModule = true
+      console.warn(
+        "DeepSpeech tajweed overlays are disabled because the optional `deepspeech-quran/tajweed` module could not be loaded.",
+        error,
+      )
+    }
+    return null
+  }
+}
+
 export const generateTajweedForRange = cache(
   async (surahNumber: number, range: { start: number; end: number }): Promise<TajweedRenderResult> => {
     const key = cacheKey(surahNumber, range.start, range.end)
@@ -24,17 +48,17 @@ export const generateTajweedForRange = cache(
     }
 
     try {
-      const module = (await import(/* webpackIgnore: true */ "deepspeech-quran/tajweed").catch(() => null)) as
-        | {
-            generateTajweedMushaf?: (
-              surahNumber: number,
-              verseRange: { start: number; end: number },
-            ) => Promise<{ fragments: TajweedFragment[]; legend?: Record<string, string> }>
-          }
-        | null
+      const module = await loadTajweedModule()
 
       if (!module?.generateTajweedMushaf) {
-        throw new Error("DeepSpeech-Quran tajweed module is unavailable")
+        const response: TajweedRenderResult = {
+          success: false,
+          fragments: [],
+          error:
+            "Tajweed overlays require the optional DeepSpeech dataset. Install `deepspeech-quran/tajweed` to enable them.",
+        }
+        tajweedCache.set(key, response)
+        return response
       }
 
       const response = await module.generateTajweedMushaf(surahNumber, range)
@@ -53,7 +77,10 @@ export const generateTajweedForRange = cache(
       const fallback: TajweedRenderResult = {
         success: false,
         fragments: [],
-        error: error instanceof Error ? error.message : "Unknown tajweed error",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to load tajweed overlays. Showing standard verse rendering.",
       }
       tajweedCache.set(key, fallback)
       return fallback
