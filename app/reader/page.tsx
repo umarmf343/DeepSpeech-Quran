@@ -31,17 +31,7 @@ import {
 import { mushafVariants } from "@/lib/integration-data"
 import { cn } from "@/lib/utils"
 
-import {
-  BookOpen,
-  Bookmark,
-  Check,
-  RotateCcw,
-  Settings,
-  Share,
-  SkipBack,
-  SkipForward,
-  Sparkles,
-} from "lucide-react"
+import { BookOpen, Bookmark, Check, Settings, Share, Sparkles } from "lucide-react"
 
 const RECITER_OPTIONS = [
   { edition: "ar.alafasy", label: "Mishary Rashid" },
@@ -105,7 +95,6 @@ export default function AlfawzReaderPage() {
   const ayahDetailCacheRef = useRef<Map<string, AyahDetail>>(new Map())
   const [audioSegments, setAudioSegments] = useState<AudioSegment[]>([])
   const [isPlaying, setIsPlaying] = useState(false)
-  const [isLoadingSurah, setIsLoadingSurah] = useState(true)
   const [isLoadingAudio, setIsLoadingAudio] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fontSizeClass = "text-xl"
@@ -169,7 +158,6 @@ export default function AlfawzReaderPage() {
 
   useEffect(() => {
     let active = true
-    setIsLoadingSurah(true)
     ;(async () => {
       try {
         const loadedSurahs = await quranAPI.getSurahs()
@@ -184,10 +172,6 @@ export default function AlfawzReaderPage() {
         if (active) {
           setError("Unable to load surah list. Please try again later.")
         }
-      } finally {
-        if (active) {
-          setIsLoadingSurah(false)
-        }
       }
     })()
     return () => {
@@ -198,7 +182,6 @@ export default function AlfawzReaderPage() {
   useEffect(() => {
     if (!selectedSurahNumber) return
     let active = true
-    setIsLoadingSurah(true)
     setError(null)
     setIsPlaying(false)
     setVersesCompleted(0)
@@ -219,10 +202,6 @@ export default function AlfawzReaderPage() {
         console.error("Failed to load surah", err)
         if (active) {
           setError("Unable to load the selected surah. Please try another surah.")
-        }
-      } finally {
-        if (active) {
-          setIsLoadingSurah(false)
         }
       }
     })()
@@ -452,9 +431,6 @@ export default function AlfawzReaderPage() {
   const nightModeBackground = nightMode ? "bg-slate-950 text-slate-100" : "bg-gradient-cream text-slate-900"
   const goalReached = versesCompleted >= dailyGoal
   const cardBackground = nightMode ? "border-slate-700 bg-slate-900/70" : "border-border/50 bg-white/90"
-  const hasPreviousAyah = selectedAyahNumber !== null && selectedAyahNumber > 1
-  const hasNextAyah = selectedAyahNumber !== null && selectedAyahNumber < ayahList.length
-
   return (
     <div className={cn("min-h-screen pb-16 transition-colors", nightModeBackground)}>
       <MilestoneCelebration
@@ -621,98 +597,48 @@ export default function AlfawzReaderPage() {
               </div>
             </div>
 
-            <div
-              className={cn(
-                "relative overflow-hidden rounded-xl border-2 px-6 py-8 shadow-sm",
-                selectedMushaf.visualStyle.border,
-                nightMode ? "bg-slate-950/60" : "bg-white/90",
-                showMushafView && "px-0 py-0",
-              )}
-            >
-              {!showMushafView && hasPreviousAyah && (
-                <button
-                  type="button"
-                  aria-label="Previous ayah"
-                  onClick={handlePreviousAyah}
-                  className="gap-2 whitespace-nowrap text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground dark:hover:bg-accent/50 size-9 absolute bottom-6 -left-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 md:top-1/2 md:bottom-auto md:-translate-y-1/2 md:-left-6 hover:-translate-y-0.5 border-emerald-200/70 bg-white/90 text-emerald-700 hover:bg-white"
-                >
-                  <SkipBack className="h-4 w-4" />
-                </button>
-              )}
-              {!showMushafView && hasNextAyah && (
-                <button
-                  type="button"
-                  aria-label="Next ayah"
-                  onClick={handleNextAyah}
-                  className="gap-2 whitespace-nowrap text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground dark:hover:bg-accent/50 size-9 absolute bottom-6 -right-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 md:top-1/2 md:bottom-auto md:-translate-y-1/2 md:-right-6 hover:-translate-y-0.5 border-emerald-200/70 bg-white/90 text-emerald-700 hover:bg-white"
-                >
-                  <SkipForward className="h-4 w-4" />
-                </button>
-              )}
-
-              {!ayahDetail ? (
-                <Skeleton className="h-24 w-full" />
-              ) : (
-                <div className={cn("space-y-6", showMushafView && "px-6 py-6")}>
-                  {showMushafView ? (
-                    <MushafView
-                      ayahs={ayahList}
-                      selectedAyahNumber={selectedAyahNumber}
-                      nightMode={nightMode}
-                    />
-                  ) : (
-                    <div className="relative">
-                      <div className="rounded-2xl bg-gradient-to-br from-white to-emerald-50 p-8 shadow-inner">
-                        <div className="flex items-center justify-between gap-3">
-                          <span
-                            data-slot="badge"
-                            className="inline-flex items-center justify-center border w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700"
-                          >
-                            Ayah {currentAyahDisplay} of {totalAyahDisplay}
-                          </span>
-                          <span className="text-xs font-medium text-emerald-600">
-                            Repetitions {repetitionsCompleted} / {dailyGoal}
-                          </span>
-                        </div>
-                        <div className="mt-6 space-y-3">
-                          <p
-                            className={cn(
-                              "text-3xl leading-relaxed text-slate-900 md:text-[2.25rem]",
-                              fontSizeClass,
-                              "font-arabic text-right",
-                            )}
-                          >
-                            {ayahDetail.arabic.text}
-                          </p>
-                          {shouldShowTranslationContent ? (
-                            <div className="space-y-2" dir="ltr">
-                              {ayahDetail.translations.map((translation, index) => (
-                                <p
-                                  key={`${translation.translator}-${index}`}
-                                  className="text-base leading-relaxed text-slate-600"
-                                >
-                                  {translation.text}
-                                  {translation.translator ? ` — ${translation.translator}` : ""}
-                                </p>
-                              ))}
-                            </div>
-                          ) : null}
-                          {showTransliteration && ayahDetail.transliteration ? (
-                            <p
-                              className="text-base leading-relaxed text-emerald-700 dark:text-emerald-300"
-                              dir="ltr"
-                            >
-                              {ayahDetail.transliteration.text}
-                            </p>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
+            {!ayahDetail ? (
+              <Skeleton className="h-24 w-full" />
+            ) : showMushafView ? (
+              <MushafView
+                ayahs={ayahList}
+                selectedAyahNumber={selectedAyahNumber}
+                nightMode={nightMode}
+              />
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-3 text-xs text-emerald-600">
+                  <span>
+                    Ayah {currentAyahDisplay} of {totalAyahDisplay}
+                  </span>
+                  <span>Repetitions {repetitionsCompleted} / {dailyGoal}</span>
                 </div>
-              )}
-            </div>
+                <p
+                  className={cn(
+                    "text-3xl leading-relaxed text-slate-900 md:text-[2.25rem]",
+                    fontSizeClass,
+                    "font-arabic text-right",
+                  )}
+                >
+                  {ayahDetail.arabic.text}
+                </p>
+                {shouldShowTranslationContent ? (
+                  <div className="space-y-2" dir="ltr">
+                    {ayahDetail.translations.map((translation, index) => (
+                      <p key={`${translation.translator}-${index}`} className="text-base leading-relaxed text-slate-600">
+                        {translation.text}
+                        {translation.translator ? ` — ${translation.translator}` : ""}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+                {showTransliteration && ayahDetail.transliteration ? (
+                  <p className="text-base leading-relaxed text-emerald-700 dark:text-emerald-300" dir="ltr">
+                    {ayahDetail.transliteration.text}
+                  </p>
+                ) : null}
+              </div>
+            )}
 
             <div className="flex flex-wrap items-center gap-4 text-sm">
               <div className="flex items-center gap-2">
