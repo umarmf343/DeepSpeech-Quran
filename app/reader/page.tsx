@@ -501,18 +501,6 @@ export default function AlfawzReaderPage() {
                     {preferences.stageLabel ?? "AI Tajweed Coach"}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant={showMushafView ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setShowMushafView((previous) => !previous)}
-                  >
-                    {showMushafView ? "Close Mushaf view" : "Open Mushaf view"}
-                  </Button>
-                  <Button variant="secondary" size="sm" className="gap-2">
-                    <Sparkles className="h-4 w-4" /> Launch AI Lab
-                  </Button>
-                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -623,6 +611,19 @@ export default function AlfawzReaderPage() {
                   telemetryEnabled={profile.telemetryOptIn}
                 />
               )}
+
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <Button
+                  variant={showMushafView ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowMushafView((previous) => !previous)}
+                >
+                  {showMushafView ? "Close Mushaf view" : "Open Mushaf view"}
+                </Button>
+                <Button variant="secondary" size="sm" className="gap-2">
+                  <Sparkles className="h-4 w-4" /> Launch AI Lab
+                </Button>
+              </div>
 
               {selectedSurahNumber && selectedAyahNumber ? (
                 <MorphologyBreakdown ayahReference={`${selectedSurahNumber}:${selectedAyahNumber}`} />
