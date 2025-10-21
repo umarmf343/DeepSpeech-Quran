@@ -32,6 +32,26 @@ const containsPattern = (collection, candidate) => {
   });
 };
 
+const DEFAULT_WATCH_IGNORED_PATTERNS = [
+  "**/node_modules/**",
+  "**/.next/**",
+  "**/.git/**",
+  "**/build/**",
+];
+
+const mergeIgnoredPatterns = (existing) => {
+  const normalized = normalizeIgnoredEntries(existing);
+  const merged = [...DEFAULT_WATCH_IGNORED_PATTERNS];
+
+  normalized.forEach((pattern) => {
+    if (!containsPattern(merged, pattern)) {
+      merged.push(pattern);
+    }
+  });
+
+  return merged;
+};
+
 const withWindowsWatchIgnores = (watchOptions = {}) => {
   if (process.platform !== "win32") return watchOptions;
 
@@ -64,7 +84,12 @@ const nextConfig = {
   output: "standalone",
   webpack: (config, { dev }) => {
     if (dev) {
-      config.watchOptions = withWindowsWatchIgnores(config.watchOptions);
+      const baseWatchOptions = {
+        ...(config.watchOptions ?? {}),
+        ignored: mergeIgnoredPatterns(config.watchOptions?.ignored),
+      };
+
+      config.watchOptions = withWindowsWatchIgnores(baseWatchOptions);
     }
 
     return config;
