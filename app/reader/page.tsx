@@ -598,6 +598,38 @@ export default function AlfawzReaderPage() {
               <div className="flex flex-wrap items-center justify-end gap-2">
                 <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-1.5 shadow-xs dark:border-input dark:bg-input/30">
                   <Switch
+                    id="translation-toggle"
+                    checked={profile.showTranslation}
+                    onCheckedChange={(checked) => updateReaderProfile({ showTranslation: checked })}
+                  />
+                  <Label
+                    htmlFor="translation-toggle"
+                    className="text-sm font-medium text-muted-foreground"
+                  >
+                    Translation
+                  </Label>
+                  <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                    {profile.showTranslation ? "On" : "Off"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-1.5 shadow-xs dark:border-input dark:bg-input/30">
+                  <Switch
+                    id="transliteration-toggle"
+                    checked={profile.showTransliteration}
+                    onCheckedChange={(checked) => updateReaderProfile({ showTransliteration: checked })}
+                  />
+                  <Label
+                    htmlFor="transliteration-toggle"
+                    className="text-sm font-medium text-muted-foreground"
+                  >
+                    Transliteration
+                  </Label>
+                  <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                    {profile.showTransliteration ? "On" : "Off"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-1.5 shadow-xs dark:border-input dark:bg-input/30">
+                  <Switch
                     id="mushaf-view-toggle"
                     checked={showMushafView}
                     onCheckedChange={setShowMushafView}
