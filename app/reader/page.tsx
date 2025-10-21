@@ -6,6 +6,7 @@ import Link from "next/link"
 
 import { AudioPlayer } from "@/components/reader/audio-player"
 import { MilestoneCelebration } from "@/components/reader/milestone-celebration"
+import { GwaniSurahPlayer } from "@/components/reader/gwani-surah-player"
 import { NightModeToggle } from "@/components/reader/night-mode-toggle"
 import { MorphologyBreakdown } from "@/components/morphology-breakdown"
 import { Badge } from "@/components/ui/badge"
@@ -398,6 +399,8 @@ export default function AlfawzReaderPage() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
+
+        <GwaniSurahPlayer surahs={surahs} nightMode={nightMode} />
 
         <div className="grid gap-8 lg:grid-cols-4">
           <div className="space-y-6 lg:col-span-3">
