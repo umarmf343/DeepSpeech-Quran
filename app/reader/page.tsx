@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 
+import Image from "next/image"
 import Link from "next/link"
 
 import { AudioPlayer } from "@/components/reader/audio-player"
@@ -84,6 +85,9 @@ export default function AlfawzReaderPage() {
   const [shouldCelebrate, setShouldCelebrate] = useState(false)
   const [nightMode, setNightMode] = useState(false)
   const [selectedMushaf, setSelectedMushaf] = useState(() => mushafVariants[0])
+  const [showMushafView, setShowMushafView] = useState(false)
+  const [mushafImageLoaded, setMushafImageLoaded] = useState(false)
+  const [mushafImageError, setMushafImageError] = useState(false)
 
   const mushafOptions = useMemo(() => mushafVariants, [])
 
@@ -270,6 +274,16 @@ export default function AlfawzReaderPage() {
     const index = selectedAyahNumber - 1
     return audioSegments[index]?.url
   }, [audioSegments, selectedAyahNumber])
+
+  const mushafImageUrl = useMemo(() => {
+    if (!selectedSurahNumber || !selectedAyahNumber) return null
+    return `https://cdn.islamic.network/quran/images/ayah/${selectedSurahNumber}_${selectedAyahNumber}.png`
+  }, [selectedSurahNumber, selectedAyahNumber])
+
+  useEffect(() => {
+    setMushafImageLoaded(false)
+    setMushafImageError(false)
+  }, [mushafImageUrl])
 
   const handleNightModeToggle = useCallback((value: boolean) => {
     setNightMode(value)
@@ -549,6 +563,16 @@ export default function AlfawzReaderPage() {
                     </Label>
                   </div>
                   <div className="flex items-center gap-2">
+                    <Switch
+                      checked={showMushafView}
+                      onCheckedChange={setShowMushafView}
+                      id="toggle-mushaf-view"
+                    />
+                    <Label htmlFor="toggle-mushaf-view" className="text-sm text-muted-foreground">
+                      Show Mushaf view
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" onClick={markAyahCompleted}>
                       <Check className="mr-2 h-4 w-4" /> Mark ayah complete
                     </Button>
@@ -573,6 +597,41 @@ export default function AlfawzReaderPage() {
                   <p className="text-sm italic text-slate-600 dark:text-slate-300">
                     {ayahDetail.transliteration.text}
                   </p>
+                )}
+
+                {showMushafView && mushafImageUrl && (
+                  <div
+                    className={cn(
+                      "overflow-hidden rounded-xl border bg-white/90 shadow-sm dark:border-slate-700 dark:bg-slate-900/60",
+                      nightMode && "border-slate-700",
+                    )}
+                  >
+                    {!mushafImageLoaded && !mushafImageError && <Skeleton className="h-64 w-full" />}
+                    {!mushafImageError ? (
+                      <Image
+                        src={mushafImageUrl}
+                        alt={`Mushaf view for Surah ${selectedSurahNumber}, Ayah ${selectedAyahNumber}`}
+                        width={1200}
+                        height={600}
+                        className={cn(
+                          "h-auto w-full object-contain p-4 transition-opacity",
+                          mushafImageLoaded ? "opacity-100" : "opacity-0",
+                        )}
+                        onLoadingComplete={() => setMushafImageLoaded(true)}
+                        onError={() => {
+                          setMushafImageError(true)
+                          setMushafImageLoaded(true)
+                        }}
+                      />
+                    ) : (
+                      <div className="p-4 text-sm text-muted-foreground">
+                        Unable to load Mushaf view for this ayah right now. Please try again in a moment.
+                      </div>
+                    )}
+                    <div className="border-t px-4 py-3 text-xs text-muted-foreground dark:border-slate-700">
+                      Mushaf view {selectedSurahNumber}:{selectedAyahNumber} powered by Islamic Network assets.
+                    </div>
+                  </div>
                 )}
 
                 <AudioPlayer
