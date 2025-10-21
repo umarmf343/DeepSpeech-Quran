@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils"
 const DEFAULT_DURATION = 120
 
 export function BreakEggTimer() {
-  const { state, duration, timeLeft, isRunning, isLoading, start, reset } = useEggSessionTimer(DEFAULT_DURATION)
+  const { state, duration, timeLeft, isRunning, isLoading, start } = useEggSessionTimer(DEFAULT_DURATION)
   const lastCelebrationRef = useRef<string | null>(null)
   const { triggerCelebration } = useUser()
 
@@ -50,14 +50,6 @@ export function BreakEggTimer() {
     }
   }
 
-  const handleReset = async () => {
-    try {
-      await reset()
-    } catch (error) {
-      console.error("Unable to reset Break the Egg session:", error)
-    }
-  }
-
   return (
     <div className="w-full">
       <Card className="relative overflow-hidden border border-blue-100/70 bg-gradient-to-br from-blue-50 via-white to-indigo-50 shadow-sm">
@@ -83,7 +75,7 @@ export function BreakEggTimer() {
               </div>
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-lg font-medium text-slate-700">Time left: {formattedTime}</p>
-                <div className="grid w-full grid-cols-2 gap-3 sm:w-auto">
+                <div className="w-full sm:w-auto">
                   <Button
                     onClick={handleStart}
                     disabled={isRunning || isLoading}
@@ -91,13 +83,6 @@ export function BreakEggTimer() {
                   >
                     {isLoading && !isRunning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     Start
-                  </Button>
-                  <Button
-                    onClick={handleReset}
-                    variant="outline"
-                    className="w-full rounded-full border-slate-200 px-6 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-                  >
-                    Stop
                   </Button>
                 </div>
               </div>
