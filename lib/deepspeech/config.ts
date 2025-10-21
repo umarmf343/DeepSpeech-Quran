@@ -1,4 +1,7 @@
+import path from "node:path"
+
 export type DeepSpeechConfig = {
+  projectRoot: string
   pythonExecutable: string
   clientScriptPath: string
   modelPath: string | null
@@ -7,7 +10,7 @@ export type DeepSpeechConfig = {
 }
 
 export function resolveDeepSpeechConfig(): DeepSpeechConfig {
-  const projectRoot = process.cwd()
+  const projectRoot = process.env.DEEPSPEECH_ROOT ? path.resolve(process.env.DEEPSPEECH_ROOT) : process.cwd()
   const pythonExecutable = process.env.DEEPSPEECH_PYTHON ?? process.env.PYTHON ?? "python3"
   const clientScriptPath = process.env.DEEPSPEECH_CLIENT_PATH ?? `${projectRoot}/DeepSpeech/native_client/python/client.py`
   const modelPath = process.env.DEEPSPEECH_MODEL_PATH ?? null
@@ -15,6 +18,7 @@ export function resolveDeepSpeechConfig(): DeepSpeechConfig {
   const candidateTranscripts = Number.parseInt(process.env.DEEPSPEECH_CANDIDATES ?? "3", 10)
 
   return {
+    projectRoot,
     pythonExecutable,
     clientScriptPath,
     modelPath,
