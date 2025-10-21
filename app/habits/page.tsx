@@ -119,7 +119,7 @@ export default function HabitQuestPage() {
           </div>
         </header>
 
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-4">
           <Card className="border-0 bg-gradient-to-br from-orange-500 to-red-500 text-white shadow-lg">
             <CardContent className="p-6 space-y-2">
               <div className="flex items-center justify-between">

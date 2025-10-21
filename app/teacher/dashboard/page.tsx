@@ -111,7 +111,7 @@ export default function TeacherDashboardPage() {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <Card className="border-border/50 hover:shadow-lg transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">

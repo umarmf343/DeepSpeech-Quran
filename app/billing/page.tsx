@@ -274,7 +274,7 @@ export default function BillingPage() {
 
           {/* Subscription Plans */}
           <TabsContent value="plans" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
               {subscriptionPlans.map((plan) => (
                 <Card
                   key={plan.id}
