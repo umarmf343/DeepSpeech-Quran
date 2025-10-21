@@ -159,6 +159,20 @@ export default function AlfawzReaderPage() {
     return map[fontScale] ?? "text-2xl"
   }, [fontScale])
 
+  const visibleTranslations = useMemo(() => {
+    if (!ayahDetail?.translations?.length) return []
+
+    const englishTranslations = ayahDetail.translations.filter((translation) =>
+      translation.language?.toLowerCase() === "en",
+    )
+
+    if (englishTranslations.length > 0) {
+      return englishTranslations
+    }
+
+    return ayahDetail.translations
+  }, [ayahDetail])
+
   const totalAyahs = surahMeta?.numberOfAyahs ?? ayahList.length
   const totalAyahDisplay = totalAyahs > 0 ? totalAyahs : "–"
   const currentAyahDisplay = selectedAyahNumber ?? "–"
@@ -278,11 +292,10 @@ export default function AlfawzReaderPage() {
 
   const getAyahCacheKey = useCallback(
     (surahNumber: number, ayahNumber: number) => {
-      const translationKey = showTranslation ? selectedTranslation : "none"
       const transliterationKey = showTransliteration ? "with-transliteration" : "no-transliteration"
-      return `${surahNumber}:${ayahNumber}:${translationKey}:${transliterationKey}`
+      return `${surahNumber}:${ayahNumber}:${selectedTranslation}:${transliterationKey}`
     },
-    [selectedTranslation, showTranslation, showTransliteration],
+    [selectedTranslation, showTransliteration],
   )
 
   useEffect(() => {
@@ -293,9 +306,12 @@ export default function AlfawzReaderPage() {
     const cacheKey = getAyahCacheKey(selectedSurahNumber, selectedAyahNumber)
     const cachedDetail = ayahDetailCacheRef.current.get(cacheKey)
     if (cachedDetail) {
-      setAyahDetail(cachedDetail)
-      return () => {
-        active = false
+      const needsTranslationFetch = showTranslation && cachedDetail.translations.length === 0
+      if (!needsTranslationFetch) {
+        setAyahDetail(cachedDetail)
+        return () => {
+          active = false
+        }
       }
     }
 
@@ -305,18 +321,12 @@ export default function AlfawzReaderPage() {
         const previousMatchesCurrent = previous?.arabic.number === baseAyah.number
         const preservedTransliteration =
           previousMatchesCurrent && showTransliteration ? previous?.transliteration : undefined
-
-        if (previousMatchesCurrent && previous?.arabic.text === baseAyah.text && !showTranslation) {
-          return {
-            arabic: previous.arabic,
-            translations: [],
-            transliteration: preservedTransliteration,
-          }
-        }
+        const preservedTranslations =
+          previousMatchesCurrent && previous?.arabic.text === baseAyah.text ? previous?.translations ?? [] : []
 
         return {
           arabic: baseAyah,
-          translations: [],
+          translations: preservedTranslations,
           transliteration: preservedTransliteration,
         }
       })
@@ -324,10 +334,7 @@ export default function AlfawzReaderPage() {
 
     ;(async () => {
       try {
-        const editions = new Set<string>(["quran-uthmani"])
-        if (showTranslation) {
-          editions.add(selectedTranslation)
-        }
+        const editions = new Set<string>(["quran-uthmani", selectedTranslation])
         if (showTransliteration) {
           editions.add(TRANSLITERATION_EDITION)
         }
@@ -341,7 +348,7 @@ export default function AlfawzReaderPage() {
 
         const normalizedDetail: AyahDetail = {
           arabic: detail.arabic,
-          translations: showTranslation ? detail.translations : [],
+          translations: detail.translations,
           transliteration: showTransliteration ? detail.transliteration : undefined,
         }
 
@@ -690,8 +697,8 @@ export default function AlfawzReaderPage() {
                         >
                           {ayahDetail.arabic.text}
                         </p>
-                        {showTranslation && ayahDetail.translations.length
-                          ? ayahDetail.translations.map((translation, index) => (
+                        {showTranslation && visibleTranslations.length
+                          ? visibleTranslations.map((translation, index) => (
                               <p
                                 key={`${translation.translator}-${index}`}
                                 className={cn(
