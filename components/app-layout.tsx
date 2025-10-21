@@ -3,7 +3,6 @@
 import type React from "react"
 
 import Navigation from "@/components/navigation"
-import { BottomNavigation } from "@/components/bottom-nav"
 import { CelebrationOverlay } from "@/components/celebration-overlay"
 
 interface AppLayoutProps {
@@ -23,7 +22,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </main>
       </div>
       <CelebrationOverlay />
-      <BottomNavigation />
     </div>
   )
 }
