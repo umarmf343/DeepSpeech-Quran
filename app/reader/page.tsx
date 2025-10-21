@@ -143,6 +143,10 @@ export default function AlfawzReaderPage() {
   const showTranslation = showTranslationLoaded ? rawShowTranslation : true
   const showTransliteration = showTransliterationLoaded ? rawShowTransliteration : false
   const nightMode = nightModeLoaded ? rawNightMode : false
+  const shouldShowTranslationContent = useMemo(
+    () => (showTranslation || showTransliteration) && (ayahDetail?.translations?.length ?? 0) > 0,
+    [ayahDetail?.translations?.length, showTranslation, showTransliteration],
+  )
 
   const dailyGoal = useMemo(() => {
     const ayahCount = surahMeta?.numberOfAyahs ?? 5
@@ -278,7 +282,8 @@ export default function AlfawzReaderPage() {
 
   const getAyahCacheKey = useCallback(
     (surahNumber: number, ayahNumber: number) => {
-      const translationKey = showTranslation ? selectedTranslation : "none"
+      const shouldIncludeTranslation = showTranslation || showTransliteration
+      const translationKey = shouldIncludeTranslation ? selectedTranslation : "none"
       const transliterationKey = showTransliteration ? "with-transliteration" : "no-transliteration"
       return `${surahNumber}:${ayahNumber}:${translationKey}:${transliterationKey}`
     },
@@ -299,6 +304,7 @@ export default function AlfawzReaderPage() {
       }
     }
 
+    const includeTranslation = showTranslation || showTransliteration
     const baseAyah = ayahList.find((ayah) => ayah.numberInSurah === selectedAyahNumber)
     if (baseAyah) {
       setAyahDetail((previous) => {
@@ -306,7 +312,7 @@ export default function AlfawzReaderPage() {
         const preservedTransliteration =
           previousMatchesCurrent && showTransliteration ? previous?.transliteration : undefined
 
-        if (previousMatchesCurrent && previous?.arabic.text === baseAyah.text && !showTranslation) {
+        if (previousMatchesCurrent && previous?.arabic.text === baseAyah.text && !includeTranslation) {
           return {
             arabic: previous.arabic,
             translations: [],
@@ -316,7 +322,7 @@ export default function AlfawzReaderPage() {
 
         return {
           arabic: baseAyah,
-          translations: [],
+          translations: includeTranslation ? previous?.translations ?? [] : [],
           transliteration: preservedTransliteration,
         }
       })
@@ -325,7 +331,7 @@ export default function AlfawzReaderPage() {
     ;(async () => {
       try {
         const editions = new Set<string>(["quran-uthmani"])
-        if (showTranslation) {
+        if (includeTranslation) {
           editions.add(selectedTranslation)
         }
         if (showTransliteration) {
@@ -341,7 +347,7 @@ export default function AlfawzReaderPage() {
 
         const normalizedDetail: AyahDetail = {
           arabic: detail.arabic,
-          translations: showTranslation ? detail.translations : [],
+          translations: includeTranslation ? detail.translations : [],
           transliteration: showTransliteration ? detail.transliteration : undefined,
         }
 
@@ -691,7 +697,7 @@ export default function AlfawzReaderPage() {
                           >
                             {ayahDetail.arabic.text}
                           </p>
-                          {showTranslation && ayahDetail.translations.length ? (
+                          {shouldShowTranslationContent ? (
                             <div className="space-y-2" dir="ltr">
                               {ayahDetail.translations.map((translation, index) => (
                                 <p
