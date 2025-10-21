@@ -516,7 +516,7 @@ export default function AlfawzReaderPage() {
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-4">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 <div className="space-y-2">
                   <Label className="text-xs uppercase tracking-wide text-muted-foreground">Select Surah</Label>
                   <Select
@@ -589,7 +589,7 @@ export default function AlfawzReaderPage() {
                   </Select>
                 </div>
 
-                <div className="md:col-span-4">
+                <div className="col-span-2 md:col-span-4">
                   <div className="flex flex-col gap-2 rounded-xl border border-emerald-200/60 bg-white/80 px-4 py-3 dark:border-emerald-700/50 dark:bg-slate-900/60">
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-xs font-medium text-muted-foreground">Navigate with intention</p>
