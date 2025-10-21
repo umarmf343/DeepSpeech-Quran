@@ -257,6 +257,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  const sessionRetryAttempted = useRef(false)
+
   const applyUser = useCallback(
     (user: UserRecord, nav?: NavigationLink[]) => {
       const localPreferenceOverrides = loadPreferencesFromStorage()
@@ -289,6 +291,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       }
 
       persistPreferences(mergedPreferences)
+      sessionRetryAttempted.current = false
       setIsLoading(false)
     },
     [loadPreferencesFromStorage, navigation, persistPreferences],
@@ -346,11 +349,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       applyUser(session.user, session.navigation)
     } catch (error) {
       console.error("Failed to load session", error)
-      if (typeof window !== "undefined") {
-        window.localStorage.removeItem(STORAGE_KEYS.token)
+      if (!sessionRetryAttempted.current) {
+        sessionRetryAttempted.current = true
+        if (typeof window !== "undefined") {
+          window.localStorage.removeItem(STORAGE_KEYS.token)
+        }
+        setToken(null)
+        await initializeSession(true)
+      } else {
+        setIsLoading(false)
       }
-      setToken(null)
-      await initializeSession(true)
     }
   }, [applyUser, authorizedFetch, initializeSession, token])
 
