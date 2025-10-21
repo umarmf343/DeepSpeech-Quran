@@ -1,14 +1,21 @@
 import { promises as fs } from "fs"
 import { createRequire } from "module"
 import path from "path"
-import initSqlJs from "sql.js"
 import type { MorphologyResponse, MorphologyWord } from "@/types/morphology"
 
-const require = createRequire(path.join(process.cwd(), "package.json"))
+declare const __non_webpack_require__: NodeRequire | undefined
+
+const nodeRequire: NodeRequire =
+  typeof __non_webpack_require__ !== "undefined"
+    ? __non_webpack_require__
+    : createRequire(import.meta.url)
 
 const baseDir = path.join(process.cwd(), "Quranic Grammar and Morphology")
 
-type SqlJs = Awaited<ReturnType<typeof initSqlJs>>
+type InitSqlJs = typeof import("sql.js")
+type SqlJs = Awaited<ReturnType<InitSqlJs>>
+
+let initSqlJs: InitSqlJs | null = null
 
 type LoadedDatabases = {
   lemmaDb: SqlJs["Database"]
@@ -19,11 +26,12 @@ type LoadedDatabases = {
 let databasesPromise: Promise<LoadedDatabases> | null = null
 
 async function loadSqlJs(): Promise<SqlJs> {
-  const wasmPath = path.join(
-    path.dirname(require.resolve("sql.js/package.json")),
-    "dist",
-    "sql-wasm.wasm",
-  )
+  if (!initSqlJs) {
+    initSqlJs = nodeRequire("sql.js") as InitSqlJs
+  }
+
+  const sqlJsDir = path.dirname(nodeRequire.resolve("sql.js/package.json"))
+  const wasmPath = path.join(sqlJsDir, "dist", "sql-wasm.wasm")
   const wasmBinary = await fs.readFile(wasmPath)
 
   return initSqlJs({ wasmBinary })
@@ -37,7 +45,7 @@ async function loadDatabase(SQL: SqlJs, filename: string) {
 
 async function getDatabases(): Promise<LoadedDatabases> {
   if (!databasesPromise) {
-    databasesPromise = (async () => {
+    const loadPromise = (async () => {
       const SQL = await loadSqlJs()
 
       const [lemmaDb, rootDb, stemDb] = await Promise.all([
@@ -48,6 +56,11 @@ async function getDatabases(): Promise<LoadedDatabases> {
 
       return { lemmaDb, rootDb, stemDb }
     })()
+
+    databasesPromise = loadPromise.catch((error) => {
+      databasesPromise = null
+      throw error
+    })
   }
 
   return databasesPromise

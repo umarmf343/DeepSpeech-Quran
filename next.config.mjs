@@ -7,15 +7,17 @@ const WINDOWS_SYSTEM_PATHS = [
   "C:/swapfile.sys",
 ];
 
-const shouldIgnoreWindowsSystemPath = (path) => {
-  if (typeof path !== "string") return false;
+const WINDOWS_SYSTEM_GLOBS = WINDOWS_SYSTEM_PATHS.flatMap((systemPath) => {
+  const normalized = systemPath.replace(/\\/g, "/");
+  const withoutDrive = normalized.replace(/^([a-zA-Z]):\//, "");
 
-  const normalized = path.replace(/\\/g, "/");
-  return WINDOWS_SYSTEM_PATHS.some(
-    (systemPath) =>
-      normalized === systemPath || normalized.startsWith(`${systemPath}/`)
-  );
-};
+  return [
+    normalized,
+    `${normalized}/**`,
+    `**/${withoutDrive}`,
+    `**/${withoutDrive}/**`,
+  ];
+});
 
 const nextConfig = {
   eslint: {
@@ -39,7 +41,7 @@ const nextConfig = {
           "**/build/**",
           "**/dist/**",
           "**/public/static/**",
-          shouldIgnoreWindowsSystemPath,
+          ...WINDOWS_SYSTEM_GLOBS,
         ],
       };
     }
