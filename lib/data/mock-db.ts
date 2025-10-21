@@ -219,9 +219,13 @@ const sharedLocalization: LocalizationStrings = {
   },
 }
 
-const now = new Date().toISOString()
-const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+const BASE_TIMESTAMP = Date.UTC(2024, 0, 15, 12, 0, 0)
+const DAY_IN_MS = 24 * 60 * 60 * 1000
+
+const now = new Date(BASE_TIMESTAMP).toISOString()
+const tomorrow = new Date(BASE_TIMESTAMP + DAY_IN_MS).toISOString()
+const nextWeek = new Date(BASE_TIMESTAMP + 7 * DAY_IN_MS).toISOString()
+const daysAgo = (days: number) => new Date(BASE_TIMESTAMP - days * DAY_IN_MS).toISOString()
 
 const baseStats: UserStats = {
   hasanat: 2560,
@@ -452,7 +456,7 @@ const userRecords: Record<string, UserRecord> = {
     role: "student",
     locale: "en",
     plan: "premium",
-    joinedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    joinedAt: daysAgo(30),
     stats: baseStats,
     habits: baseHabits,
     preferences: basePreferences,
@@ -476,7 +480,7 @@ const userRecords: Record<string, UserRecord> = {
     role: "teacher",
     locale: "en",
     plan: "premium",
-    joinedAt: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString(),
+    joinedAt: daysAgo(120),
     stats: { ...baseStats, rank: 3, hasanat: 4120 },
     habits: baseHabits,
     preferences: {
@@ -520,7 +524,7 @@ const userRecords: Record<string, UserRecord> = {
     role: "admin",
     locale: "en",
     plan: "premium",
-    joinedAt: new Date(Date.now() - 200 * 24 * 60 * 60 * 1000).toISOString(),
+    joinedAt: daysAgo(200),
     stats: { ...baseStats, rank: 1, hasanat: 6020, weeklyXP: [150, 180, 170, 160, 190, 200, 190] },
     habits: baseHabits,
     preferences: {
