@@ -30,17 +30,32 @@ async function loadSqlJs(): Promise<SqlJs> {
     initSqlJs = nodeRequire("sql.js") as InitSqlJs
   }
 
-  const sqlJsDir = path.dirname(nodeRequire.resolve("sql.js/package.json"))
-  const wasmPath = path.join(sqlJsDir, "dist", "sql-wasm.wasm")
-  const wasmBinary = await fs.readFile(wasmPath)
+  try {
+    const sqlJsDir = path.dirname(nodeRequire.resolve("sql.js/package.json"))
+    const wasmPath = path.join(sqlJsDir, "dist", "sql-wasm.wasm")
+    const wasmBinary = await fs.readFile(wasmPath)
 
-  return initSqlJs({ wasmBinary })
+    return initSqlJs({ wasmBinary })
+  } catch (error) {
+    console.error("Unable to initialize sql.js runtime", error)
+    const message =
+      error instanceof Error
+        ? `Failed to initialize morphology database runtime: ${error.message}`
+        : "Failed to initialize morphology database runtime"
+    throw new Error(message)
+  }
 }
 
 async function loadDatabase(SQL: SqlJs, filename: string) {
   const filePath = path.join(baseDir, filename)
-  const buffer = await fs.readFile(filePath)
-  return new SQL.Database(buffer)
+  try {
+    const buffer = await fs.readFile(filePath)
+    return new SQL.Database(buffer)
+  } catch (error) {
+    console.error(`Unable to load morphology database file: ${filePath}`, error)
+    const detail = error instanceof Error ? `: ${error.message}` : ""
+    throw new Error(`Failed to load morphology data file: ${filename}${detail}`)
+  }
 }
 
 async function getDatabases(): Promise<LoadedDatabases> {
