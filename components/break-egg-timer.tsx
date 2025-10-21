@@ -85,9 +85,12 @@ export function BreakEggTimer() {
     <div className="w-full">
       <Card className="relative overflow-hidden border border-blue-100/70 bg-gradient-to-br from-blue-50 via-white to-indigo-50 shadow-sm">
         <CardContent className="space-y-5 p-6">
-          <div className="space-y-1">
-            <p className="text-sm font-semibold uppercase tracking-wide text-indigo-500">Break the Egg Challenge</p>
-            <h2 className="text-2xl font-bold text-slate-900">2-minute focused recitation sprint</h2>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold uppercase tracking-wide text-indigo-500">Break the Egg Challenge</p>
+              <h2 className="text-2xl font-bold text-slate-900">2-minute focused recitation sprint</h2>
+            </div>
+            <EggProgressIcon progress={progress} />
           </div>
 
           <div className="space-y-4">
@@ -154,6 +157,94 @@ export function BreakEggTimer() {
             Keep going
           </Button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function EggProgressIcon({ progress }: { progress: number }) {
+  const stage = useMemo(() => {
+    if (progress === 0) {
+      return "initial" as const
+    }
+
+    if (progress < 0.9) {
+      return "cracking" as const
+    }
+
+    return "broken" as const
+  }, [progress])
+
+  const stageLabel = useMemo(() => {
+    switch (stage) {
+      case "initial":
+        return "Shell intact"
+      case "cracking":
+        return "Cracking the shell"
+      case "broken":
+        return "Egg cracked!"
+      default:
+        return "Shell intact"
+    }
+  }, [stage])
+
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-indigo-100 bg-white/80 px-3 py-2 shadow-sm backdrop-blur">
+      <div className="flex h-14 w-14 items-center justify-center">
+        {stage === "initial" && (
+          <svg
+            key="initial"
+            viewBox="0 0 64 64"
+            className="egg-stage-enter h-12 w-12 egg-shadow"
+            role="img"
+            aria-label="Egg shell intact"
+          >
+            <path
+              className="egg-shell"
+              d="M32 6c-9.94 0-18 10.08-18 22.5S22.06 54 32 54s18-9.58 18-21.5S41.94 6 32 6z"
+            />
+          </svg>
+        )}
+        {stage === "cracking" && (
+          <svg
+            key="cracking"
+            viewBox="0 0 64 64"
+            className="egg-stage-enter h-12 w-12 egg-shadow"
+            role="img"
+            aria-label="Egg shell cracking"
+          >
+            <path
+              className="egg-shell"
+              d="M32 6c-9.94 0-18 10.08-18 22.5S22.06 54 32 54s18-9.58 18-21.5S41.94 6 32 6z"
+            />
+            <polyline className="egg-crack-line egg-crack-line-animated" points="24 28 30 34 26 38 34 44 30 48 38 54" />
+          </svg>
+        )}
+        {stage === "broken" && (
+          <svg
+            key="broken"
+            viewBox="0 0 64 64"
+            className="egg-stage-enter h-12 w-12 egg-shadow"
+            role="img"
+            aria-label="Egg shell broken"
+          >
+            <g className="egg-top-piece">
+              <path
+                className="egg-shell"
+                d="M32 6c-9.94 0-18 10.08-18 22.5 0 3.32.5 6.49 1.42 9.4L24 32l4 6 6-6 6 4 6-6c.96-3.16 1.5-6.63 1.5-10 0-12.42-8.06-22.5-18-22.5z"
+              />
+            </g>
+            <path
+              className="egg-shell"
+              d="M15.5 38.5C18.87 47.96 25.03 54 32 54s13.13-6.04 16.5-15.5L44 38l-6 6-6-4-6 6-6-5.5z"
+            />
+            <circle className="egg-yolk" cx="32" cy="44" r="6" />
+          </svg>
+        )}
+      </div>
+      <div className="text-left">
+        <p className="text-xs font-semibold uppercase tracking-wide text-indigo-500">Egg status</p>
+        <p className="text-sm font-semibold text-slate-700">{stageLabel}</p>
       </div>
     </div>
   )
