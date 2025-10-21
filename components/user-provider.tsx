@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from "react"
+import { usePathname } from "next/navigation"
 
 import type {
   Badge,
@@ -94,12 +95,12 @@ interface UserContextValue {
 }
 
 const DEFAULT_PROFILE: UserProfile = {
-  id: "user_student",
-  name: "Ahmad Al-Hafiz",
-  email: "student@alfawz.io",
-  role: "student",
+  id: "user_visitor",
+  name: "Guest User",
+  email: "guest@alfawz.io",
+  role: "visitor",
   locale: "en",
-  plan: "premium",
+  plan: "free",
   joinedAt: "2024-01-01T00:00:00.000Z",
 }
 
@@ -174,6 +175,26 @@ const STORAGE_KEYS = {
   activeNav: "alfawz_active_nav",
 }
 
+const PROTECTED_ROUTE_PREFIXES = [
+  "/dashboard",
+  "/reader",
+  "/habits",
+  "/achievements",
+  "/game",
+  "/practice",
+  "/progress",
+  "/leaderboard",
+  "/kid-class",
+  "/billing",
+  "/qaidah",
+  "/settings",
+  "/admin",
+  "/teacher",
+  "/memorization",
+  "/assignment-system",
+  "/auth/profile",
+]
+
 const perksByPlan: Record<SubscriptionPlan, string[]> = {
   free: [
     "Daily habit quests",
@@ -217,7 +238,9 @@ function mergePreferences(base: UserPreferences, overrides?: Partial<UserPrefere
 }
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
   const hasHydrated = useRef(false)
+  const sessionInitialized = useRef(false)
   const [token, setToken] = useState<string | null>(null)
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE)
   const [stats, setStats] = useState<UserStats>(DEFAULT_STATS)
@@ -342,8 +365,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
   }, [applyUser])
 
+  const isProtectedRoute = useMemo(() => {
+    if (!pathname) return false
+    return PROTECTED_ROUTE_PREFIXES.some(
+      (prefix) => pathname === prefix || pathname.startsWith(prefix.endsWith("/") ? prefix : `${prefix}/`),
+    )
+  }, [pathname])
+
   const hydrateFromSession = useCallback(async () => {
-    if (!token) return
+    if (!token || !isProtectedRoute) return
     try {
       const session = await authorizedFetch("/api/auth/session")
       applyUser(session.user, session.navigation)
@@ -360,7 +390,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false)
       }
     }
-  }, [applyUser, authorizedFetch, initializeSession, token])
+  }, [applyUser, authorizedFetch, initializeSession, isProtectedRoute, token])
 
   useEffect(() => {
     if (hasHydrated.current) return
@@ -372,15 +402,25 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setActiveNavState(storedNav)
       }
     }
-
-    initializeSession()
-  }, [initializeSession])
+  }, [])
 
   useEffect(() => {
-    if (!token) return
+    if (!isProtectedRoute) {
+      sessionInitialized.current = false
+      setIsLoading(false)
+      return
+    }
+
+    if (sessionInitialized.current) return
+    sessionInitialized.current = true
+    void initializeSession()
+  }, [initializeSession, isProtectedRoute])
+
+  useEffect(() => {
+    if (!token || !isProtectedRoute) return
     hydrateFromSession()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token])
+  }, [token, isProtectedRoute])
 
   useEffect(() => {
     if (typeof window !== "undefined") {
