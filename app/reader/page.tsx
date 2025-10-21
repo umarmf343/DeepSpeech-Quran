@@ -595,8 +595,8 @@ export default function AlfawzReaderPage() {
                 />
               )}
 
-              <div className="flex flex-wrap items-center justify-end gap-2">
-                <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-1.5 shadow-xs dark:border-input dark:bg-input/30">
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
+                <div className="flex w-full items-center gap-2 rounded-md border bg-background px-3 py-1.5 shadow-xs dark:border-input dark:bg-input/30 sm:w-auto">
                   <Switch
                     id="translation-toggle"
                     checked={profile.showTranslation}
@@ -612,7 +612,7 @@ export default function AlfawzReaderPage() {
                     {profile.showTranslation ? "On" : "Off"}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-1.5 shadow-xs dark:border-input dark:bg-input/30">
+                <div className="flex w-full items-center gap-2 rounded-md border bg-background px-3 py-1.5 shadow-xs dark:border-input dark:bg-input/30 sm:w-auto">
                   <Switch
                     id="transliteration-toggle"
                     checked={profile.showTransliteration}
@@ -628,7 +628,7 @@ export default function AlfawzReaderPage() {
                     {profile.showTransliteration ? "On" : "Off"}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-1.5 shadow-xs dark:border-input dark:bg-input/30">
+                <div className="flex w-full items-center gap-2 rounded-md border bg-background px-3 py-1.5 shadow-xs dark:border-input dark:bg-input/30 sm:w-auto">
                   <Switch
                     id="mushaf-view-toggle"
                     checked={showMushafView}
@@ -644,7 +644,7 @@ export default function AlfawzReaderPage() {
                     {showMushafView ? "On" : "Off"}
                   </span>
                 </div>
-                <Button variant="secondary" size="sm" className="gap-2">
+                <Button variant="secondary" size="sm" className="w-full gap-2 sm:w-auto">
                   <Sparkles className="h-4 w-4" /> Launch AI Lab
                 </Button>
               </div>
