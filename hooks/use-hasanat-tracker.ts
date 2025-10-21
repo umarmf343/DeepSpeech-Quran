@@ -334,9 +334,9 @@ export function useHasanatTracker({ initialDailyGoal }: UseHasanatTrackerOptions
             id: `hundred-${newHundreds}`,
             type: "hundred",
             title: "MashaAllah!",
-            message: `You have witnessed ${newHundreds * 100} letters in service of Allah.`,
-            verse: "إِنَّ الَّذِينَ يَتْلُونَ كِتَابَ اللَّهِ ...",
-            emphasis: "Every hundred letters is a garden of nur.",
+            message: `You just crossed ${(newHundreds * 100).toLocaleString()} hasanat!`,
+            verse: "فَاسْتَبِقُوا الْخَيْرَاتِ",
+            emphasis: "Every hundred hasanat magnifies your light.",
           }
         }
 
@@ -353,7 +353,8 @@ export function useHasanatTracker({ initialDailyGoal }: UseHasanatTrackerOptions
             type: "surah",
             title: "Surah completed",
             message: `${surahName ?? "A surah"} completed. May its light fill your heart.`,
-            verse: "وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا",
+            verse:
+              "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",
             emphasis: "Carry its meaning with you into your day.",
           }
         }
@@ -368,9 +369,10 @@ export function useHasanatTracker({ initialDailyGoal }: UseHasanatTrackerOptions
             celebrationToTrigger = {
               id: `goal-${goalKey}`,
               type: "goal",
-              title: "Daily intention fulfilled",
-              message: "You have met today’s goal with presence.",
-              verse: "فَاذْكُرْ إِنَّا نَسِيتَ",
+              title: "Daily 10 verses complete",
+              message: "You completed today’s 10-verse journey with presence.",
+              verse: "فَاذْكُرُوا اللَّهَ كَثِيرًا",
+              emphasis: "Another 10 verses rooted in your heart.",
             }
           }
         }
