@@ -694,42 +694,6 @@ export default function AlfawzReaderPage() {
           </div>
 
           <div className="space-y-6">
-            <Card className={cn("border border-maroon-200 bg-white/80", nightMode && "border-maroon-500/60 bg-slate-900/60") }>
-              <CardHeader>
-                <CardTitle className="text-lg text-maroon-800 dark:text-amber-200">Ayah Navigator</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {isLoadingSurah ? (
-                  <Skeleton className="h-48 w-full" />
-                ) : (
-                  <div className="flex max-h-[420px] flex-col gap-2 overflow-y-auto pr-2">
-                    {ayahList.map((ayah) => (
-                      <button
-                        key={ayah.number}
-                        onClick={() => handleAyahSelection(ayah.numberInSurah.toString())}
-                        className={cn(
-                          "w-full rounded-lg border px-4 py-3 text-left transition",
-                          selectedAyahNumber === ayah.numberInSurah
-                            ? "border-maroon-300 bg-maroon-50 text-maroon-800 shadow dark:border-amber-400/60 dark:bg-amber-500/20 dark:text-amber-100"
-                            : "border-slate-200 bg-white/70 hover:bg-cream-100 dark:border-slate-700 dark:bg-slate-900/50 dark:hover:bg-slate-800/60",
-                        )}
-                      >
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="font-semibold">Ayah {ayah.numberInSurah}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {Math.round((ayah.numberInSurah / (surahMeta?.numberOfAyahs ?? 1)) * 100)}%
-                          </Badge>
-                        </div>
-                        <p className="mt-2 font-arabic text-right text-lg text-maroon-900 dark:text-amber-100">
-                          {ayah.text}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
             <Card className={cn("border border-amber-200 bg-amber-50/80", nightMode && "border-amber-500/50 bg-amber-900/30") }>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-amber-800 dark:text-amber-200">Daily progress</CardTitle>
