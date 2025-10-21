@@ -304,11 +304,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     [token],
   )
 
-  const initializeSession = useCallback(async () => {
+  const initializeSession = useCallback(async (forceRefresh = false) => {
     try {
       setIsLoading(true)
       const storedToken = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEYS.token) : null
-      if (storedToken) {
+      if (!forceRefresh && storedToken) {
         setToken(storedToken)
         return
       }
@@ -337,7 +337,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       applyUser(session.user, session.navigation)
     } catch (error) {
       console.error("Failed to load session", error)
-      await initializeSession()
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem(STORAGE_KEYS.token)
+      }
+      setToken(null)
+      await initializeSession(true)
     }
   }, [applyUser, authorizedFetch, initializeSession, token])
 
