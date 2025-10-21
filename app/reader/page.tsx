@@ -589,45 +589,6 @@ export default function AlfawzReaderPage() {
                   </Select>
                 </div>
 
-                <div className="col-span-2 md:col-span-4">
-                  <div className="flex flex-col gap-2 rounded-xl border border-emerald-200/60 bg-white/80 px-4 py-3 dark:border-emerald-700/50 dark:bg-slate-900/60">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-xs font-medium text-muted-foreground">Navigate with intention</p>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handlePreviousAyah}
-                          disabled={isFirstAyah}
-                          className="gap-1"
-                        >
-                          <ChevronLeft className="h-4 w-4" aria-hidden />
-                          Previous
-                        </Button>
-                        <HasanatSparkleEmitter
-                          events={sparkles}
-                          reducedMotion={prefersReducedMotion}
-                          onComplete={removeSparkle}
-                        >
-                          <Button
-                            type="button"
-                            variant="default"
-                            size="sm"
-                            onClick={handleNextAyah}
-                            disabled={isLastAyah}
-                            className="gap-1 bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500"
-                          >
-                            Next
-                            <ChevronRight className="h-4 w-4" aria-hidden />
-                          </Button>
-                        </HasanatSparkleEmitter>
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Click “Next” after reciting to witness the letters you offered for Allah.
-                    </p>
-                  </div>
-                </div>
               </div>
             </CardHeader>
 
