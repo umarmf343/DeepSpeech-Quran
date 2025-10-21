@@ -100,13 +100,13 @@ export function BreakEggTimer() {
                 style={{ width: `${progress * 100}%` }}
               />
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-lg font-medium text-slate-700">Time left: {formattedTime}</p>
-              <div className="flex items-center gap-3">
+              <div className="grid w-full grid-cols-2 gap-3 sm:w-auto">
                 <Button
                   onClick={handleStart}
                   disabled={isRunning || isLoading}
-                  className="rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="w-full rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {isLoading && !isRunning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   Start 2-minute session
@@ -114,7 +114,7 @@ export function BreakEggTimer() {
                 <Button
                   onClick={handleReset}
                   variant="outline"
-                  className="rounded-full border-slate-200 px-6 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                  className="w-full rounded-full border-slate-200 px-6 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                 >
                   Reset
                 </Button>
