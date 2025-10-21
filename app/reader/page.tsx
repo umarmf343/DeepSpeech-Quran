@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { useHasanatTracker } from "@/hooks/use-hasanat-tracker"
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion"
 import { useUser } from "@/hooks/use-user"
@@ -338,6 +339,20 @@ export default function AlfawzReaderPage() {
     [translationOptions, updateReaderProfile],
   )
 
+  const handleTranslationToggle = useCallback(
+    (value: boolean) => {
+      updateReaderProfile({ showTranslation: value })
+    },
+    [updateReaderProfile],
+  )
+
+  const handleTransliterationToggle = useCallback(
+    (value: boolean) => {
+      updateReaderProfile({ showTransliteration: value })
+    },
+    [updateReaderProfile],
+  )
+
   const handleAyahSelection = useCallback((value: string) => {
     const ayahNumber = Number.parseInt(value)
     if (Number.isNaN(ayahNumber)) return
@@ -613,6 +628,28 @@ export default function AlfawzReaderPage() {
               )}
 
               <div className="flex flex-wrap items-center justify-end gap-2">
+                <div className="flex items-center gap-2 rounded-md border border-border/60 bg-background/60 px-3 py-1 text-xs">
+                  <Label htmlFor="quick-translation-toggle" className="cursor-pointer text-muted-foreground">
+                    Translation
+                  </Label>
+                  <Switch
+                    id="quick-translation-toggle"
+                    checked={profile.showTranslation}
+                    onCheckedChange={handleTranslationToggle}
+                    aria-label="Toggle translation visibility"
+                  />
+                </div>
+                <div className="flex items-center gap-2 rounded-md border border-border/60 bg-background/60 px-3 py-1 text-xs">
+                  <Label htmlFor="quick-transliteration-toggle" className="cursor-pointer text-muted-foreground">
+                    Transliteration
+                  </Label>
+                  <Switch
+                    id="quick-transliteration-toggle"
+                    checked={profile.showTransliteration}
+                    onCheckedChange={handleTransliterationToggle}
+                    aria-label="Toggle transliteration visibility"
+                  />
+                </div>
                 <Button
                   variant={showMushafView ? "default" : "outline"}
                   size="sm"
