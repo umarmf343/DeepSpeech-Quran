@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -8,7 +8,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { Play, Pause, SkipBack, SkipForward, Volume2, Bookmark, BookmarkCheck, Languages, Repeat } from "lucide-react"
+import {
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Volume2,
+  Bookmark,
+  BookmarkCheck,
+  Languages,
+  Repeat,
+  Egg,
+  Sparkles,
+} from "lucide-react"
+import { Progress } from "@/components/ui/progress"
 import { NurBloomWidget } from "@/components/nur-bloom-widget"
 import { useNurBloomChallenge } from "@/hooks/use-nur-bloom-challenge"
 import { quranAPI, type Surah, type Ayah, type Translation } from "@/lib/quran-api"
@@ -42,6 +55,12 @@ export function QuranReader({
   const [isLoading, setIsLoading] = useState(true)
   const [audioUrls, setAudioUrls] = useState<string[]>([])
   const [, setDailyGoalState] = useState<DailyGoalSnapshot | null>(null)
+  const [challengeLevel, setChallengeLevel] = useState(1)
+  const [challengeProgress, setChallengeProgress] = useState(0)
+  const [showCelebration, setShowCelebration] = useState(false)
+
+  const challengeGoal = useMemo(() => 10 + (challengeLevel - 1) * 5, [challengeLevel])
+  const celebrationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const {
     state: nurBloomState,
@@ -171,6 +190,24 @@ export function QuranReader({
     [],
   )
 
+  const advanceEggChallenge = useCallback(() => {
+    setChallengeProgress((prev) => {
+      const nextProgress = prev + 1
+      if (nextProgress >= challengeGoal) {
+        if (celebrationTimeoutRef.current) {
+          clearTimeout(celebrationTimeoutRef.current)
+        }
+        setShowCelebration(true)
+        celebrationTimeoutRef.current = setTimeout(() => {
+          setShowCelebration(false)
+        }, 3200)
+        setChallengeLevel((level) => level + 1)
+        return 0
+      }
+      return nextProgress
+    })
+  }, [challengeGoal])
+
   const playAyah = (index: number) => {
     if (audioRef.current && audioUrls[index]) {
       audioRef.current.src = audioUrls[index]
@@ -197,6 +234,7 @@ export function QuranReader({
         playAyah(nextIndex)
       }
       void reportVerseProgress(1)
+      advanceEggChallenge()
 
       if (currentSurah) {
         const nextAyahData = ayahs[nextIndex]
@@ -269,6 +307,16 @@ export function QuranReader({
     return scheduleVerseObservation(verseKey)
   }, [ayahs, currentAyahIndex, currentSurah, scheduleVerseObservation])
 
+  useEffect(() => {
+    return () => {
+      if (celebrationTimeoutRef.current) {
+        clearTimeout(celebrationTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  const challengeProgressPercentage = Math.min((challengeProgress / challengeGoal) * 100, 100)
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12">
@@ -294,6 +342,57 @@ export function QuranReader({
           onAcknowledgeCelebration={acknowledgeCelebration}
           onReflectionPromptSeen={markReflectionPromptSeen}
         />
+      </div>
+
+      <div className="relative overflow-hidden rounded-3xl border border-amber-200/80 bg-gradient-to-br from-amber-50 via-rose-50 to-emerald-50 p-6 shadow-lg">
+        <div className="pointer-events-none absolute -top-16 -left-10 h-32 w-32 rounded-full bg-rose-200/40 blur-3xl" aria-hidden="true" />
+        <div className="pointer-events-none absolute -bottom-12 -right-8 h-36 w-36 rounded-full bg-emerald-200/40 blur-3xl" aria-hidden="true" />
+
+        <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-1 items-center gap-4">
+            <div className="relative h-16 w-16 shrink-0 rounded-2xl bg-white/80 p-3 shadow-md ring-2 ring-amber-200">
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-200 via-amber-100 to-orange-100 opacity-60" />
+              <Egg className="relative h-full w-full text-amber-600 drop-shadow-lg animate-bounce" aria-hidden="true" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm uppercase tracking-widest text-amber-700">Break the Egg Challenge</p>
+              <h2 className="text-2xl font-semibold text-maroon-800">
+                Level {challengeLevel}
+              </h2>
+              <p className="max-w-sm text-sm text-maroon-600">
+                Recite <span className="font-semibold">{challengeGoal}</span> verses using the next button to crack the egg.
+                Only <span className="font-semibold">{Math.max(challengeGoal - challengeProgress, 0)}</span> more to go!
+              </p>
+            </div>
+          </div>
+
+          <div className="flex w-full max-w-sm flex-col gap-3 rounded-2xl bg-white/70 p-4 shadow-inner md:w-auto">
+            <div className="flex items-center justify-between text-xs font-medium uppercase tracking-wider text-maroon-600">
+              <span>Progress</span>
+              <span>
+                {challengeProgress}/{challengeGoal}
+              </span>
+            </div>
+            <Progress value={challengeProgressPercentage} className="h-3 bg-amber-100">
+              {/* indicator handled internally */}
+            </Progress>
+            <p className="text-xs text-emerald-700">
+              {challengeProgressPercentage >= 75
+                ? "You're almost there—keep the momentum!"
+                : "Press next to keep the egg from cracking too soon!"}
+            </p>
+          </div>
+        </div>
+
+        {showCelebration ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 text-center backdrop-blur-sm transition-opacity">
+            <Sparkles className="mb-2 h-10 w-10 text-emerald-500 animate-bounce" aria-hidden="true" />
+            <h3 className="text-xl font-semibold text-maroon-800">Congratulations!</h3>
+            <p className="mt-1 text-sm text-maroon-600">
+              You cracked the egg! A new challenge begins at level {challengeLevel}.
+            </p>
+          </div>
+        ) : null}
       </div>
 
       {/* Controls Header */}
