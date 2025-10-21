@@ -90,14 +90,14 @@ export function BreakEggTimer() {
                     className="w-full rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-70"
                   >
                     {isLoading && !isRunning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                    Start 2-minute session
+                    Start
                   </Button>
                   <Button
                     onClick={handleReset}
                     variant="outline"
                     className="w-full rounded-full border-slate-200 px-6 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                   >
-                    Reset
+                    Stop
                   </Button>
                 </div>
               </div>
