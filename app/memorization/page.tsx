@@ -478,7 +478,7 @@ export default function MemorizationPage() {
             </CardHeader>
             <CardContent className="space-y-6 pb-8">
               {!activePlan ? (
-                <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/60 p-8 text-center">
+                <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/60 p-8 text-center -mt-4 mb-12">
                   <p className="text-sm font-medium text-emerald-900">Nothing selected</p>
                   <p className="mt-1 text-sm text-emerald-700">Select a plan or create a new one to display verses.</p>
                   <Button
