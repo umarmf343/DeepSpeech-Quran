@@ -1033,6 +1033,17 @@ export default function MemorizationPage() {
     [activePlan, updatePlanProgress],
   )
 
+  const handleVoiceRecitation = useCallback(async () => {
+    if (!activePlan || isListening) return
+    setSessionActive(true)
+    const success = await performVoiceAttempt()
+    if (success) {
+      handleRepetitionSuccess()
+    } else if (success === false) {
+      handleRepetitionFailure({ dueToTimeout: true })
+    }
+  }, [activePlan, handleRepetitionFailure, handleRepetitionSuccess, isListening, performVoiceAttempt])
+
   const handleStartMemorization = useCallback(() => {
     if (!activePlan || versesForActiveLevel.length === 0) return
     if (isPlanPaused) {
@@ -1115,17 +1126,6 @@ export default function MemorizationPage() {
       setSessionDurationLimitReached(false)
     }
   }, [sessionActive])
-
-  const handleVoiceRecitation = useCallback(async () => {
-    if (!activePlan || isListening) return
-    setSessionActive(true)
-    const success = await performVoiceAttempt()
-    if (success) {
-      handleRepetitionSuccess()
-    } else if (success === false) {
-      handleRepetitionFailure({ dueToTimeout: true })
-    }
-  }, [activePlan, handleRepetitionFailure, handleRepetitionSuccess, isListening, performVoiceAttempt])
 
   const handleShareWithTeacher = useCallback(() => {
     if (!activePlan || typeof window === "undefined") return
