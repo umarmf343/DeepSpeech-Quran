@@ -97,27 +97,6 @@ const assignments: QaidaAssignment[] = [
       },
     ],
   },
-  {
-    id: "qaidah-3",
-    title: "Closing reflections",
-    surah: "Lesson 5 · Qa'idah Noorania",
-    lessonFocus: ["Khushū'", "Pacing", "Mindful breathing"],
-    dueDate: "Completed yesterday",
-    status: "completed",
-    newUpdates: 0,
-    reviewProgress: 100,
-    audioHotspots: [
-      { id: "h1", label: "Flow", description: "Combine breathing technique with mindful pauses." },
-    ],
-    resources: [
-      {
-        id: "r1",
-        title: "Reflection journal prompts",
-        description: "Guided writing prompts for after-class reflections.",
-        image: "/islamic-geometric-patterns-with-arabic-text.jpg",
-      },
-    ],
-  },
 ]
 
 const streakHighlights = [
