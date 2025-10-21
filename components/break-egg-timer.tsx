@@ -29,6 +29,62 @@ export function BreakEggTimer() {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`
   }, [timeLeft])
 
+  const formattedDuration = useMemo(() => {
+    if (duration <= 0) {
+      return "0s"
+    }
+
+    const minutes = Math.floor(duration / 60)
+    const seconds = duration % 60
+
+    if (minutes > 0 && seconds > 0) {
+      return `${minutes}m ${seconds}s`
+    }
+
+    if (minutes > 0) {
+      return `${minutes}m`
+    }
+
+    return `${seconds}s`
+  }, [duration])
+
+  const totalCompleted = state?.totalCompleted ?? 0
+
+  const lastCompletedLabel = useMemo(() => {
+    if (!state?.lastCompletedAt) {
+      return "No completions yet"
+    }
+
+    const completed = new Date(state.lastCompletedAt)
+
+    if (Number.isNaN(completed.getTime())) {
+      return "Recently completed"
+    }
+
+    return completed.toLocaleString([], {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    })
+  }, [state?.lastCompletedAt])
+
+  const sessionStatusLabel = useMemo(() => {
+    if (isRunning) {
+      return "In progress"
+    }
+
+    if (state?.activeSession) {
+      return "Paused"
+    }
+
+    if (totalCompleted > 0) {
+      return "Ready for next sprint"
+    }
+
+    return "Ready to start"
+  }, [isRunning, state?.activeSession, totalCompleted])
+
   useEffect(() => {
     if (!state?.lastCompletedAt) return
     if (lastCelebrationRef.current === state.lastCompletedAt) return
@@ -84,11 +140,39 @@ export function BreakEggTimer() {
   return (
     <div className="w-full">
       <Card className="relative overflow-hidden border border-blue-100/70 bg-gradient-to-br from-blue-50 via-white to-indigo-50 shadow-sm">
-        <CardContent className="space-y-5 p-6">
+        <CardContent className="space-y-6 p-6">
           <div className="space-y-1">
             <p className="text-sm font-semibold uppercase tracking-wide text-indigo-500">Break the Egg Challenge</p>
             <h2 className="text-2xl font-bold text-slate-900">2-minute focused recitation sprint</h2>
           </div>
+
+          <dl className="grid grid-cols-2 gap-3 text-center sm:gap-4 sm:grid-cols-4">
+            <div className="rounded-2xl border border-indigo-100 bg-white/70 p-3 shadow-sm">
+              <dt className="text-xs font-semibold uppercase tracking-wide text-indigo-500">Time left</dt>
+              <dd className="text-lg font-bold text-slate-900">{formattedTime}</dd>
+            </div>
+            <div className="rounded-2xl border border-indigo-100 bg-white/70 p-3 shadow-sm">
+              <dt className="text-xs font-semibold uppercase tracking-wide text-indigo-500">Session length</dt>
+              <dd className="text-lg font-semibold text-slate-900">{formattedDuration}</dd>
+            </div>
+            <div className="rounded-2xl border border-indigo-100 bg-white/70 p-3 shadow-sm">
+              <dt className="text-xs font-semibold uppercase tracking-wide text-indigo-500">Eggs cracked</dt>
+              <dd className="text-lg font-semibold text-slate-900">{totalCompleted}</dd>
+            </div>
+            <div
+              className={cn(
+                "rounded-2xl border p-3 shadow-sm transition",
+                isRunning
+                  ? "border-emerald-200 bg-emerald-50"
+                  : state?.activeSession
+                    ? "border-amber-200 bg-amber-50"
+                    : "border-blue-100 bg-blue-50",
+              )}
+            >
+              <dt className="text-xs font-semibold uppercase tracking-wide text-indigo-500">Status</dt>
+              <dd className="text-lg font-semibold text-slate-900">{sessionStatusLabel}</dd>
+            </div>
+          </dl>
 
           <div className="space-y-4">
             <div className="relative h-3 w-full overflow-hidden rounded-full bg-indigo-100">
@@ -100,8 +184,7 @@ export function BreakEggTimer() {
                 style={{ width: `${progress * 100}%` }}
               />
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-lg font-medium text-slate-700">Time left: {formattedTime}</p>
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-between">
               <div className="flex items-center gap-3">
                 <Button
                   onClick={handleStart}
@@ -125,9 +208,10 @@ export function BreakEggTimer() {
           <div className="rounded-2xl bg-white/70 p-4 text-sm text-slate-600 shadow-inner">
             <p>
               Stay focused for the full two minutes to crack the shell. You have completed
-              <span className="mx-1 font-semibold text-indigo-600">{state?.totalCompleted ?? 0}</span>
+              <span className="mx-1 font-semibold text-indigo-600">{totalCompleted}</span>
               sessions so far.
             </p>
+            <p className="mt-2 text-xs text-slate-500">Last sprint: {lastCompletedLabel}</p>
           </div>
         </CardContent>
       </Card>
