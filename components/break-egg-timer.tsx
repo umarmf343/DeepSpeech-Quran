@@ -127,96 +127,77 @@ function EggProgressIcon({ progress }: { progress: number }) {
     return "broken" as const
   }, [progress])
 
-  const stageLabel = useMemo(() => {
-    switch (stage) {
-      case "initial":
-        return "Shell intact"
-      case "cracking":
-        return "Cracking the shell"
-      case "broken":
-        return "Egg cracked!"
-      default:
-        return "Shell intact"
-    }
-  }, [stage])
-
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-indigo-100 bg-white/80 px-3 py-2 shadow-sm backdrop-blur">
-      <div className="flex h-14 w-14 items-center justify-center">
-        {stage === "initial" && (
-          <svg
-            key="initial"
-            viewBox="0 0 64 64"
-            className="egg-stage-enter h-12 w-12 egg-shadow"
-            role="img"
-            aria-label="Egg shell intact"
-          >
-            <defs>
-              <linearGradient id={gradientId} x1="18" x2="46" y1="10" y2="54" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#fff7c2" />
-                <stop offset="55%" stopColor="#fde68a" />
-                <stop offset="100%" stopColor="#facc15" />
-              </linearGradient>
-              <radialGradient id={glowId} cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(32 42) rotate(90) scale(14 12)">
-                <stop offset="0%" stopColor="rgba(253, 224, 71, 0.6)" />
-                <stop offset="100%" stopColor="rgba(253, 224, 71, 0)" />
-              </radialGradient>
-            </defs>
-            <g className="egg-icon">
-              <path
-                className="egg-shell-base"
-                d="M32 6c-7.5 0-16 12.7-16 22.8 0 10.5 6.6 19.2 16 19.2s16-8.7 16-19.2C48 18.7 39.5 6 32 6z"
-                fill={`url(#${gradientId})`}
-              />
-              <path
-                className="egg-shell-highlight"
-                d="M24 18.5c-3 3.5-4.8 8.7-4.8 13.8 0 2.7.5 5.4 1.4 7.8 1.6-1.4 3.5-2.6 5.4-3.5 6-2.8 9.4-8.3 10.6-12.5-3.6-4.9-8.2-7.6-12.6-5.6z"
-              />
-              <ellipse className="egg-shell-glow" cx="32" cy="44" rx="11" ry="8" fill={`url(#${glowId})`} />
-            </g>
-          </svg>
-        )}
-        {stage === "cracking" && (
-          <svg
-            key="cracking"
-            viewBox="0 0 64 64"
-            className="egg-stage-enter h-12 w-12 egg-shadow"
-            role="img"
-            aria-label="Egg shell cracking"
-          >
+    <div className="flex h-14 w-14 items-center justify-center">
+      {stage === "initial" && (
+        <svg
+          key="initial"
+          viewBox="0 0 64 64"
+          className="egg-stage-enter h-12 w-12 egg-shadow"
+          role="img"
+          aria-label="Egg shell intact"
+        >
+          <defs>
+            <linearGradient id={gradientId} x1="18" x2="46" y1="10" y2="54" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#fff7c2" />
+              <stop offset="55%" stopColor="#fde68a" />
+              <stop offset="100%" stopColor="#facc15" />
+            </linearGradient>
+            <radialGradient id={glowId} cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(32 42) rotate(90) scale(14 12)">
+              <stop offset="0%" stopColor="rgba(253, 224, 71, 0.6)" />
+              <stop offset="100%" stopColor="rgba(253, 224, 71, 0)" />
+            </radialGradient>
+          </defs>
+          <g className="egg-icon">
+            <path
+              className="egg-shell-base"
+              d="M32 6c-7.5 0-16 12.7-16 22.8 0 10.5 6.6 19.2 16 19.2s16-8.7 16-19.2C48 18.7 39.5 6 32 6z"
+              fill={`url(#${gradientId})`}
+            />
+            <path
+              className="egg-shell-highlight"
+              d="M24 18.5c-3 3.5-4.8 8.7-4.8 13.8 0 2.7.5 5.4 1.4 7.8 1.6-1.4 3.5-2.6 5.4-3.5 6-2.8 9.4-8.3 10.6-12.5-3.6-4.9-8.2-7.6-12.6-5.6z"
+            />
+            <ellipse className="egg-shell-glow" cx="32" cy="44" rx="11" ry="8" fill={`url(#${glowId})`} />
+          </g>
+        </svg>
+      )}
+      {stage === "cracking" && (
+        <svg
+          key="cracking"
+          viewBox="0 0 64 64"
+          className="egg-stage-enter h-12 w-12 egg-shadow"
+          role="img"
+          aria-label="Egg shell cracking"
+        >
+          <path
+            className="egg-shell"
+            d="M32 6c-9.94 0-18 10.08-18 22.5S22.06 54 32 54s18-9.58 18-21.5S41.94 6 32 6z"
+          />
+          <polyline className="egg-crack-line egg-crack-line-animated" points="24 28 30 34 26 38 34 44 30 48 38 54" />
+        </svg>
+      )}
+      {stage === "broken" && (
+        <svg
+          key="broken"
+          viewBox="0 0 64 64"
+          className="egg-stage-enter h-12 w-12 egg-shadow"
+          role="img"
+          aria-label="Egg shell broken"
+        >
+          <g className="egg-top-piece">
             <path
               className="egg-shell"
-              d="M32 6c-9.94 0-18 10.08-18 22.5S22.06 54 32 54s18-9.58 18-21.5S41.94 6 32 6z"
+              d="M32 6c-9.94 0-18 10.08-18 22.5 0 3.32.5 6.49 1.42 9.4L24 32l4 6 6-6 6 4 6-6c.96-3.16 1.5-6.63 1.5-10 0-12.42-8.06-22.5-18-22.5z"
             />
-            <polyline className="egg-crack-line egg-crack-line-animated" points="24 28 30 34 26 38 34 44 30 48 38 54" />
-          </svg>
-        )}
-        {stage === "broken" && (
-          <svg
-            key="broken"
-            viewBox="0 0 64 64"
-            className="egg-stage-enter h-12 w-12 egg-shadow"
-            role="img"
-            aria-label="Egg shell broken"
-          >
-            <g className="egg-top-piece">
-              <path
-                className="egg-shell"
-                d="M32 6c-9.94 0-18 10.08-18 22.5 0 3.32.5 6.49 1.42 9.4L24 32l4 6 6-6 6 4 6-6c.96-3.16 1.5-6.63 1.5-10 0-12.42-8.06-22.5-18-22.5z"
-              />
-            </g>
-            <path
-              className="egg-shell"
-              d="M15.5 38.5C18.87 47.96 25.03 54 32 54s13.13-6.04 16.5-15.5L44 38l-6 6-6-4-6 6-6-5.5z"
-            />
-            <circle className="egg-yolk" cx="32" cy="44" r="6" />
-          </svg>
-        )}
-      </div>
-      <div className="text-left">
-        <p className="text-xs font-semibold uppercase tracking-wide text-indigo-500">Egg status</p>
-        <p className="text-sm font-semibold text-slate-700">{stageLabel}</p>
-      </div>
+          </g>
+          <path
+            className="egg-shell"
+            d="M15.5 38.5C18.87 47.96 25.03 54 32 54s13.13-6.04 16.5-15.5L44 38l-6 6-6-4-6 6-6-5.5z"
+          />
+          <circle className="egg-yolk" cx="32" cy="44" r="6" />
+        </svg>
+      )}
     </div>
   )
 }
