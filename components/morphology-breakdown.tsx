@@ -51,7 +51,18 @@ export function MorphologyBreakdown({ ayahReference, highlightWord, ayahText, in
       } catch (fetchError) {
         console.error("Failed to load morphology data", fetchError)
         if (!ignore) {
-          setError("Morphology data unavailable")
+          let friendlyMessage = "Morphology data unavailable"
+          if (typeof window !== "undefined" && fetchError instanceof TypeError) {
+            const isOffline = typeof navigator !== "undefined" && navigator && navigator.onLine === false
+            if (isOffline) {
+              friendlyMessage = "Morphology service is offline. Reconnect to load insights."
+            } else if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+              friendlyMessage = "Unable to reach the local morphology API. Is the development server running?"
+            } else {
+              friendlyMessage = "Unable to reach the morphology service. Please try again shortly."
+            }
+          }
+          setError(friendlyMessage)
         }
       } finally {
         if (!ignore) {
