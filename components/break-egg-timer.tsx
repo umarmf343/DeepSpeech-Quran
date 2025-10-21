@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef, useId } from "react"
 
 import { Loader2 } from "lucide-react"
 
@@ -119,6 +119,13 @@ export function BreakEggTimer() {
 }
 
 function EggProgressIcon({ progress }: { progress: number }) {
+  const uniqueId = useId()
+  const gradientId = useMemo(
+    () => `egg-shell-gradient-${uniqueId.replace(/:/g, "")}`,
+    [uniqueId],
+  )
+  const glowId = `${gradientId}-glow`
+
   const stage = useMemo(() => {
     if (progress === 0) {
       return "initial" as const
@@ -155,10 +162,29 @@ function EggProgressIcon({ progress }: { progress: number }) {
             role="img"
             aria-label="Egg shell intact"
           >
-            <path
-              className="egg-shell"
-              d="M32 6c-9.94 0-18 10.08-18 22.5S22.06 54 32 54s18-9.58 18-21.5S41.94 6 32 6z"
-            />
+            <defs>
+              <linearGradient id={gradientId} x1="18" x2="46" y1="10" y2="54" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#fff7c2" />
+                <stop offset="55%" stopColor="#fde68a" />
+                <stop offset="100%" stopColor="#facc15" />
+              </linearGradient>
+              <radialGradient id={glowId} cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(32 42) rotate(90) scale(14 12)">
+                <stop offset="0%" stopColor="rgba(253, 224, 71, 0.6)" />
+                <stop offset="100%" stopColor="rgba(253, 224, 71, 0)" />
+              </radialGradient>
+            </defs>
+            <g className="egg-icon">
+              <path
+                className="egg-shell-base"
+                d="M32 6c-8.8 0-16 9.9-16 21.8 0 6.4 2 12.3 5.2 17.1 3.5 5.3 7.9 9.1 10.8 9.1s7.3-3.8 10.8-9.1C45.9 40.1 48 34.2 48 27.8 48 15.9 40.8 6 32 6z"
+                fill={`url(#${gradientId})`}
+              />
+              <path
+                className="egg-shell-highlight"
+                d="M24 18.5c-3 3.5-4.8 8.7-4.8 13.8 0 2.7.5 5.4 1.4 7.8 1.6-1.4 3.5-2.6 5.4-3.5 6-2.8 9.4-8.3 10.6-12.5-3.6-4.9-8.2-7.6-12.6-5.6z"
+              />
+              <ellipse className="egg-shell-glow" cx="32" cy="44" rx="11" ry="8" fill={`url(#${glowId})`} />
+            </g>
           </svg>
         )}
         {stage === "cracking" && (
