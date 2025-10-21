@@ -33,6 +33,8 @@ const iconForSlug = (slug: string) => {
       return Home
     case "reader":
       return BookOpen
+    case "kid-class":
+      return Sparkles
     case "practice":
       return Sparkles
     case "qaidah":
