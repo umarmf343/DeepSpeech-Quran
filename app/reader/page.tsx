@@ -4,6 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 
 import Link from "next/link"
 
+import { HasanatCelebration } from "@/components/reader/hasanat-celebration"
+import { HasanatHud } from "@/components/reader/hasanat-hud"
+import { HasanatSparkleEmitter } from "@/components/reader/hasanat-sparkles"
 import { MilestoneCelebration } from "@/components/reader/milestone-celebration"
 import { GwaniSurahPlayer } from "@/components/reader/gwani-surah-player"
 import { MushafView } from "@/components/reader/mushaf-view"
@@ -17,6 +20,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useHasanatTracker } from "@/hooks/use-hasanat-tracker"
+import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion"
 import { useUser } from "@/hooks/use-user"
 import { quranAPI, type AudioSegment, type Ayah, type Surah } from "@/lib/quran-api"
 import { mushafVariants } from "@/lib/integration-data"
@@ -26,9 +31,10 @@ import {
   updateProfile as mergeReaderProfile,
   type ReaderProfile,
 } from "@/lib/reader/preference-manager"
+import { buildVerseKey } from "@/lib/hasanat"
 import { cn } from "@/lib/utils"
 
-import { BookOpen, Bookmark, Check, Settings, Share, Sparkles } from "lucide-react"
+import { BookOpen, Bookmark, Check, ChevronLeft, ChevronRight, Settings, Share, Sparkles } from "lucide-react"
 
 const RECITER_OPTIONS = [
   { edition: "ar.alafasy", label: "Mishary Rashid" },
@@ -92,6 +98,27 @@ export default function AlfawzReaderPage() {
   const repetitionsCompleted = Math.min(versesCompleted, dailyGoal)
 
   const nightMode = profile.theme === "dark" || (profile.theme === "auto" && systemPrefersDark)
+
+  const {
+    state: hasanatState,
+    recordRecitation,
+    sparkles,
+    removeSparkle,
+    celebration: hasanatCelebration,
+    dismissCelebration,
+    announcement: hasanatAnnouncement,
+    ramadanState,
+  } = useHasanatTracker({ initialDailyGoal: dailyGoal })
+
+  const prefersReducedMotion = usePrefersReducedMotion()
+
+  const currentAyahIndex = useMemo(() => {
+    if (!selectedAyahNumber) return -1
+    return ayahList.findIndex((ayah) => ayah.numberInSurah === selectedAyahNumber)
+  }, [ayahList, selectedAyahNumber])
+
+  const isFirstAyah = currentAyahIndex <= 0
+  const isLastAyah = currentAyahIndex >= 0 && currentAyahIndex === ayahList.length - 1
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -317,6 +344,64 @@ export default function AlfawzReaderPage() {
     setSelectedAyahNumber(ayahNumber)
   }, [])
 
+  const handlePreviousAyah = useCallback(() => {
+    setSelectedAyahNumber((previous) => {
+      if (previous === null) return previous
+      const currentIndex = ayahList.findIndex((ayah) => ayah.numberInSurah === previous)
+      if (currentIndex <= 0) return previous
+      const previousAyah = ayahList[currentIndex - 1]
+      return previousAyah ? previousAyah.numberInSurah : previous
+    })
+  }, [ayahList])
+
+  const handleNextAyah = useCallback(() => {
+    if (!selectedSurahNumber) return
+    if (currentAyahIndex < 0) return
+
+    const currentAyah = ayahList[currentAyahIndex]
+    if (!currentAyah) return
+
+    const nextAyah = ayahList[currentAyahIndex + 1] ?? null
+    const shouldCountLetters = !profile.showTajweed && !profile.showTranslation && !profile.showTransliteration
+
+    recordRecitation({
+      surahNumber: selectedSurahNumber,
+      surahName: surahMeta?.englishName,
+      verses: shouldCountLetters
+        ? [
+            {
+              verseKey: buildVerseKey(selectedSurahNumber, currentAyah.numberInSurah),
+              text: currentAyah.text,
+              juz: currentAyah.juz,
+            },
+          ]
+        : [],
+      shouldCount: shouldCountLetters,
+      completedGoal: versesCompleted + 1 >= dailyGoal,
+      isSurahCompletion: !nextAyah,
+      completedJuzIds:
+        !nextAyah || nextAyah.juz !== currentAyah.juz ? [currentAyah.juz] : [],
+    })
+
+    setSelectedAyahNumber((previous) => {
+      if (nextAyah) {
+        return nextAyah.numberInSurah
+      }
+      return previous
+    })
+  }, [
+    ayahList,
+    currentAyahIndex,
+    dailyGoal,
+    profile.showTajweed,
+    profile.showTranslation,
+    profile.showTransliteration,
+    recordRecitation,
+    selectedSurahNumber,
+    surahMeta?.englishName,
+    versesCompleted,
+  ])
+
   const markAyahCompleted = useCallback(() => {
     setVersesCompleted((previous) => {
       if (previous >= dailyGoal) {
@@ -341,6 +426,7 @@ export default function AlfawzReaderPage() {
 
   return (
     <div className={cn("min-h-screen pb-16 transition-colors", nightModeBackground)}>
+      <HasanatCelebration celebration={hasanatCelebration} onClose={dismissCelebration} nightMode={nightMode} />
       <MilestoneCelebration
         show={shouldCelebrate}
         title="MashaAllah! Goal achieved"
@@ -389,6 +475,17 @@ export default function AlfawzReaderPage() {
           </div>
         </div>
       </header>
+
+      <HasanatHud
+        totalHasanat={hasanatState.totalHasanat}
+        dailyHasanat={hasanatState.dailyHasanat}
+        sessionHasanat={hasanatState.sessionHasanat}
+        dailyGoal={dailyGoal}
+        versesCompleted={versesCompleted}
+        ramadanMultiplier={ramadanState.multiplier}
+        isRamadan={ramadanState.isRamadan}
+        announcement={hasanatAnnouncement}
+      />
 
       <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
@@ -490,6 +587,46 @@ export default function AlfawzReaderPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="md:col-span-4">
+                  <div className="flex flex-col gap-2 rounded-xl border border-emerald-200/60 bg-white/80 px-4 py-3 dark:border-emerald-700/50 dark:bg-slate-900/60">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-xs font-medium text-muted-foreground">Navigate with intention</p>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handlePreviousAyah}
+                          disabled={isFirstAyah}
+                          className="gap-1"
+                        >
+                          <ChevronLeft className="h-4 w-4" aria-hidden />
+                          Previous
+                        </Button>
+                        <HasanatSparkleEmitter
+                          events={sparkles}
+                          reducedMotion={prefersReducedMotion}
+                          onComplete={removeSparkle}
+                        >
+                          <Button
+                            type="button"
+                            variant="default"
+                            size="sm"
+                            onClick={handleNextAyah}
+                            disabled={isLastAyah}
+                            className="gap-1 bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500"
+                          >
+                            Next
+                            <ChevronRight className="h-4 w-4" aria-hidden />
+                          </Button>
+                        </HasanatSparkleEmitter>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Click “Next” after reciting to witness the letters you offered for Allah.
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardHeader>
