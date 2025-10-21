@@ -293,34 +293,6 @@ export default function QaidahAssignmentsPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-maroon-200/60 bg-gradient-to-br from-white via-cream-50 to-amber-50">
-                <CardHeader>
-                  <CardTitle className="text-lg text-maroon-900">Weekly momentum</CardTitle>
-                  <CardDescription className="text-sm text-maroon-600">
-                    Celebrate consistent progress and stay ahead of upcoming lessons.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {streakHighlights.map((highlight) => {
-                    const Icon = highlight.icon
-                    return (
-                      <div
-                        key={highlight.id}
-                        className="flex items-start gap-4 rounded-2xl border border-maroon-100 bg-white/80 p-4"
-                      >
-                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-maroon-100 text-maroon-700">
-                          <Icon className="h-5 w-5" />
-                        </span>
-                        <div className="space-y-1">
-                          <p className="text-sm font-semibold text-maroon-900">{highlight.title}</p>
-                          <p className="text-xs text-maroon-600">{highlight.description}</p>
-                        </div>
-                        <span className="ml-auto text-sm font-semibold text-maroon-700">{highlight.metric}</span>
-                      </div>
-                    )
-                  })}
-                </CardContent>
-              </Card>
             </div>
           </TabsContent>
           <TabsContent value="insights" className="mt-4">
