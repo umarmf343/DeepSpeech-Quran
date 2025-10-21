@@ -146,7 +146,7 @@ export function GwaniSurahPlayer({ surahs, nightMode }: GwaniSurahPlayerProps) {
   }
 
   const containerClassName = cn(
-    "group relative overflow-hidden rounded-3xl border border-white/30 p-8 shadow-2xl transition-transform duration-500 ease-out",
+    "group relative overflow-hidden rounded-3xl border border-white/30 p-8 shadow-2xl transition-transform duration-500 ease-out lg:-translate-y-6",
     nightMode
       ? "bg-gradient-to-br from-slate-900 via-emerald-900/80 to-slate-950 text-emerald-50"
       : "bg-gradient-to-br from-emerald-400 via-teal-400 to-sky-500 text-white",
