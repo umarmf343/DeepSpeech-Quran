@@ -654,13 +654,7 @@ export function QuranReader({
       </div>
 
       {/* Audio Element */}
-      <audio
-        ref={audioRef}
-        onEnded={handleAudioEnded}
-        onLoadStart={() => setIsLoading(true)}
-        onCanPlay={() => setIsLoading(false)}
-        className="hidden"
-      />
+      <audio ref={audioRef} onEnded={handleAudioEnded} className="hidden" />
     </div>
   )
 }
