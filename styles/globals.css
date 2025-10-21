@@ -123,3 +123,70 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .egg-shell {
+    fill: #fef9c3;
+    stroke: #fde68a;
+    stroke-width: 2px;
+  }
+
+  .egg-shadow {
+    filter: drop-shadow(0 8px 14px rgba(79, 70, 229, 0.18));
+  }
+
+  .egg-crack-line {
+    stroke: #f59e0b;
+    stroke-width: 2px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .egg-crack-line-animated {
+    animation: crackPulse 1.4s ease-in-out infinite alternate;
+  }
+
+  .egg-top-piece {
+    animation: eggTopFloat 1.6s ease-in-out infinite alternate;
+    transform-origin: center;
+  }
+
+  .egg-yolk {
+    fill: #facc15;
+  }
+
+  .egg-stage-enter {
+    animation: eggStageEnter 0.45s ease-out both;
+  }
+}
+
+@keyframes crackPulse {
+  from {
+    opacity: 0.45;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes eggTopFloat {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes eggStageEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.9) rotate(-4deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
