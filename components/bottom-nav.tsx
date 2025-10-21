@@ -213,7 +213,7 @@ export function BottomNavigation() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-4xl flex-col gap-2 border-t border-maroon-100/70 bg-gradient-to-r from-cream-50/95 via-white/95 to-cream-50/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl shadow-[0_-18px_42px_rgba(122,46,37,0.15)] sm:rounded-t-3xl lg:bottom-6 lg:max-w-5xl lg:rounded-3xl lg:border lg:px-6 lg:pb-4"
+      className="fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-4xl flex-col gap-2 border-t border-maroon-100/70 bg-gradient-to-r from-cream-50/95 via-white/95 to-cream-50/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl shadow-[0_-18px_42px_rgba(122,46,37,0.15)] sm:rounded-t-3xl lg:hidden"
       aria-label="AlFawz navigation"
     >
       <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-maroon-600">

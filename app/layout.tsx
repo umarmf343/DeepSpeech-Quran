@@ -7,6 +7,7 @@ import { Suspense } from "react"
 import "./globals.css"
 import { UserProvider } from "@/components/user-provider"
 import { Toaster } from "@/components/ui/toaster"
+import { BottomNavigation } from "@/components/bottom-nav"
 
 export const metadata: Metadata = {
   title: "AlFawz Qur'an Institute - Excellence in Qur'anic Education",
@@ -39,6 +40,7 @@ export default function RootLayout({
         <UserProvider>
           <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
           <Toaster />
+          <BottomNavigation />
         </UserProvider>
         {process.env.NODE_ENV === "production" ? <Analytics /> : null}
       </body>
