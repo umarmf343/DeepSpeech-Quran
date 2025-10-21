@@ -1,632 +1,721 @@
 "use client"
 
-import { Label } from "@/components/ui/label"
+import { useMemo, useState } from "react"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
 import {
-  BookOpen,
-  Brain,
-  Calendar,
-  Clock,
-  Star,
-  RefreshCw,
-  CheckCircle,
-  XCircle,
-  RotateCcw,
-  Target,
-  Zap,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
+import { Progress } from "@/components/ui/progress"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
+import {
   Award,
-  Save,
+  BookOpen,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  ListChecks,
+  Repeat,
+  Sparkles,
 } from "lucide-react"
-import Link from "next/link"
 
-interface MemorizationCard {
-  id: string
-  surah: string
-  ayahNumber: number
-  arabicText: string
+interface Verse {
+  number: number
+  arabic: string
   translation: string
-  difficulty: 1 | 2 | 3 | 4 | 5
-  nextReview: Date
-  interval: number // days
-  easeFactor: number
-  reviewCount: number
-  correctStreak: number
-  lastReviewed?: Date
-  status: "new" | "learning" | "review" | "mastered"
 }
 
+interface SurahDetails {
+  id: string
+  name: string
+  revelationPlace: "Meccan" | "Medinan"
+  verses: Verse[]
+}
+
+interface MemorizationPlan {
+  id: string
+  surahId: string
+  surahName: string
+  startVerse: number
+  endVerse: number
+  currentVerse: number
+  repeatCount: number
+  completedVerses: number
+  status: "not-started" | "in-progress" | "completed"
+  createdAt: Date
+}
+
+const SURAH_LIBRARY: Record<string, SurahDetails> = {
+  fatiha: {
+    id: "fatiha",
+    name: "Al-Fatiha",
+    revelationPlace: "Meccan",
+    verses: [
+      {
+        number: 1,
+        arabic: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+        translation: "In the Name of Allah—the Most Compassionate, Most Merciful.",
+      },
+      {
+        number: 2,
+        arabic: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+        translation: "All praise is for Allah—Lord of all worlds.",
+      },
+      {
+        number: 3,
+        arabic: "الرَّحْمَٰنِ الرَّحِيمِ",
+        translation: "The Most Compassionate, Most Merciful.",
+      },
+      {
+        number: 4,
+        arabic: "مَالِكِ يَوْمِ الدِّينِ",
+        translation: "Master of the Day of Judgment.",
+      },
+      {
+        number: 5,
+        arabic: "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
+        translation: "You ˹alone˺ we worship and You ˹alone˺ we ask for help.",
+      },
+      {
+        number: 6,
+        arabic: "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",
+        translation: "Guide us along the Straight Path.",
+      },
+      {
+        number: 7,
+        arabic:
+          "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",
+        translation:
+          "The Path of those You have blessed—not those You are displeased with, or those who are astray.",
+      },
+    ],
+  },
+  baqarah: {
+    id: "baqarah",
+    name: "Al-Baqarah",
+    revelationPlace: "Medinan",
+    verses: [
+      {
+        number: 1,
+        arabic: "الم",
+        translation: "Alif-Lãm-Mĩm.",
+      },
+      {
+        number: 2,
+        arabic: "ذَٰلِكَ الْكِتَابُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًى لِلْمُتَّقِينَ",
+        translation:
+          "This is the Book! There is no doubt about it—a guide for those mindful ˹of Allah˺.",
+      },
+      {
+        number: 3,
+        arabic: "الَّذِينَ يُؤْمِنُونَ بِالْغَيْبِ وَيُقِيمُونَ الصَّلَاةَ وَمِمَّا رَزَقْنَاهُمْ يُنْفِقُونَ",
+        translation:
+          "Who believe in the unseen, establish prayer, and donate from what We have provided for them.",
+      },
+      {
+        number: 4,
+        arabic:
+          "وَالَّذِينَ يُؤْمِنُونَ بِمَا أُنزِلَ إِلَيْكَ وَمَا أُنزِلَ مِن قَبْلِكَ وَبِالْآخِرَةِ هُمْ يُوقِنُونَ",
+        translation:
+          "And who believe in what has been revealed to you ˹O Prophet˺ and what was revealed before you, and have sure faith in the Hereafter.",
+      },
+      {
+        number: 5,
+        arabic: "أُو۟لَٰٓئِكَ عَلَىٰ هُدٗى مِّن رَّبِّهِمۡۖ وَأُو۟لَٰٓئِكَ هُمُ ٱلۡمُفۡلِحُونَ",
+        translation: "It is they who are ˹truly˺ guided by their Lord, and it is they who will be successful.",
+      },
+    ],
+  },
+  ikhlas: {
+    id: "ikhlas",
+    name: "Al-Ikhlas",
+    revelationPlace: "Meccan",
+    verses: [
+      {
+        number: 1,
+        arabic: "قُلْ هُوَ اللَّهُ أَحَدٌ",
+        translation: "Say, ˹O Prophet,˺ “He is Allah—One ˹and Indivisible˺;",
+      },
+      {
+        number: 2,
+        arabic: "اللَّهُ الصَّمَدُ",
+        translation: "Allah—the Sustainer ˹needed by all˺.",
+      },
+      {
+        number: 3,
+        arabic: "لَمْ يَلِدْ وَلَمْ يُولَدْ",
+        translation: "He has never had offspring, nor was He born.",
+      },
+      {
+        number: 4,
+        arabic: "وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ",
+        translation: "And there is none comparable to Him.",
+      },
+    ],
+  },
+}
+
+const surahOptions = Object.values(SURAH_LIBRARY)
+
 export default function MemorizationPage() {
-  const [activeTab, setActiveTab] = useState("review")
-  const [currentCard, setCurrentCard] = useState<MemorizationCard | null>(null)
-  const [showAnswer, setShowAnswer] = useState(false)
-  const [reviewSession, setReviewSession] = useState<MemorizationCard[]>([])
-  const [sessionStats, setSessionStats] = useState({
-    reviewed: 0,
-    correct: 0,
-    total: 0,
+  const [plans, setPlans] = useState<MemorizationPlan[]>([])
+  const [activePlanId, setActivePlanId] = useState<string | null>(null)
+  const [showCreatePlan, setShowCreatePlan] = useState(false)
+  const [showCompletion, setShowCompletion] = useState(false)
+  const [completedPlan, setCompletedPlan] = useState<MemorizationPlan | null>(null)
+  const [formErrors, setFormErrors] = useState<string | null>(null)
+  const [formState, setFormState] = useState({
+    surahId: surahOptions[0]?.id ?? "fatiha",
+    startVerse: 1,
+    endVerse: 3,
   })
 
-  // Sample SRS data - in real app this would come from database
-  const [memorizationCards] = useState<MemorizationCard[]>([
-    {
-      id: "1",
-      surah: "Al-Fatiha",
-      ayahNumber: 1,
-      arabicText: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-      translation: "In the name of Allah, the Entirely Merciful, the Especially Merciful.",
-      difficulty: 2,
-      nextReview: new Date(Date.now() - 86400000), // Due yesterday
-      interval: 1,
-      easeFactor: 2.5,
-      reviewCount: 3,
-      correctStreak: 2,
-      status: "review",
-    },
-    {
-      id: "2",
-      surah: "Al-Fatiha",
-      ayahNumber: 2,
-      arabicText: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
-      translation: "All praise is due to Allah, Lord of the worlds.",
-      difficulty: 1,
-      nextReview: new Date(Date.now() + 86400000), // Due tomorrow
-      interval: 3,
-      easeFactor: 2.8,
-      reviewCount: 5,
-      correctStreak: 4,
-      status: "review",
-    },
-    {
-      id: "3",
-      surah: "Al-Ikhlas",
-      ayahNumber: 1,
-      arabicText: "قُلْ هُوَ اللَّهُ أَحَدٌ",
-      translation: "Say, He is Allah, [who is] One,",
-      difficulty: 3,
-      nextReview: new Date(),
-      interval: 0,
-      easeFactor: 2.5,
-      reviewCount: 0,
-      correctStreak: 0,
-      status: "new",
-    },
-  ])
+  const activePlan = useMemo(
+    () => plans.find((plan) => plan.id === activePlanId) ?? null,
+    [plans, activePlanId],
+  )
 
-  const dueCards = memorizationCards.filter((card) => card.nextReview <= new Date())
-  const newCards = memorizationCards.filter((card) => card.status === "new")
-  const learningCards = memorizationCards.filter((card) => card.status === "learning")
-  const masteredCards = memorizationCards.filter((card) => card.status === "mastered")
+  const activeSurah = activePlan ? SURAH_LIBRARY[activePlan.surahId] : null
 
-  const startReviewSession = () => {
-    const cardsToReview = [...dueCards, ...newCards.slice(0, 5)] // Max 5 new cards per session
-    setReviewSession(cardsToReview)
-    setCurrentCard(cardsToReview[0] || null)
-    setSessionStats({ reviewed: 0, correct: 0, total: cardsToReview.length })
-    setShowAnswer(false)
-  }
+  const totalVerses = activePlan
+    ? activePlan.endVerse - activePlan.startVerse + 1
+    : 0
 
-  const handleCardResponse = (quality: 1 | 2 | 3 | 4 | 5) => {
-    if (!currentCard) return
+  const progressPercent = activePlan
+    ? Math.round((activePlan.completedVerses / totalVerses) * 100)
+    : 0
 
-    // SRS Algorithm (simplified Anki algorithm)
-    let newInterval = currentCard.interval
-    let newEaseFactor = currentCard.easeFactor
-    let newStatus = currentCard.status
+  const currentVerseDetails = useMemo(() => {
+    if (!activePlan) return null
+    const surah = SURAH_LIBRARY[activePlan.surahId]
+    return surah.verses.find((verse) => verse.number === activePlan.currentVerse) ?? null
+  }, [activePlan])
 
-    if (quality >= 3) {
-      // Correct response
-      if (currentCard.status === "new") {
-        newInterval = 1
-        newStatus = "learning"
-      } else if (currentCard.status === "learning") {
-        newInterval = 6
-        newStatus = "review"
-      } else {
-        newInterval = Math.round(currentCard.interval * newEaseFactor)
-      }
-
-      newEaseFactor = newEaseFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
-    } else {
-      // Incorrect response
-      newInterval = 1
-      newStatus = "learning"
-      newEaseFactor = Math.max(1.3, newEaseFactor - 0.2)
+  const handleCreatePlan = () => {
+    const surah = SURAH_LIBRARY[formState.surahId]
+    if (!surah) {
+      setFormErrors("Please select a surah to memorize.")
+      return
     }
 
-    // Update session stats
-    setSessionStats((prev) => ({
-      ...prev,
-      reviewed: prev.reviewed + 1,
-      correct: prev.correct + (quality >= 3 ? 1 : 0),
-    }))
+    const { startVerse, endVerse } = formState
+    if (!Number.isFinite(startVerse) || !Number.isFinite(endVerse)) {
+      setFormErrors("Please enter valid verse numbers.")
+      return
+    }
 
-    // Move to next card
-    const nextIndex = reviewSession.findIndex((card) => card.id === currentCard.id) + 1
-    if (nextIndex < reviewSession.length) {
-      setCurrentCard(reviewSession[nextIndex])
-      setShowAnswer(false)
-    } else {
-      // Session complete
-      setCurrentCard(null)
-      setReviewSession([])
+    if (startVerse < 1 || endVerse < 1) {
+      setFormErrors("Verse numbers must be positive.")
+      return
+    }
+
+    if (startVerse > endVerse) {
+      setFormErrors("The ending verse must come after the starting verse.")
+      return
+    }
+
+    if (endVerse > surah.verses[surah.verses.length - 1]?.number) {
+      setFormErrors("The selected surah does not have that many verses.")
+      return
+    }
+
+    const plan: MemorizationPlan = {
+      id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`,
+      surahId: surah.id,
+      surahName: surah.name,
+      startVerse,
+      endVerse,
+      currentVerse: startVerse,
+      repeatCount: 0,
+      completedVerses: 0,
+      status: "not-started",
+      createdAt: new Date(),
+    }
+
+    setPlans((prev) => [...prev, plan])
+    setActivePlanId(plan.id)
+    setShowCreatePlan(false)
+    setFormErrors(null)
+  }
+
+  const handleRepeat = () => {
+    if (!activePlan || activePlan.status === "completed") return
+    setPlans((prev) =>
+      prev.map((plan) => {
+        if (plan.id !== activePlan.id) return plan
+        const newRepeatCount = Math.min(20, plan.repeatCount + 1)
+        return {
+          ...plan,
+          repeatCount: newRepeatCount,
+          status: "in-progress",
+        }
+      }),
+    )
+  }
+
+  const handlePrevious = () => {
+    if (!activePlan) return
+    if (activePlan.currentVerse <= activePlan.startVerse) return
+
+    setPlans((prev) =>
+      prev.map((plan) => {
+        if (plan.id !== activePlan.id) return plan
+        return {
+          ...plan,
+          currentVerse: plan.currentVerse - 1,
+          repeatCount: 0,
+          completedVerses: Math.max(plan.completedVerses - 1, 0),
+          status: "in-progress",
+        }
+      }),
+    )
+  }
+
+  const handleNext = () => {
+    if (!activePlan) return
+    if (activePlan.repeatCount < 20) return
+
+    let completedSnapshot: MemorizationPlan | null = null
+
+    setPlans((prev) =>
+      prev.map((plan) => {
+        if (plan.id !== activePlan.id) return plan
+
+        const total = plan.endVerse - plan.startVerse + 1
+        const isLastVerse = plan.currentVerse >= plan.endVerse
+
+        if (isLastVerse) {
+          const updatedPlan: MemorizationPlan = {
+            ...plan,
+            completedVerses: total,
+            repeatCount: 20,
+            status: "completed",
+          }
+          completedSnapshot = updatedPlan
+          return updatedPlan
+        }
+
+        return {
+          ...plan,
+          currentVerse: plan.currentVerse + 1,
+          repeatCount: 0,
+          completedVerses: Math.min(plan.completedVerses + 1, total - 1),
+          status: "in-progress",
+        }
+      }),
+    )
+
+    if (completedSnapshot) {
+      setCompletedPlan(completedSnapshot)
+      setShowCompletion(true)
     }
   }
 
-  const getDifficultyColor = (difficulty: number) => {
-    switch (difficulty) {
-      case 1:
-        return "bg-green-100 text-green-800"
-      case 2:
-        return "bg-blue-100 text-blue-800"
-      case 3:
-        return "bg-yellow-100 text-yellow-800"
-      case 4:
-        return "bg-orange-100 text-orange-800"
-      case 5:
-        return "bg-red-100 text-red-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
+  const resetRepeatCounter = () => {
+    if (!activePlan || activePlan.status === "completed") return
+    setPlans((prev) =>
+      prev.map((plan) => {
+        if (plan.id !== activePlan.id) return plan
+        return {
+          ...plan,
+          repeatCount: 0,
+        }
+      }),
+    )
   }
 
-  const getDifficultyLabel = (difficulty: number) => {
-    const labels = ["", "Very Easy", "Easy", "Medium", "Hard", "Very Hard"]
-    return labels[difficulty]
+  const handlePlanSelect = (planId: string) => {
+    setActivePlanId(planId)
+  }
+
+  const handleSurahChange = (surahId: string) => {
+    const surah = SURAH_LIBRARY[surahId]
+    setFormState({
+      surahId,
+      startVerse: 1,
+      endVerse: Math.min(3, surah.verses[surah.verses.length - 1]?.number ?? 1),
+    })
+    setFormErrors(null)
   }
 
   return (
-    <div className="min-h-screen bg-gradient-cream">
-      {/* Header */}
-      <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 gradient-maroon rounded-xl flex items-center justify-center">
-                <Brain className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">Memorization Center</h1>
-                <p className="text-xs text-muted-foreground">Spaced Repetition System</p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <Badge className="gradient-gold text-white border-0 px-3 py-1">
-                <Star className="w-3 h-3 mr-1" />
-                {masteredCards.length} Mastered
-              </Badge>
-              <Link href="/dashboard">
-                <Button variant="outline" className="bg-transparent">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Back to Dashboard
-                </Button>
-              </Link>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-emerald-50">
+      <header className="border-b border-emerald-100 bg-white/70 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+          <div className="space-y-1">
+            <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">Memorization Studio</p>
+            <h1 className="text-3xl font-semibold text-emerald-900">Build your Qur'an Memorization Plans</h1>
+            <p className="text-sm text-emerald-700">
+              Create focused plans, repeat each verse twenty times, and celebrate every completion.
+            </p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <Button variant="outline" className="border-emerald-200 text-emerald-800 hover:bg-emerald-100" disabled>
+              <BookOpen className="mr-2 h-4 w-4" />
+              Guided Mode
+            </Button>
+            <Button
+              className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-200"
+              onClick={() => setShowCreatePlan(true)}
+            >
+              <ListChecks className="mr-2 h-4 w-4" /> Create Plan
+            </Button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="border-border/50 hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Due Today</p>
-                  <p className="text-2xl font-bold text-red-600">{dueCards.length}</p>
-                </div>
-                <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-red-600" />
-                </div>
+      <main className="mx-auto grid max-w-6xl gap-6 px-6 py-10 lg:grid-cols-[320px_1fr]">
+        <Card className="border-emerald-100/80 shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center text-base font-semibold text-emerald-900">
+              <ListChecks className="mr-2 h-5 w-5 text-emerald-500" />
+              Memorization Plans
+            </CardTitle>
+            <CardDescription className="text-sm text-emerald-700">
+              Choose a plan to begin your repetition-focused session.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {plans.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/60 p-6 text-center">
+                <p className="font-medium text-emerald-800">No plans yet</p>
+                <p className="mt-2 text-sm text-emerald-700">
+                  Create your first plan to start a mindful memorization journey.
+                </p>
+                <Button
+                  size="sm"
+                  className="mt-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white"
+                  onClick={() => setShowCreatePlan(true)}
+                >
+                  <Sparkles className="mr-2 h-4 w-4" /> Create Plan
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/50 hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">New Cards</p>
-                  <p className="text-2xl font-bold text-blue-600">{newCards.length}</p>
-                </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <Zap className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/50 hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Learning</p>
-                  <p className="text-2xl font-bold text-orange-600">{learningCards.length}</p>
-                </div>
-                <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                  <RefreshCw className="w-6 h-6 text-orange-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/50 hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Mastered</p>
-                  <p className="text-2xl font-bold text-green-600">{masteredCards.length}</p>
-                </div>
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                  <Award className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Review Session */}
-        {currentCard ? (
-          <Card className="border-border/50 shadow-lg mb-8">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-xl">Review Session</CardTitle>
-                  <CardDescription>
-                    Progress: {sessionStats.reviewed}/{sessionStats.total} •{" "}
-                    {sessionStats.total > 0
-                      ? Math.round((sessionStats.correct / Math.max(sessionStats.reviewed, 1)) * 100)
-                      : 0}
-                    % accuracy
-                  </CardDescription>
-                </div>
-                <Badge className="gradient-gold text-white border-0">
-                  {currentCard.surah} • Ayah {currentCard.ayahNumber}
-                </Badge>
-              </div>
-              <Progress value={(sessionStats.reviewed / sessionStats.total) * 100} className="mt-4" />
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="text-center space-y-6 py-8">
-                <div className="arabic-text text-4xl lg:text-5xl leading-loose text-primary">
-                  {currentCard.arabicText}
-                </div>
-
-                {showAnswer && (
-                  <div className="space-y-4 animate-in fade-in duration-300">
-                    <p className="text-lg text-foreground max-w-3xl mx-auto leading-relaxed">
-                      {currentCard.translation}
-                    </p>
-                    <div className="flex items-center justify-center space-x-2">
-                      <Badge variant="secondary">
-                        {currentCard.surah} • Ayah {currentCard.ayahNumber}
-                      </Badge>
-                      <Badge className={getDifficultyColor(currentCard.difficulty)}>
-                        {getDifficultyLabel(currentCard.difficulty)}
-                      </Badge>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {!showAnswer ? (
-                <div className="text-center">
-                  <Button
-                    onClick={() => setShowAnswer(true)}
-                    size="lg"
-                    className="gradient-maroon text-white border-0 px-8 py-4"
-                  >
-                    Show Answer
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-center text-muted-foreground">How well did you remember this ayah?</p>
-                  <div className="grid grid-cols-5 gap-3">
-                    <Button
-                      onClick={() => handleCardResponse(1)}
-                      variant="outline"
-                      className="flex-col h-20 bg-red-50 border-red-200 hover:bg-red-100 text-red-700"
-                    >
-                      <XCircle className="w-5 h-5 mb-1" />
-                      <span className="text-xs">Forgot</span>
-                    </Button>
-                    <Button
-                      onClick={() => handleCardResponse(2)}
-                      variant="outline"
-                      className="flex-col h-20 bg-orange-50 border-orange-200 hover:bg-orange-100 text-orange-700"
-                    >
-                      <RotateCcw className="w-5 h-5 mb-1" />
-                      <span className="text-xs">Hard</span>
-                    </Button>
-                    <Button
-                      onClick={() => handleCardResponse(3)}
-                      variant="outline"
-                      className="flex-col h-20 bg-yellow-50 border-yellow-200 hover:bg-yellow-100 text-yellow-700"
-                    >
-                      <Target className="w-5 h-5 mb-1" />
-                      <span className="text-xs">Good</span>
-                    </Button>
-                    <Button
-                      onClick={() => handleCardResponse(4)}
-                      variant="outline"
-                      className="flex-col h-20 bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-700"
-                    >
-                      <CheckCircle className="w-5 h-5 mb-1" />
-                      <span className="text-xs">Easy</span>
-                    </Button>
-                    <Button
-                      onClick={() => handleCardResponse(5)}
-                      variant="outline"
-                      className="flex-col h-20 bg-green-50 border-green-200 hover:bg-green-100 text-green-700"
-                    >
-                      <Star className="w-5 h-5 mb-1" />
-                      <span className="text-xs">Perfect</span>
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ) : (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="review">Review</TabsTrigger>
-              <TabsTrigger value="progress">Progress</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="review" className="space-y-6">
-              <div className="text-center space-y-6">
-                <div>
-                  <h2 className="text-3xl font-bold text-foreground mb-2">Ready to Review?</h2>
-                  <p className="text-lg text-muted-foreground">
-                    You have {dueCards.length} cards due for review and {newCards.length} new cards to learn
-                  </p>
-                </div>
-
-                <div className="flex justify-center space-x-4">
-                  <Button
-                    onClick={startReviewSession}
-                    size="lg"
-                    className="gradient-maroon text-white border-0 px-8 py-4"
-                    disabled={dueCards.length === 0 && newCards.length === 0}
-                  >
-                    <Brain className="w-5 h-5 mr-2" />
-                    Start Review Session
-                  </Button>
-                  <Button variant="outline" size="lg" className="px-8 py-4 bg-transparent">
-                    <Calendar className="w-5 h-5 mr-2" />
-                    Schedule Review
-                  </Button>
-                </div>
-
-                {sessionStats.total > 0 && !currentCard && (
-                  <Card className="border-border/50 max-w-md mx-auto">
-                    <CardHeader>
-                      <CardTitle className="text-center">Session Complete!</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-center space-y-4">
-                      <div className="text-3xl font-bold text-primary">
-                        {Math.round((sessionStats.correct / sessionStats.reviewed) * 100)}%
-                      </div>
-                      <p className="text-muted-foreground">
-                        {sessionStats.correct} out of {sessionStats.reviewed} cards correct
-                      </p>
-                      <Button
-                        onClick={() => setSessionStats({ reviewed: 0, correct: 0, total: 0 })}
-                        className="gradient-gold text-white border-0"
-                      >
-                        <RefreshCw className="w-4 h-4 mr-2" />
-                        Start New Session
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-
-              {/* Upcoming Reviews */}
-              <Card className="border-border/50">
-                <CardHeader>
-                  <CardTitle>Upcoming Reviews</CardTitle>
-                  <CardDescription>Your review schedule for the next few days</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {memorizationCards
-                      .filter((card) => card.nextReview > new Date())
-                      .sort((a, b) => a.nextReview.getTime() - b.nextReview.getTime())
-                      .slice(0, 5)
-                      .map((card) => (
-                        <div
-                          key={card.id}
-                          className="flex items-center justify-between p-3 rounded-lg border border-border/50"
-                        >
-                          <div>
-                            <h4 className="font-medium">
-                              {card.surah} • Ayah {card.ayahNumber}
-                            </h4>
-                            <p className="text-sm text-muted-foreground">{card.arabicText.substring(0, 50)}...</p>
-                          </div>
-                          <div className="text-right">
-                            <Badge variant="secondary" className="mb-1">
-                              {card.nextReview.toLocaleDateString()}
-                            </Badge>
-                            <p className="text-xs text-muted-foreground">
-                              {Math.ceil((card.nextReview.getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="progress" className="space-y-6">
-              <div className="grid lg:grid-cols-2 gap-6">
-                <Card className="border-border/50">
-                  <CardHeader>
-                    <CardTitle>Learning Progress</CardTitle>
-                    <CardDescription>Your memorization journey overview</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Total Cards</span>
-                        <span className="font-medium">{memorizationCards.length}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Mastered</span>
-                        <span className="font-medium text-green-600">{masteredCards.length}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">In Review</span>
-                        <span className="font-medium text-blue-600">
-                          {memorizationCards.filter((c) => c.status === "review").length}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Learning</span>
-                        <span className="font-medium text-orange-600">{learningCards.length}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">New</span>
-                        <span className="font-medium text-gray-600">{newCards.length}</span>
-                      </div>
-                    </div>
-
-                    <div className="pt-4">
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>Overall Progress</span>
-                        <span>
-                          {Math.round(((masteredCards.length + learningCards.length) / memorizationCards.length) * 100)}
-                          %
-                        </span>
-                      </div>
-                      <Progress
-                        value={((masteredCards.length + learningCards.length) / memorizationCards.length) * 100}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-border/50">
-                  <CardHeader>
-                    <CardTitle>Recent Activity</CardTitle>
-                    <CardDescription>Your learning activity this week</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-3 p-3 rounded-lg bg-green-50">
-                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                          <CheckCircle className="w-4 h-4 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">Mastered Al-Ikhlas</p>
-                          <p className="text-xs text-muted-foreground">2 hours ago</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-3 p-3 rounded-lg bg-blue-50">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <Brain className="w-4 h-4 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">Reviewed 15 cards</p>
-                          <p className="text-xs text-muted-foreground">Yesterday</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-3 p-3 rounded-lg bg-orange-50">
-                        <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                          <Star className="w-4 h-4 text-orange-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">7-day streak achieved</p>
-                          <p className="text-xs text-muted-foreground">2 days ago</p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="settings" className="space-y-6">
-              <Card className="border-border/50">
-                <CardHeader>
-                  <CardTitle>SRS Settings</CardTitle>
-                  <CardDescription>Customize your spaced repetition experience</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
+            ) : (
+              <ScrollArea className="h-[400px] pr-4">
+                <RadioGroup value={activePlanId ?? ""} onValueChange={handlePlanSelect}>
                   <div className="space-y-4">
-                    <div>
-                      <Label className="text-sm font-medium">New Cards Per Day</Label>
-                      <div className="flex items-center space-x-4 mt-2">
-                        <input
-                          type="range"
-                          min="1"
-                          max="20"
-                          defaultValue="5"
-                          className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer"
-                        />
-                        <span className="text-sm font-medium w-8">5</span>
-                      </div>
-                    </div>
+                    {plans.map((plan) => {
+                      const planTotal = plan.endVerse - plan.startVerse + 1
+                      const planProgress = Math.round((plan.completedVerses / planTotal) * 100)
 
-                    <div>
-                      <Label className="text-sm font-medium">Maximum Reviews Per Day</Label>
-                      <div className="flex items-center space-x-4 mt-2">
-                        <input
-                          type="range"
-                          min="10"
-                          max="100"
-                          defaultValue="50"
-                          className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer"
-                        />
-                        <span className="text-sm font-medium w-8">50</span>
-                      </div>
-                    </div>
+                      return (
+                        <label
+                          key={plan.id}
+                          htmlFor={plan.id}
+                          className={`flex cursor-pointer flex-col rounded-xl border p-4 transition hover:shadow-md ${
+                            activePlanId === plan.id
+                              ? "border-emerald-400 bg-emerald-50"
+                              : "border-emerald-100 bg-white"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="flex items-center space-x-2 text-sm font-semibold text-emerald-900">
+                                <span>{plan.surahName}</span>
+                                <Badge variant="outline" className="border-emerald-200 text-emerald-600">
+                                  Verses {plan.startVerse} – {plan.endVerse}
+                                </Badge>
+                              </div>
+                              <p className="mt-1 text-xs text-emerald-700">
+                                Created {plan.createdAt.toLocaleDateString()} • {planTotal} verses
+                              </p>
+                            </div>
+                            <Badge
+                              className={`border-0 ${
+                                plan.status === "completed"
+                                  ? "bg-emerald-500/90 text-white"
+                                  : plan.status === "in-progress"
+                                  ? "bg-amber-100 text-amber-700"
+                                  : "bg-slate-100 text-slate-600"
+                              }`}
+                            >
+                              {plan.status === "completed"
+                                ? "Completed"
+                                : plan.status === "in-progress"
+                                ? "In progress"
+                                : "Not started"}
+                            </Badge>
+                          </div>
+                          <div className="mt-4 space-y-1">
+                            <Progress value={planProgress} className="h-2" />
+                            <div className="flex items-center justify-between text-xs text-emerald-700">
+                              <span>{plan.completedVerses} completed</span>
+                              <span>{planProgress}%</span>
+                            </div>
+                          </div>
+                          <div className="mt-4 flex items-center space-x-2">
+                            <RadioGroupItem id={plan.id} value={plan.id} className="border-emerald-400" />
+                            <span className="text-xs font-medium text-emerald-800">Select Plan</span>
+                          </div>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </RadioGroup>
+              </ScrollArea>
+            )}
+          </CardContent>
+          <CardFooter className="justify-center">
+            <Button variant="outline" className="border-emerald-200 text-emerald-700" onClick={() => setShowCreatePlan(true)}>
+              <Sparkles className="mr-2 h-4 w-4" /> New Plan
+            </Button>
+          </CardFooter>
+        </Card>
 
-                    <div className="space-y-3">
-                      <Label className="text-sm font-medium">Review Preferences</Label>
-                      <div className="space-y-2">
-                        <label className="flex items-center space-x-3 cursor-pointer">
-                          <input type="checkbox" defaultChecked className="rounded border-border" />
-                          <span className="text-sm">Show translation during review</span>
-                        </label>
-                        <label className="flex items-center space-x-3 cursor-pointer">
-                          <input type="checkbox" className="rounded border-border" />
-                          <span className="text-sm">Auto-advance after correct answer</span>
-                        </label>
-                        <label className="flex items-center space-x-3 cursor-pointer">
-                          <input type="checkbox" defaultChecked className="rounded border-border" />
-                          <span className="text-sm">Play audio during review</span>
-                        </label>
-                      </div>
+        <div className="space-y-6">
+          {activePlan && activeSurah && currentVerseDetails ? (
+            <Card className="border-emerald-100/80 bg-white/80 shadow-lg shadow-emerald-100">
+              <CardHeader className="flex flex-col space-y-4 border-b border-emerald-100 pb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-2xl font-semibold text-emerald-900">
+                      {activePlan.surahName}
+                    </CardTitle>
+                    <CardDescription className="mt-2 flex items-center space-x-2 text-sm text-emerald-700">
+                      <Badge variant="outline" className="border-emerald-200 text-emerald-600">
+                        {activeSurah.revelationPlace} Surah
+                      </Badge>
+                      <span>Verse {activePlan.currentVerse} of {activePlan.endVerse}</span>
+                    </CardDescription>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-emerald-900">Plan progress</p>
+                    <p className="text-xs text-emerald-700">{activePlan.completedVerses} / {totalVerses} verses</p>
+                    <Progress value={progressPercent} className="mt-2 h-2" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-8 pt-6">
+                <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-white via-emerald-50 to-emerald-100 p-8 text-center shadow-inner">
+                  <p className="text-4xl leading-relaxed text-emerald-900">{currentVerseDetails.arabic}</p>
+                  <Separator className="mx-auto my-6 w-16 bg-emerald-200" />
+                  <p className="text-lg text-emerald-800">{currentVerseDetails.translation}</p>
+                </div>
+
+                {activePlan.status !== "completed" ? (
+                  <div className="grid gap-4 rounded-2xl border border-emerald-100 bg-white/70 p-6 shadow-sm md:grid-cols-2">
+                    <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-5">
+                      <p className="text-sm font-medium text-emerald-800">Repeat tracker</p>
+                      <p className="mt-2 text-3xl font-semibold text-emerald-900">{activePlan.repeatCount} / 20</p>
+                      <Progress value={(activePlan.repeatCount / 20) * 100} className="mt-3 h-2" />
+                      <p className="mt-3 text-xs text-emerald-700">
+                        Tap the repeat button twenty times to lock this verse into memory.
+                      </p>
+                    </div>
+                    <div className="flex flex-col justify-between space-y-4">
+                      <Button
+                        size="lg"
+                        className="h-14 bg-gradient-to-r from-emerald-500 to-teal-500 text-lg font-semibold text-white shadow-lg shadow-emerald-200"
+                        onClick={handleRepeat}
+                      >
+                        <Repeat className="mr-2 h-5 w-5" /> Repeat Verse
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-12 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                        onClick={resetRepeatCounter}
+                      >
+                        Reset Counter
+                      </Button>
                     </div>
                   </div>
-
-                  <div className="pt-4 border-t border-border">
-                    <Button className="gradient-maroon text-white border-0">
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Settings
-                    </Button>
+                ) : (
+                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-6 text-center">
+                    <p className="text-xl font-semibold text-emerald-900">Plan completed!</p>
+                    <p className="mt-2 text-sm text-emerald-700">
+                      Relive this verse or explore another plan to continue your memorization.
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        )}
-      </div>
+                )}
+              </CardContent>
+              <CardFooter className="flex flex-col gap-3 border-t border-emerald-100 bg-emerald-50/40 px-8 py-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center space-x-2 text-sm text-emerald-700">
+                  <CheckCircle className={`h-4 w-4 ${activePlan.repeatCount >= 20 ? "text-emerald-500" : "text-emerald-300"}`} />
+                  <span>{activePlan.repeatCount >= 20 ? "Ready for the next verse" : "Repeat the verse twenty times"}</span>
+                </div>
+                <div className="flex w-full gap-3 sm:w-auto">
+                  <Button
+                    variant="outline"
+                    className="w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50 sm:w-auto"
+                    onClick={handlePrevious}
+                    disabled={activePlan.currentVerse <= activePlan.startVerse || activePlan.status === "completed"}
+                  >
+                    <ChevronLeft className="mr-2 h-4 w-4" /> Previous Verse
+                  </Button>
+                  <Button
+                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-200 sm:w-auto"
+                    onClick={handleNext}
+                    disabled={activePlan.repeatCount < 20 || activePlan.status === "completed"}
+                  >
+                    Next Verse <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </CardFooter>
+            </Card>
+          ) : (
+            <Card className="flex h-full flex-col items-center justify-center border-emerald-100/80 bg-white/80 p-12 text-center shadow-md shadow-emerald-100">
+              <Sparkles className="h-12 w-12 text-emerald-400" />
+              <h2 className="mt-4 text-2xl font-semibold text-emerald-900">Select a plan to begin memorizing</h2>
+              <p className="mt-2 max-w-lg text-sm text-emerald-700">
+                Choose one of your plans on the left or create a new one. Repeating each verse twenty times helps
+                build strong retention and confidence.
+              </p>
+              <Button
+                className="mt-6 bg-gradient-to-r from-emerald-500 to-teal-500 text-white"
+                onClick={() => setShowCreatePlan(true)}
+              >
+                Create a plan
+              </Button>
+            </Card>
+          )}
+        </div>
+      </main>
+
+      <Dialog open={showCreatePlan} onOpenChange={setShowCreatePlan}>
+        <DialogContent className="max-w-lg border-emerald-100 bg-white/95">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-semibold text-emerald-900">Create memorization plan</DialogTitle>
+            <DialogDescription className="text-sm text-emerald-700">
+              Select the surah and the range of verses you would like to commit to memory.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-5 py-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-emerald-800">Choose Surah</Label>
+              <Select value={formState.surahId} onValueChange={handleSurahChange}>
+                <SelectTrigger className="border-emerald-200">
+                  <SelectValue placeholder="Select a surah" />
+                </SelectTrigger>
+                <SelectContent className="border-emerald-100 bg-white">
+                  {surahOptions.map((surah) => (
+                    <SelectItem key={surah.id} value={surah.id}>
+                      {surah.name} • {surah.verses.length} verses
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-emerald-800">Start Verse</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={formState.startVerse}
+                  onChange={(event) =>
+                    setFormState((prev) => ({
+                      ...prev,
+                      startVerse: Number(event.target.value),
+                    }))
+                  }
+                  className="border-emerald-200"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-emerald-800">End Verse</Label>
+                <Input
+                  type="number"
+                  min={formState.startVerse}
+                  value={formState.endVerse}
+                  onChange={(event) =>
+                    setFormState((prev) => ({
+                      ...prev,
+                      endVerse: Number(event.target.value),
+                    }))
+                  }
+                  className="border-emerald-200"
+                />
+              </div>
+            </div>
+            {formErrors ? <p className="text-sm text-red-500">{formErrors}</p> : null}
+            <div className="rounded-lg border border-emerald-100 bg-emerald-50/70 p-4 text-sm text-emerald-800">
+              <p className="font-semibold text-emerald-900">Tips for success</p>
+              <ul className="mt-2 list-disc space-y-1 pl-5">
+                <li>Repeat each verse aloud twenty times before moving forward.</li>
+                <li>Close your eyes and recite from memory after every five repetitions.</li>
+                <li>Schedule a quick review after finishing the plan to reinforce retention.</li>
+              </ul>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" className="border-emerald-200 text-emerald-700" onClick={() => setShowCreatePlan(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white"
+              onClick={handleCreatePlan}
+            >
+              Save Plan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showCompletion} onOpenChange={setShowCompletion}>
+        <DialogContent className="max-w-md border-emerald-100 bg-white/95 text-center">
+          <DialogHeader>
+            <DialogTitle className="flex flex-col items-center space-y-3 text-emerald-900">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg">
+                <Award className="h-8 w-8" />
+              </div>
+              <span>Congratulations!</span>
+            </DialogTitle>
+            <DialogDescription className="text-sm text-emerald-700">
+              You have completed the memorization plan
+              {completedPlan ? ` for ${completedPlan.surahName} verses ${completedPlan.startVerse} – ${completedPlan.endVerse}.` : "."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 text-sm text-emerald-800">
+            <p>
+              Celebrate this milestone and choose what you would like to do next. Consistency builds mastery—keep the
+              momentum alive!
+            </p>
+          </div>
+          <DialogFooter className="mt-4 flex flex-col space-y-3">
+            <Button
+              className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white"
+              onClick={() => {
+                setShowCompletion(false)
+                setShowCreatePlan(true)
+              }}
+            >
+              Create another plan
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full border-emerald-200 text-emerald-700"
+              onClick={() => setShowCompletion(false)}
+            >
+              Review existing plans
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
