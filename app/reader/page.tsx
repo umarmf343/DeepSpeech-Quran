@@ -75,6 +75,12 @@ export default function AlfawzReaderPage() {
   const [translationOptions, setTranslationOptions] = useState(DEFAULT_TRANSLATION_OPTIONS)
   const [transliterationOptions, setTransliterationOptions] = useState(DEFAULT_TRANSLITERATION_OPTIONS)
   const [systemPrefersDark, setSystemPrefersDark] = useState(false)
+  const [eggChallengeGoal, setEggChallengeGoal] = useState(10)
+  const [eggChallengeProgress, setEggChallengeProgress] = useState(0)
+  const [eggChallengeLevel, setEggChallengeLevel] = useState(1)
+  const [eggChallengeCompleted, setEggChallengeCompleted] = useState(false)
+  const [eggChallengeCelebrationVisible, setEggChallengeCelebrationVisible] = useState(false)
+  const [eggChallengeLastGoal, setEggChallengeLastGoal] = useState(10)
   const [profile, setProfile] = useState<ReaderProfile>(() => ({
     ...DEFAULT_PROFILE,
     ...loadReaderProfile(),
@@ -383,6 +389,15 @@ export default function AlfawzReaderPage() {
         !nextAyah || nextAyah.juz !== currentAyah.juz ? [currentAyah.juz] : [],
     })
 
+    setEggChallengeProgress((previous) => {
+      const nextProgress = previous + 1
+      if (nextProgress >= eggChallengeGoal) {
+        setEggChallengeCompleted(true)
+        return eggChallengeGoal
+      }
+      return nextProgress
+    })
+
     setSelectedAyahNumber((previous) => {
       if (nextAyah) {
         return nextAyah.numberInSurah
@@ -400,6 +415,7 @@ export default function AlfawzReaderPage() {
     selectedSurahNumber,
     surahMeta?.englishName,
     versesCompleted,
+    eggChallengeGoal,
   ])
 
   const markAyahCompleted = useCallback(() => {
@@ -415,6 +431,32 @@ export default function AlfawzReaderPage() {
       return next
     })
   }, [dailyGoal])
+
+  useEffect(() => {
+    if (!eggChallengeCompleted) {
+      return
+    }
+
+    setEggChallengeLastGoal(eggChallengeGoal)
+    setEggChallengeCelebrationVisible(true)
+    setEggChallengeLevel((previous) => previous + 1)
+    setEggChallengeGoal((previous) => previous + 5)
+    setEggChallengeProgress(0)
+
+    const timeout = typeof window !== "undefined"
+      ? window.setTimeout(() => {
+          setEggChallengeCelebrationVisible(false)
+        }, 3600)
+      : null
+
+    setEggChallengeCompleted(false)
+
+    return () => {
+      if (timeout !== null) {
+        window.clearTimeout(timeout)
+      }
+    }
+  }, [eggChallengeCompleted, eggChallengeGoal])
 
   const closeCelebration = useCallback(() => {
     setShouldCelebrate(false)
@@ -616,7 +658,7 @@ export default function AlfawzReaderPage() {
                             onClick={handleNextAyah}
                             disabled={isLastAyah}
                             className="gap-1 bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500"
-                          >
+                            >
                             Next
                             <ChevronRight className="h-4 w-4" aria-hidden />
                           </Button>
@@ -661,6 +703,11 @@ export default function AlfawzReaderPage() {
                   audioSegments={audioSegments}
                   onVersePlaybackEnd={markAyahCompleted}
                   telemetryEnabled={profile.telemetryOptIn}
+                  challengeGoal={eggChallengeGoal}
+                  challengeProgress={eggChallengeProgress}
+                  challengeLevel={eggChallengeLevel}
+                  challengeCelebrationActive={eggChallengeCelebrationVisible}
+                  lastCompletedGoal={eggChallengeLastGoal}
                 />
               )}
 

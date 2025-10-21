@@ -14,7 +14,7 @@ import type { ReaderProfile } from "@/lib/reader/preference-manager"
 import { generateTajweedForRange } from "@/lib/deepspeech/tajweed-engine"
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion"
 
-import { Pause, Volume2, Mic } from "lucide-react"
+import { Pause, Volume2, Mic, Egg, Sparkles } from "lucide-react"
 
 interface VerseRenderData {
   arabic: Ayah
@@ -33,6 +33,11 @@ interface QuranReaderContainerProps {
   audioSegments: AudioSegment[]
   onVersePlaybackEnd?: (ayahNumber: number) => void
   telemetryEnabled?: boolean
+  challengeGoal: number
+  challengeProgress: number
+  challengeLevel: number
+  challengeCelebrationActive?: boolean
+  lastCompletedGoal: number
 }
 
 const rtlLanguages = new Set(["ar", "fa", "ur", "ps", "he"])
@@ -48,6 +53,11 @@ export function QuranReaderContainer({
   audioSegments,
   onVersePlaybackEnd,
   telemetryEnabled,
+  challengeGoal,
+  challengeProgress,
+  challengeLevel,
+  challengeCelebrationActive = false,
+  lastCompletedGoal,
 }: QuranReaderContainerProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -62,6 +72,11 @@ export function QuranReaderContainer({
   const prefersReducedMotion = usePrefersReducedMotion()
 
   const translationDir = rtlLanguages.has(profile.translationLanguage) ? "rtl" : "ltr"
+
+  const challengeProgressRatio = useMemo(() => {
+    if (challengeGoal <= 0) return 0
+    return Math.min(challengeProgress / challengeGoal, 1)
+  }, [challengeGoal, challengeProgress])
 
   const versesToRender = useMemo(() => {
     if (!surahNumber || ayahs.length === 0) return []
@@ -320,6 +335,80 @@ export function QuranReaderContainer({
 
   return (
     <div className="space-y-4" id="quran-reader-container">
+      <div
+        className={cn(
+          "relative overflow-hidden rounded-2xl border border-amber-200/70 bg-gradient-to-r from-amber-50 via-rose-50 to-emerald-50 p-4 shadow-sm dark:border-amber-700/40 dark:from-amber-900/30 dark:via-rose-900/30 dark:to-emerald-900/20",
+          nightMode && "text-emerald-100",
+        )}
+      >
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-4">
+            <div className="relative flex h-16 w-16 items-center justify-center">
+              <div
+                className={cn(
+                  "absolute inset-0 rounded-full bg-white/60 blur-xl transition-all duration-700 ease-out dark:bg-emerald-400/40",
+                  challengeCelebrationActive ? "opacity-90" : "opacity-70",
+                )}
+              />
+              <div
+                className={cn(
+                  "relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-amber-200 via-rose-200 to-emerald-200 shadow-lg ring-2 ring-white/50 transition-transform duration-500 ease-out dark:from-amber-500/40 dark:via-rose-500/30 dark:to-emerald-500/40",
+                  challengeCelebrationActive ? "scale-110" : "animate-pulse",
+                )}
+              >
+                <Egg
+                  className={cn(
+                    "h-10 w-10 text-amber-700 transition-transform duration-500 ease-out drop-shadow-md dark:text-amber-200",
+                    challengeCelebrationActive ? "-rotate-6 text-emerald-500" : "",
+                  )}
+                  aria-hidden
+                />
+                {challengeCelebrationActive ? (
+                  <Sparkles className="absolute -top-2 right-0 h-5 w-5 animate-ping text-emerald-500" aria-hidden />
+                ) : null}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">
+                Break the Egg Challenge • Level {challengeLevel}
+              </p>
+              <p className="text-xs text-emerald-900/70 dark:text-emerald-100/80">
+                Recite {challengeGoal} verses by tapping “Next” to crack the egg. Progress: {challengeProgress} / {challengeGoal}
+              </p>
+            </div>
+          </div>
+          <div className="w-full max-w-xs self-start md:self-center">
+            <div
+              className="h-2 w-full overflow-hidden rounded-full bg-white/40 dark:bg-slate-900/50"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={Math.max(challengeGoal, 1)}
+              aria-valuenow={Math.min(challengeProgress, challengeGoal)}
+              aria-label="Break the Egg challenge progress"
+            >
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-amber-400 via-pink-400 to-emerald-400 transition-all duration-500 ease-out"
+                style={{ width: `${challengeProgressRatio * 100}%` }}
+                aria-hidden
+              />
+            </div>
+          </div>
+        </div>
+        {challengeCelebrationActive ? (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm dark:bg-slate-900/70">
+            <div className="flex max-w-sm flex-col items-center gap-2 text-center" role="status" aria-live="polite">
+              <Sparkles className="h-8 w-8 text-emerald-500" aria-hidden />
+              <p className="text-base font-semibold text-emerald-700 dark:text-emerald-200">
+                Mabruk! You cracked the egg after {lastCompletedGoal} verses.
+              </p>
+              <p className="text-xs text-emerald-800/80 dark:text-emerald-100/70">
+                Level {challengeLevel} unlocked. Aim for {challengeGoal} verses to shatter the next egg!
+              </p>
+            </div>
+          </div>
+        ) : null}
+      </div>
+
       {offline ? (
         <Alert role="status" className="border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-600/70 dark:bg-amber-900/40 dark:text-amber-200">
           <AlertTitle>Offline mode</AlertTitle>
