@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -477,17 +476,13 @@ export default function MemorizationPage() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  <div className="rounded-2xl bg-gradient-to-br from-white to-emerald-50 p-8 shadow-inner">
-                    <div className="flex items-center justify-between gap-3">
-                      <Badge className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700">
-                        Ayah {activeVerse.numberInSurah} of {activePlan.endAyah - activePlan.startAyah + 1}
-                      </Badge>
-                      <span className="text-xs font-medium text-emerald-600">
-                        Repetitions {repeatCount}/{REPEAT_TARGET}
-                      </span>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between gap-3 text-xs text-emerald-600">
+                      <span>Ayah {activeVerse.numberInSurah} of {activePlan.endAyah - activePlan.startAyah + 1}</span>
+                      <span>Repetitions {repeatCount}/{REPEAT_TARGET}</span>
                     </div>
-                    <p className="mt-6 text-3xl leading-relaxed text-slate-900 md:text-[2.25rem]">{activeVerse.arabicText}</p>
-                    <p className="mt-4 text-base leading-relaxed text-slate-600">{activeVerse.translation}</p>
+                    <p className="text-3xl leading-relaxed text-slate-900 md:text-[2.25rem]">{activeVerse.arabicText}</p>
+                    <p className="text-base leading-relaxed text-slate-600">{activeVerse.translation}</p>
                   </div>
 
                   <div className="space-y-4">
