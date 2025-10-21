@@ -12,7 +12,9 @@ import { cn } from "@/lib/utils"
 import { createAudioPlayerService } from "@/lib/reader/audio-player-service"
 import type { ReaderProfile } from "@/lib/reader/preference-manager"
 import { generateTajweedForRange } from "@/lib/deepspeech/tajweed-engine"
+import type { SparkleEvent } from "@/hooks/use-hasanat-tracker"
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion"
+import { HasanatSparkleEmitter } from "./hasanat-sparkles"
 
 import { Pause, Volume2, Mic, ChevronLeft, ChevronRight } from "lucide-react"
 
@@ -33,6 +35,9 @@ interface QuranReaderContainerProps {
   audioSegments: AudioSegment[]
   onVersePlaybackEnd?: (ayahNumber: number) => void
   telemetryEnabled?: boolean
+  onNavigate?: (payload: { direction: "previous" | "next"; currentAyah: Ayah; targetAyah: Ayah | null }) => boolean | void
+  sparkleEvents?: SparkleEvent[]
+  onSparkleComplete?: (id: string) => void
 }
 
 const rtlLanguages = new Set(["ar", "fa", "ur", "ps", "he"])
@@ -48,6 +53,9 @@ export function QuranReaderContainer({
   audioSegments,
   onVersePlaybackEnd,
   telemetryEnabled,
+  onNavigate,
+  sparkleEvents = [],
+  onSparkleComplete,
 }: QuranReaderContainerProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -60,6 +68,12 @@ export function QuranReaderContainer({
   const verseRefs = useRef<Map<number, HTMLDivElement | null>>(new Map())
   const audioServiceRef = useRef<ReturnType<typeof createAudioPlayerService> | null>(null)
   const prefersReducedMotion = usePrefersReducedMotion()
+  const handleSparkleComplete = useCallback(
+    (id: string) => {
+      onSparkleComplete?.(id)
+    },
+    [onSparkleComplete],
+  )
 
   const translationDir = rtlLanguages.has(profile.translationLanguage) ? "rtl" : "ltr"
 
@@ -87,12 +101,19 @@ export function QuranReaderContainer({
       if (targetIndex < 0 || targetIndex >= ayahs.length) {
         return
       }
-      const targetAyah = ayahs[targetIndex]
+      const targetAyah = ayahs[targetIndex] ?? null
+      const currentAyah = ayahs[selectedAyahIndex]
+      if (currentAyah) {
+        const handled = onNavigate?.({ direction, currentAyah, targetAyah })
+        if (handled) {
+          return
+        }
+      }
       if (targetAyah) {
         onAyahSelect(targetAyah.numberInSurah)
       }
     },
-    [ayahs, onAyahSelect, profile.fullSurahView, selectedAyahIndex],
+    [ayahs, onAyahSelect, onNavigate, profile.fullSurahView, selectedAyahIndex],
   )
 
   const versesToRender = useMemo(() => {
@@ -408,20 +429,26 @@ export function QuranReaderContainer({
                   >
                     <ChevronLeft className="h-6 w-6" aria-hidden="true" />
                   </Button>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    className={cn(
-                      "absolute right-0 top-1/2 z-20 h-12 w-12 -translate-y-1/2 translate-x-1/2 rounded-full bg-gradient-to-br from-sky-500 via-indigo-500 to-violet-500 text-white shadow-lg shadow-sky-500/40 transition-transform hover:-translate-y-1/2 hover:scale-105 hover:from-sky-400 hover:via-indigo-400 hover:to-violet-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 dark:shadow-sky-900/50",
-                      !canGoNext && "pointer-events-none opacity-40",
-                    )}
-                    onClick={() => handleNavigate("next")}
-                    aria-label="Go to next verse"
-                    disabled={!canGoNext}
+                  <HasanatSparkleEmitter
+                    events={sparkleEvents}
+                    reducedMotion={prefersReducedMotion}
+                    onComplete={handleSparkleComplete}
                   >
-                    <ChevronRight className="h-6 w-6" aria-hidden="true" />
-                  </Button>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className={cn(
+                        "absolute right-0 top-1/2 z-20 h-12 w-12 -translate-y-1/2 translate-x-1/2 rounded-full bg-gradient-to-br from-sky-500 via-indigo-500 to-violet-500 text-white shadow-lg shadow-sky-500/40 transition-transform hover:-translate-y-1/2 hover:scale-105 hover:from-sky-400 hover:via-indigo-400 hover:to-violet-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 dark:shadow-sky-900/50",
+                        !canGoNext && "pointer-events-none opacity-40",
+                      )}
+                      onClick={() => handleNavigate("next")}
+                      aria-label="Go to next verse"
+                      disabled={!canGoNext}
+                    >
+                      <ChevronRight className="h-6 w-6" aria-hidden="true" />
+                    </Button>
+                  </HasanatSparkleEmitter>
                 </>
               ) : null}
               <div className="flex items-start justify-between gap-4">
