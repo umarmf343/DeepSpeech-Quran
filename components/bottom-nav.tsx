@@ -65,7 +65,7 @@ const TAB_REGISTRY: Record<TabSlug, TabDefinition> = {
 }
 
 const ROLE_TAB_MAP: Record<UserRole, TabSlug[]> = {
-  visitor: ["dashboard", "reader", "profile"],
+  visitor: ["dashboard", "reader", "memorization", "qaidah", "profile"],
   student: ["dashboard", "reader", "memorization", "qaidah", "profile"],
   teacher: ["dashboard", "reader", "memorization", "qaidah", "teacher-dashboard", "profile"],
   admin: ["dashboard", "reader", "memorization", "qaidah", "leaderboard", "game", "admin-dashboard", "profile"],
@@ -92,7 +92,7 @@ const iconMap: Record<string, ComponentType<{ className?: string }>> = {
   gamepad: Gamepad2,
 }
 
-const SENIOR_MODE_TABS = new Set<TabSlug>(["dashboard", "reader", "qaidah", "profile"])
+const SENIOR_MODE_TABS = new Set<TabSlug>(["dashboard", "reader", "memorization", "qaidah", "profile"])
 
 export function alfawz_get_bottom_nav_url(slug: TabSlug): string {
   return TAB_REGISTRY[slug]?.href ?? "/"

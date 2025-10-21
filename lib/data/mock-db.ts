@@ -181,8 +181,20 @@ function cloneUser(user: UserRecord): UserRecord {
 const navigationLinks: NavigationLink[] = [
   { slug: "dashboard", label: "Dashboard", href: "/dashboard", icon: "home", roles: ["student", "teacher", "admin", "visitor"] },
   { slug: "reader", label: "Qur'an Reader", href: "/reader", icon: "book", roles: ["student", "teacher", "admin", "visitor"] },
-  { slug: "memorization", label: "Memorization", href: "/memorization", icon: "target", roles: ["student", "teacher", "admin"] },
-  { slug: "qaidah", label: "Qa'idah", href: "/qaidah", icon: "scroll", roles: ["student", "teacher", "admin"] },
+  {
+    slug: "memorization",
+    label: "Memorization",
+    href: "/memorization",
+    icon: "target",
+    roles: ["student", "teacher", "admin", "visitor"],
+  },
+  {
+    slug: "qaidah",
+    label: "Qa'idah",
+    href: "/qaidah",
+    icon: "scroll",
+    roles: ["student", "teacher", "admin", "visitor"],
+  },
   { slug: "leaderboard", label: "Leaderboard", href: "/leaderboard", icon: "crown", roles: ["admin"] },
   { slug: "game", label: "Game Lab", href: "/game", icon: "gamepad", roles: ["admin"] },
   { slug: "teacher-dashboard", label: "My Classroom", href: "/teacher/dashboard", icon: "users", roles: ["teacher", "admin"] },
