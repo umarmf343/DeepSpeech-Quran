@@ -124,12 +124,12 @@ export default function AlfawzReaderPage() {
 
   const fontSizeClass = useMemo(() => {
     const map: Record<number, string> = {
-      3: "text-3xl",
-      4: "text-4xl",
-      5: "text-5xl",
-      6: "text-6xl",
+      3: "text-xl",
+      4: "text-2xl",
+      5: "text-3xl",
+      6: "text-4xl",
     }
-    return map[fontScale] ?? "text-4xl"
+    return map[fontScale] ?? "text-2xl"
   }, [fontScale])
 
   useEffect(() => {
