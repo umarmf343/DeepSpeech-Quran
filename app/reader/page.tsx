@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -109,7 +108,7 @@ export default function AlfawzReaderPage() {
   const [isLoadingSurah, setIsLoadingSurah] = useState(true)
   const [isLoadingAudio, setIsLoadingAudio] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [fontScale, setFontScale] = useState(4)
+  const fontSizeClass = "text-xl"
   const [rawShowTranslation, setRawShowTranslation, showTranslationLoaded] =
     usePersistentBoolean(TRANSLATION_VISIBILITY_STORAGE_KEY, true)
   const [rawShowTransliteration, setRawShowTransliteration, showTransliterationLoaded] =
@@ -120,10 +119,8 @@ export default function AlfawzReaderPage() {
     NIGHT_MODE_STORAGE_KEY,
     false,
   )
-  const [selectedMushaf, setSelectedMushaf] = useState(() => mushafVariants[0])
+  const selectedMushaf = mushafVariants[0]
   const [showMushafView, setShowMushafView] = useState(false)
-
-  const mushafOptions = useMemo(() => mushafVariants, [])
 
   const defaultReciterEdition = useMemo(() => {
     const preferred = RECITER_OPTIONS.find((option) => option.label === preferences.reciter)
@@ -148,16 +145,6 @@ export default function AlfawzReaderPage() {
     const ayahCount = surahMeta?.numberOfAyahs ?? 5
     return Math.min(Math.max(ayahCount, 3), 10)
   }, [surahMeta?.numberOfAyahs])
-
-  const fontSizeClass = useMemo(() => {
-    const map: Record<number, string> = {
-      3: "text-lg",
-      4: "text-xl",
-      5: "text-2xl",
-      6: "text-3xl",
-    }
-    return map[fontScale] ?? "text-2xl"
-  }, [fontScale])
 
   const totalAyahs = surahMeta?.numberOfAyahs ?? ayahList.length
   const totalAyahDisplay = totalAyahs > 0 ? totalAyahs : "–"
@@ -802,44 +789,6 @@ export default function AlfawzReaderPage() {
               )}
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <Card className={cn("border border-purple-200 bg-purple-50/80", nightMode && "border-purple-400/60 bg-purple-900/30") }>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-purple-800 dark:text-purple-200">Reader Settings</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 text-sm text-slate-700 dark:text-slate-200">
-                  <div className="space-y-2">
-                    <p className="font-medium">Font size</p>
-                    <Slider value={[fontScale]} onValueChange={(value) => setFontScale(value[0] ?? 4)} min={3} max={6} step={1} />
-                    <p className="text-xs text-muted-foreground">Current size: {fontSizeClass.replace("text-", "")}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="font-medium">Mushaf variant</p>
-                    <div className="flex flex-wrap gap-2">
-                      {mushafOptions.map((variant) => (
-                        <Button
-                          key={variant.id}
-                          variant={variant.id === selectedMushaf.id ? "default" : "outline"}
-                          className={
-                            variant.id === selectedMushaf.id
-                              ? "bg-maroon-600 text-white"
-                              : nightMode
-                                ? "border-slate-600 text-slate-200"
-                                : "border-maroon-200 text-maroon-700"
-                          }
-                          size="sm"
-                          onClick={() => setSelectedMushaf(variant)}
-                        >
-                          {variant.name}
-                        </Button>
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground">{selectedMushaf.description}</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-            </div>
           </CardContent>
         </Card>
 
