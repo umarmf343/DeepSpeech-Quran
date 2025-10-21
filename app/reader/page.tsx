@@ -770,30 +770,9 @@ export default function AlfawzReaderPage() {
               className={nightMode ? "border-slate-700 bg-slate-900/60" : undefined}
             />
 
-            <div className="grid gap-4 lg:grid-cols-2">
-              <Card className={cn("border border-emerald-200 bg-emerald-50/80", nightMode && "border-emerald-400/60 bg-emerald-900/40") }>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-emerald-800 dark:text-emerald-200">Mushaf Highlights</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm text-emerald-900 dark:text-emerald-200">
-                  <div className="font-arabic rounded-lg border border-emerald-200 bg-white/90 p-3 text-right text-xl shadow-sm dark:border-emerald-400/50 dark:bg-emerald-900/40">
-                    {selectedMushaf.ayahExample.arabic}
-                  </div>
-                  <p>{selectedMushaf.ayahExample.guidance}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedMushaf.highlights.map((highlight) => (
-                      <Badge key={highlight} className={selectedMushaf.visualStyle.badge}>
-                        {highlight}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {selectedSurahNumber && selectedAyahNumber && (
-                <MorphologyBreakdown ayahReference={`${selectedSurahNumber}:${selectedAyahNumber}`} />
-              )}
-            </div>
+            {selectedSurahNumber && selectedAyahNumber && (
+              <MorphologyBreakdown ayahReference={`${selectedSurahNumber}:${selectedAyahNumber}`} />
+            )}
 
           </CardContent>
         </Card>
