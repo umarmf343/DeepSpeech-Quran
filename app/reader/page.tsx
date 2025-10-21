@@ -691,6 +691,19 @@ export default function AlfawzReaderPage() {
                           >
                             {ayahDetail.arabic.text}
                           </p>
+                          {showTranslation && ayahDetail.translations.length ? (
+                            <div className="space-y-2" dir="ltr">
+                              {ayahDetail.translations.map((translation, index) => (
+                                <p
+                                  key={`${translation.translator}-${index}`}
+                                  className="text-base leading-relaxed text-slate-600"
+                                >
+                                  {translation.text}
+                                  {translation.translator ? ` — ${translation.translator}` : ""}
+                                </p>
+                              ))}
+                            </div>
+                          ) : null}
                           {showTransliteration && ayahDetail.transliteration ? (
                             <p
                               className="text-base leading-relaxed text-emerald-700 dark:text-emerald-300"
@@ -700,20 +713,6 @@ export default function AlfawzReaderPage() {
                             </p>
                           ) : null}
                         </div>
-                        {showTranslation && ayahDetail.translations.length
-                          ? ayahDetail.translations.map((translation, index) => (
-                              <p
-                                key={`${translation.translator}-${index}`}
-                                className={cn(
-                                  "text-base leading-relaxed text-slate-600",
-                                  index === 0 ? "mt-4" : "mt-2",
-                                )}
-                              >
-                                {translation.text}
-                                {translation.translator ? ` — ${translation.translator}` : ""}
-                              </p>
-                            ))
-                          : null}
                       </div>
                     </div>
                   )}
