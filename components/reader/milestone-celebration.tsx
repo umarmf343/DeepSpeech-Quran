@@ -23,9 +23,26 @@ export function MilestoneCelebration({ show, title, message, ctaLabel = "Keep go
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="egg-confetti pointer-events-none" aria-hidden>
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        <style>{`
+          @keyframes nurBloomCelebrationConfetti {
+            0% { transform: translateY(-10%) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(120vh) rotate(420deg); opacity: 0; }
+          }
+        `}</style>
         {confettiPieces.map((index) => (
-          <span key={index} />
+          <span
+            key={index}
+            className="absolute block h-2 w-2 rounded-full bg-gradient-to-br from-emerald-300 via-teal-400 to-sky-400 opacity-80"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationName: "nurBloomCelebrationConfetti",
+              animationDelay: `${Math.random() * 0.7}s`,
+              animationDuration: `${1.6 + Math.random() * 0.8}s`,
+              animationTimingFunction: "ease-in",
+              animationFillMode: "forwards",
+            }}
+          />
         ))}
       </div>
       <div className="relative mx-4 w-full max-w-md rounded-3xl border border-amber-200/80 bg-gradient-to-br from-cream-50/95 via-white to-amber-50/90 p-6 text-center shadow-2xl">

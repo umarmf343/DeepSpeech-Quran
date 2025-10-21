@@ -49,7 +49,7 @@ interface CelebrationState {
   active: boolean
   title?: string
   message: string
-  asset: "egg" | "tree" | "medal" | null
+  asset: "nur" | "tree" | "medal" | null
   rewardCopy?: string
 }
 
@@ -145,8 +145,8 @@ const DEFAULT_GAMIFICATION: GamificationState = {
   xpToNext: 500,
   streak: 0,
   heroCopy: {
-    title: "Takbir! The egg is hatching...",
-    subtitle: "Every recitation adds light to your journey",
+    title: "Breathe nur into your recitation",
+    subtitle: "Every verse nourishes the bloom within",
     kicker: "Daily Quest",
   },
   milestones: [],
@@ -161,7 +161,7 @@ const DEFAULT_LOCALIZATION: LocalizationStrings = {
   },
   navigation: {},
   gamification: {
-    celebrationEgg: "Takbir! The egg is hatching...",
+    celebrationEgg: "MashaAllah! Your nur companion is glowing.",
     celebrationTree: "Mashallah! Your tree is blooming.",
     streak: "Current streak",
   },
