@@ -112,6 +112,8 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   translation: "Sahih International",
   translationLanguage: "en",
   playbackSpeed: 1,
+  showTranslation: true,
+  showTransliteration: false,
   challengeOptIn: true,
   notifications: { email: true, push: true, sms: false },
   seniorMode: false,

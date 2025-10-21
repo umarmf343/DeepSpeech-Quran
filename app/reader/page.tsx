@@ -78,8 +78,8 @@ export default function AlfawzReaderPage() {
   const [isLoadingAudio, setIsLoadingAudio] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fontScale, setFontScale] = useState(4)
-  const [showTranslation, setShowTranslation] = useState(true)
-  const [showTransliteration, setShowTransliteration] = useState(false)
+  const [showTranslation, setShowTranslation] = useState(preferences.showTranslation ?? true)
+  const [showTransliteration, setShowTransliteration] = useState(preferences.showTransliteration ?? false)
   const [versesCompleted, setVersesCompleted] = useState(0)
   const [shouldCelebrate, setShouldCelebrate] = useState(false)
   const [nightMode, setNightMode] = useState(false)
@@ -137,6 +137,14 @@ export default function AlfawzReaderPage() {
   useEffect(() => {
     setSelectedTranslation(defaultTranslationEdition)
   }, [defaultTranslationEdition])
+
+  useEffect(() => {
+    setShowTranslation(preferences.showTranslation ?? true)
+  }, [preferences.showTranslation])
+
+  useEffect(() => {
+    setShowTransliteration(preferences.showTransliteration ?? false)
+  }, [preferences.showTransliteration])
 
   useEffect(() => {
     setPlaybackSpeed(preferences.playbackSpeed ?? 1)
@@ -331,6 +339,26 @@ export default function AlfawzReaderPage() {
     setSelectedAyahNumber(ayahNumber)
     setIsPlaying(false)
   }, [])
+
+  const handleShowTranslationChange = useCallback(
+    (checked: boolean) => {
+      setShowTranslation(checked)
+      if (preferences.showTranslation !== checked) {
+        void updatePreferences({ showTranslation: checked })
+      }
+    },
+    [preferences.showTranslation, updatePreferences],
+  )
+
+  const handleShowTransliterationChange = useCallback(
+    (checked: boolean) => {
+      setShowTransliteration(checked)
+      if (preferences.showTransliteration !== checked) {
+        void updatePreferences({ showTransliteration: checked })
+      }
+    },
+    [preferences.showTransliteration, updatePreferences],
+  )
 
   const markAyahCompleted = useCallback(() => {
     setVersesCompleted((prev) => {
@@ -533,7 +561,11 @@ export default function AlfawzReaderPage() {
 
                 <div className="flex flex-wrap items-center gap-4 text-sm">
                   <div className="flex items-center gap-2">
-                    <Switch checked={showTranslation} onCheckedChange={setShowTranslation} id="toggle-translation" />
+                    <Switch
+                      checked={showTranslation}
+                      onCheckedChange={handleShowTranslationChange}
+                      id="toggle-translation"
+                    />
                     <Label htmlFor="toggle-translation" className="text-sm text-muted-foreground">
                       Show translation
                     </Label>
@@ -541,7 +573,7 @@ export default function AlfawzReaderPage() {
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={showTransliteration}
-                      onCheckedChange={setShowTransliteration}
+                      onCheckedChange={handleShowTransliterationChange}
                       id="toggle-transliteration"
                     />
                     <Label htmlFor="toggle-transliteration" className="text-sm text-muted-foreground">
@@ -666,8 +698,8 @@ export default function AlfawzReaderPage() {
                           className="mt-2 text-maroon-700 dark:text-amber-200"
                           onClick={() => {
                             setFontScale(4)
-                            setShowTranslation(true)
-                            setShowTransliteration(false)
+                            handleShowTranslationChange(true)
+                            handleShowTransliterationChange(false)
                             setSelectedMushaf(mushafVariants[0])
                           }}
                         >
@@ -678,10 +710,18 @@ export default function AlfawzReaderPage() {
                         <p className="font-semibold text-maroon-700 dark:text-amber-200">Toggle visibility</p>
                         <p>Show or hide translations and transliteration instantly.</p>
                         <div className="mt-2 flex items-center gap-2">
-                          <Button variant="outline" size="sm" onClick={() => setShowTranslation((prev) => !prev)}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleShowTranslationChange(!showTranslation)}
+                          >
                             {showTranslation ? "Hide" : "Show"} translation
                           </Button>
-                          <Button variant="outline" size="sm" onClick={() => setShowTransliteration((prev) => !prev)}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleShowTransliterationChange(!showTransliteration)}
+                          >
                             {showTransliteration ? "Hide" : "Show"} transliteration
                           </Button>
                         </div>

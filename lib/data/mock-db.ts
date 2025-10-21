@@ -22,6 +22,8 @@ export interface UserPreferences {
   translation: string
   translationLanguage: string
   playbackSpeed: number
+  showTranslation: boolean
+  showTransliteration: boolean
   challengeOptIn: boolean
   notifications: {
     email: boolean
@@ -294,6 +296,8 @@ const basePreferences: UserPreferences = {
   translation: "Sahih International",
   translationLanguage: "en",
   playbackSpeed: 1,
+  showTranslation: true,
+  showTransliteration: false,
   challengeOptIn: true,
   notifications: { email: true, push: true, sms: false },
   seniorMode: false,
