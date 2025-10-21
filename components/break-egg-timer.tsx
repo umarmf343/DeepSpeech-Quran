@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils"
 const DEFAULT_DURATION = 120
 
 export function BreakEggTimer() {
-  const { state, duration, timeLeft, isRunning, isLoading, start } = useEggSessionTimer(DEFAULT_DURATION)
+  const { state, duration, timeLeft, isRunning, isLoading, start, reset } = useEggSessionTimer(DEFAULT_DURATION)
   const lastCelebrationRef = useRef<string | null>(null)
   const { triggerCelebration } = useUser()
 
@@ -42,11 +42,15 @@ export function BreakEggTimer() {
     })
   }, [state?.lastCompletedAt, state?.totalCompleted, triggerCelebration])
 
-  const handleStart = async () => {
+  const handleToggle = async () => {
     try {
-      await start()
+      if (isRunning) {
+        await reset()
+      } else {
+        await start()
+      }
     } catch (error) {
-      console.error("Unable to start Break the Egg session:", error)
+      console.error("Unable to update Break the Egg session:", error)
     }
   }
 
@@ -77,12 +81,12 @@ export function BreakEggTimer() {
                 <p className="text-lg font-medium text-slate-700">Time left: {formattedTime}</p>
                 <div className="w-full sm:w-auto">
                   <Button
-                    onClick={handleStart}
-                    disabled={isRunning || isLoading}
+                    onClick={handleToggle}
+                    disabled={isLoading}
                     className="w-full rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-70"
                   >
-                    {isLoading && !isRunning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                    Start
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    {isRunning ? "Stop" : "Start"}
                   </Button>
                 </div>
               </div>
