@@ -20,8 +20,6 @@ interface HasanatHudProps {
   totalHasanat: number
   dailyHasanat: number
   sessionHasanat: number
-  dailyGoal?: number
-  versesCompleted?: number
   ramadanMultiplier?: number
   isRamadan?: boolean
   announcement?: string
@@ -35,8 +33,6 @@ export function HasanatHud({
   totalHasanat: _totalHasanat,
   dailyHasanat: _dailyHasanat,
   sessionHasanat: _sessionHasanat,
-  dailyGoal,
-  versesCompleted,
   ramadanMultiplier = 1,
   isRamadan = false,
   announcement,
@@ -45,10 +41,11 @@ export function HasanatHud({
   breakTheEggStreak,
   challengeInfo,
 }: HasanatHudProps) {
-  const goalProgress = useMemo(() => {
-    if (!dailyGoal || dailyGoal <= 0 || !versesCompleted) return 0
-    return Math.min(100, Math.round((versesCompleted / dailyGoal) * 100))
-  }, [dailyGoal, versesCompleted])
+  void _totalHasanat
+  void _dailyHasanat
+  void _sessionHasanat
+  void ramadanMultiplier
+  void isRamadan
 
   const challengeGoal = challengeInfo?.goal ?? breakTheEggGoal ?? 0
   const challengeCurrent = challengeInfo?.current ?? breakTheEggCurrent ?? 0
@@ -76,25 +73,6 @@ export function HasanatHud({
         </span>
       ) : null}
       <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-3 px-4 py-3 sm:grid-cols-2 sm:px-6 lg:px-8">
-        <div className="flex flex-col justify-between gap-2 rounded-xl border border-emerald-100/60 bg-white/70 p-3 text-xs text-slate-600 shadow-sm dark:border-emerald-800/40 dark:bg-slate-900/70 dark:text-slate-200">
-          {dailyGoal ? (
-            <div className="space-y-1">
-              <p className="font-medium text-slate-700 dark:text-slate-100">
-                Daily intention: {Math.min(versesCompleted ?? 0, dailyGoal)}/{dailyGoal} verses
-              </p>
-              <Progress
-                value={goalProgress}
-                className={cn("h-1.5 bg-emerald-100", goalProgress >= 100 ? "[&>div]:bg-emerald-500" : "[&>div]:bg-emerald-400")}
-                aria-label="Daily goal progress"
-              />
-            </div>
-          ) : (
-            <p className="text-slate-500 dark:text-slate-300">
-              Set a daily intention to see your progress here.
-            </p>
-          )}
-        </div>
-
         <div className="flex flex-col gap-2 rounded-xl border border-emerald-100/60 bg-white/70 p-3 text-sm text-slate-600 shadow-sm dark:border-emerald-800/40 dark:bg-slate-900/70 dark:text-slate-200">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-slate-900 dark:text-emerald-100">

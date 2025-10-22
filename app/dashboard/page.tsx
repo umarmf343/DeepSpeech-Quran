@@ -51,6 +51,10 @@ export default function DashboardPage() {
   const featuredHabit = habits[0]
   const heroCopy = gamification.heroCopy
   const heroTitleClass = preferences.heroAnimation ? "animate-pulse" : ""
+  const dailyIntentionTarget = 10
+  const dailyIntentionCompleted = 0
+  const cappedDailyCompletion = Math.min(dailyIntentionCompleted, dailyIntentionTarget)
+  const dailyIntentionProgress = dailyIntentionTarget > 0 ? Math.round((cappedDailyCompletion / dailyIntentionTarget) * 100) : 0
 
   const recentActivity = [
     { type: "reading", surah: "Al-Fatiha", ayahs: 7, time: "2 hours ago" },
@@ -80,6 +84,24 @@ export default function DashboardPage() {
                   {gamification.streak} day streak
                 </Badge>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div
+            className="flex flex-col justify-between gap-2 rounded-xl border border-emerald-100/60 bg-white/70 p-3 text-xs text-slate-600 shadow-sm dark:border-emerald-800/40 dark:bg-slate-900/70 dark:text-slate-200"
+            data-animate="fade-in"
+          >
+            <div className="space-y-1">
+              <p className="font-medium text-slate-700 dark:text-slate-100">
+                Daily intention: {cappedDailyCompletion}/{dailyIntentionTarget} verses
+              </p>
+              <Progress
+                value={dailyIntentionProgress}
+                className={`h-1.5 bg-emerald-100 ${dailyIntentionProgress >= 100 ? "[&>div]:bg-emerald-500" : "[&>div]:bg-emerald-400"}`}
+                aria-label="Daily goal progress"
+              />
             </div>
           </div>
         </div>

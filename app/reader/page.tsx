@@ -561,8 +561,6 @@ export default function AlfawzReaderPage() {
         totalHasanat={hasanatState.totalHasanat}
         dailyHasanat={hasanatState.dailyHasanat}
         sessionHasanat={hasanatState.sessionHasanat}
-        dailyGoal={dailyGoal}
-        versesCompleted={versesCompleted}
         ramadanMultiplier={ramadanState.multiplier}
         isRamadan={ramadanState.isRamadan}
         announcement={hasanatAnnouncement}
