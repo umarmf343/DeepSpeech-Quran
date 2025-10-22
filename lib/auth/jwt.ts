@@ -10,6 +10,12 @@ function base64Url(input: string | Buffer) {
     .replace(/\//g, "_")
 }
 
+function base64UrlDecode(input: string) {
+  const normalized = input.replace(/-/g, "+").replace(/_/g, "/")
+  const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "=")
+  return Buffer.from(padded, "base64").toString()
+}
+
 export interface JwtPayload {
   sub: string
   role: string
@@ -36,7 +42,7 @@ export function verifyJwt(token: string): JwtPayload | null {
   const expectedSignature = createHmac("sha256", secret).update(`${header}.${payload}`).digest("base64url")
   if (expectedSignature !== signature) return null
   try {
-    const decoded = JSON.parse(Buffer.from(payload, "base64").toString()) as JwtPayload
+    const decoded = JSON.parse(base64UrlDecode(payload)) as JwtPayload
     if (decoded.exp < Math.floor(Date.now() / 1000)) {
       return null
     }
