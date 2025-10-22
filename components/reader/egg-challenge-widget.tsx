@@ -147,7 +147,7 @@ export function EggChallengeWidget({
           </div>
           <Progress value={percent} className="h-3 bg-amber-100" aria-hidden={false} aria-valuenow={percent} />
           <p className="text-xs text-slate-600">{progressCaption}</p>
-          <div className="grid grid-cols-2 gap-2 text-[11px] font-medium text-slate-500 md:flex md:flex-wrap md:items-center">
+          <div className="grid grid-cols-3 gap-2 text-[11px] font-medium text-slate-500 md:flex md:flex-wrap md:items-center">
             <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-700">
               Rounds: {Math.min(roundsCompleted, roundsTarget)}/{roundsTarget}
             </span>
@@ -155,7 +155,7 @@ export function EggChallengeWidget({
               Total completions: {totalCompletions}
             </span>
             {nextChallenge ? (
-              <span className="col-span-2 flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-slate-600 shadow-sm md:col-auto">
+              <span className="flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-slate-600 shadow-sm md:col-auto">
                 <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                 {nextLabel}
               </span>
