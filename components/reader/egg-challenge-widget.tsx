@@ -138,25 +138,27 @@ export function EggChallengeWidget({
               {progress}/{goal}
             </span>
           </div>
-          <div className="grid grid-cols-3 gap-2 text-[11px] font-medium text-slate-500 md:flex md:flex-wrap md:items-center">
+          <div className="space-y-2">
             <Progress
               value={percent}
-              className="col-span-3 h-3 bg-amber-100 md:flex-1"
+              className="h-3 bg-amber-100"
               aria-hidden={false}
               aria-valuenow={percent}
             />
-            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-700">
-              Rounds: {Math.min(roundsCompleted, roundsTarget)}/{roundsTarget}
-            </span>
-            <span className="hidden">
-              Total completions: {totalCompletions}
-            </span>
-            {nextChallenge ? (
-              <span className="flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-slate-600 shadow-sm md:col-auto">
-                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                {nextLabel}
+            <div className="grid grid-cols-3 gap-2 text-[11px] font-medium text-slate-500 md:flex md:flex-wrap md:items-center">
+              <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-700">
+                Rounds: {Math.min(roundsCompleted, roundsTarget)}/{roundsTarget}
               </span>
-            ) : null}
+              <span className="hidden">
+                Total completions: {totalCompletions}
+              </span>
+              {nextChallenge ? (
+                <span className="flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-slate-600 shadow-sm md:col-auto">
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  {nextLabel}
+                </span>
+              ) : null}
+            </div>
           </div>
           <p className="text-xs text-slate-600">{progressCaption}</p>
           <div className="flex items-center justify-between pt-1 text-xs text-slate-500">
