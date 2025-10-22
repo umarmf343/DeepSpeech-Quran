@@ -2,6 +2,7 @@
 
 import { useMemo, type CSSProperties } from "react"
 
+import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import type {
   ReaderChallengeCelebration,
@@ -9,13 +10,15 @@ import type {
 } from "@/lib/reader/challenges"
 import { cn } from "@/lib/utils"
 
-import { ArrowRight, Gift, Sparkles } from "lucide-react"
+import { ArrowRight, EggOff, Gift, PartyPopper, Sparkles } from "lucide-react"
 
 interface EggChallengeWidgetProps {
   snapshot: ReaderChallengeSnapshot | null
   celebration: ReaderChallengeCelebration | null
   loading?: boolean
   updating?: boolean
+  onContinue?: () => void
+  onReset?: () => void
 }
 
 const SPRINKLE_COLORS = [
@@ -32,6 +35,8 @@ export function EggChallengeWidget({
   celebration,
   loading = false,
   updating = false,
+  onContinue,
+  onReset,
 }: EggChallengeWidgetProps) {
   const state = snapshot?.state
   const definition = snapshot?.current
@@ -192,16 +197,44 @@ export function EggChallengeWidget({
       </div>
 
       {showCelebration ? (
-        <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center text-center text-maroon-700">
-          <div className="rounded-full bg-white/80 px-4 py-2 text-sm font-semibold shadow-md">
-            <Sparkles className="mr-2 inline-block h-4 w-4 text-emerald-500" aria-hidden="true" />
-            {celebration?.challengeTitle ?? "MashaAllah!"}
+        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-4 text-center">
+          <div className="pointer-events-auto w-full max-w-md rounded-3xl bg-white/85 p-6 shadow-2xl ring-1 ring-amber-200/70 backdrop-blur-xl">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-amber-100 via-rose-100 to-emerald-100 shadow-lg ring-4 ring-white/80">
+              <EggOff className="h-9 w-9 text-amber-600" aria-hidden="true" />
+            </div>
+            <div className="mt-4 flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.35em] text-amber-600">
+              <Sparkles className="h-4 w-4 text-emerald-500" aria-hidden="true" />
+              Egg is Broken
+              <PartyPopper className="h-4 w-4 text-rose-500" aria-hidden="true" />
+            </div>
+            <h3 className="mt-3 text-2xl font-semibold text-maroon-700">Brakllahu Feek!</h3>
+            <p className="mt-2 text-sm text-slate-600">
+              {celebration?.challengeTitle
+                ? `You completed ${celebration.challengeTitle}.`
+                : "You cracked the challenge with radiant focus."}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              {celebration?.roundsTarget
+                ? `Round ${celebration.completedRound} of ${celebration.roundsTarget} is now complete.`
+                : "Keep nurturing your momentum."}
+            </p>
+            <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
+              <Button
+                variant="outline"
+                onClick={() => onContinue?.()}
+                className="border-amber-200 bg-white/90 text-amber-700 hover:bg-amber-50"
+              >
+                Continue
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => onReset?.()}
+                className="bg-emerald-500/90 text-white shadow-lg transition hover:bg-emerald-600"
+              >
+                Reset
+              </Button>
+            </div>
           </div>
-          <p className="mt-2 max-w-sm text-xs text-slate-600">
-            {celebration?.roundsTarget
-              ? `Completed round ${celebration.completedRound} of ${celebration.roundsTarget}.`
-              : "Another milestone unlocked."}
-          </p>
         </div>
       ) : null}
 
