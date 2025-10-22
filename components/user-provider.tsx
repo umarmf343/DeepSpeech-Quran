@@ -330,7 +330,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         headers.set("Content-Type", "application/json")
       }
 
-      const response = await fetch(input, { ...init, headers })
+      const response = await fetch(input, { ...init, headers, credentials: "include" })
       if (!response.ok) {
         throw new Error(`Request failed with status ${response.status}`)
       }
@@ -352,6 +352,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: "student" }),
+        credentials: "include",
       })
       const loginData = await loginResponse.json()
       setToken(loginData.token)

@@ -342,7 +342,7 @@ class QuranCloudAPI {
 
       if (data.code === 200) {
         const audioSegments = data.data.ayahs.map((ayah: any) => ({
-          url: ayah.audio,
+          url: `/api/proxy/audio?url=${encodeURIComponent(ayah.audio as string)}`,
           duration: ayah.duration || undefined,
           segments: ayah.segments || undefined,
         }))

@@ -231,6 +231,7 @@ export function useHasanatTracker({ initialDailyGoal }: UseHasanatTrackerOptions
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ progress: state }),
+        credentials: "include",
       }).catch((error) => {
         console.warn("Failed to sync hasanat progress", error)
       })

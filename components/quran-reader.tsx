@@ -220,6 +220,7 @@ export function QuranReader({
 
   const playAyah = (index: number) => {
     if (audioRef.current && audioUrls[index]) {
+      audioRef.current.crossOrigin = "anonymous"
       audioRef.current.src = audioUrls[index]
       audioRef.current.playbackRate = playbackSpeed
       audioRef.current.volume = volume
@@ -713,7 +714,7 @@ export function QuranReader({
       </div>
 
       {/* Audio Element */}
-      <audio ref={audioRef} onEnded={handleAudioEnded} className="hidden" />
+      <audio ref={audioRef} onEnded={handleAudioEnded} className="hidden" crossOrigin="anonymous" />
     </div>
     </>
   )
