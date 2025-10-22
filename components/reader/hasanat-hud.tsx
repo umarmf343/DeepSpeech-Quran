@@ -109,21 +109,6 @@ export function HasanatHud({
           )}
         </div>
 
-        <div className="flex flex-col justify-center gap-2 rounded-xl border border-emerald-100/60 bg-white/70 p-3 text-sm text-slate-600 shadow-sm dark:border-emerald-800/40 dark:bg-slate-900/70 dark:text-slate-200">
-          {isRamadan && ramadanMultiplier > 1 ? (
-            <>
-              <span className="text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">
-                Ramadan multiplier active
-              </span>
-              <p className="text-sm text-slate-700 dark:text-emerald-100">
-                All recitation rewards are multiplied by ×{ramadanMultiplier.toLocaleString()}.
-              </p>
-            </>
-          ) : (
-            <p>Recite with presence. The reward is with Allah.</p>
-          )}
-        </div>
-
         <div className="flex flex-col gap-2 rounded-xl border border-emerald-100/60 bg-white/70 p-3 text-sm text-slate-600 shadow-sm dark:border-emerald-800/40 dark:bg-slate-900/70 dark:text-slate-200">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-slate-900 dark:text-emerald-100">
