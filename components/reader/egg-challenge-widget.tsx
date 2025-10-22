@@ -128,13 +128,6 @@ export function EggChallengeWidget({
             <p className="text-xs font-semibold uppercase tracking-[0.35em] text-amber-700">
               {definition?.icon ?? "🥚"} {definition?.title ?? "Break the Egg"}
             </p>
-            <h2 className="text-2xl font-semibold text-maroon-800">
-              Level {difficulty}
-            </h2>
-            <p className="text-sm text-maroon-600">
-              {definition?.tagline ?? "Recite steadily to crack the shell."}
-            </p>
-            <p className="text-xs text-emerald-700">{encouragement}</p>
           </div>
         </div>
 
