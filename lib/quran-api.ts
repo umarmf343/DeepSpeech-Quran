@@ -257,6 +257,145 @@ class QuranCloudAPI {
     }
   }
 
+  async getSurahVerseDetails(
+    surahNumber: number,
+    editions: string[],
+  ): Promise<
+    Map<
+      number,
+      {
+        arabic: Ayah
+        translations: Translation[]
+        transliteration?: Transliteration
+      }
+    > | null
+  > {
+    const editionSet = new Set<string>(editions.filter(Boolean))
+    editionSet.add("quran-uthmani")
+    const normalizedEditions = Array.from(editionSet).sort()
+    const editionQuery = normalizedEditions.join(",")
+    const cacheKey = `surah_details_${surahNumber}_${editionQuery}`
+    const cached = this.getFromCache(cacheKey)
+    if (cached) {
+      return cached as Map<
+        number,
+        { arabic: Ayah; translations: Translation[]; transliteration?: Transliteration }
+      >
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/surah/${surahNumber}/editions/${editionQuery}`)
+      const data = await response.json()
+
+      if (data.code !== 200 || !Array.isArray(data.data)) {
+        throw new Error("Failed to fetch surah verse details")
+      }
+
+      const editionsData = data.data as any[]
+      const quranEdition = editionsData.find((entry) => entry?.edition?.type === "quran")
+      if (!quranEdition) {
+        throw new Error("Arabic text not available for surah")
+      }
+
+      const translationEntries = editionsData.filter((entry) => entry?.edition?.type === "translation")
+      const transliterationEntries = editionsData.filter((entry) => entry?.edition?.type === "transliteration")
+
+      const translationLookup = translationEntries.map((entry) => ({
+        edition: entry.edition,
+        ayahMap: new Map<number, any>(
+          Array.isArray(entry.ayahs)
+            ? entry.ayahs.map((ayah: any) => [ayah.numberInSurah, ayah])
+            : [],
+        ),
+      }))
+
+      const transliterationLookup = transliterationEntries.map((entry) => ({
+        edition: entry.edition,
+        ayahMap: new Map<number, any>(
+          Array.isArray(entry.ayahs)
+            ? entry.ayahs.map((ayah: any) => [ayah.numberInSurah, ayah])
+            : [],
+        ),
+      }))
+
+      const result = new Map<
+        number,
+        { arabic: Ayah; translations: Translation[]; transliteration?: Transliteration }
+      >()
+
+      const arabicAyahs: any[] = Array.isArray(quranEdition.ayahs) ? quranEdition.ayahs : []
+
+      for (const ayah of arabicAyahs) {
+        if (!ayah) continue
+        const normalizedAyah: Ayah = {
+          number: ayah.number,
+          text: ayah.text,
+          numberInSurah: ayah.numberInSurah,
+          juz: ayah.juz,
+          manzil: ayah.manzil,
+          page: ayah.page,
+          ruku: ayah.ruku,
+          hizbQuarter: ayah.hizbQuarter,
+          sajda: ayah.sajda,
+        }
+
+        const translations: Translation[] = []
+        for (const entry of translationLookup) {
+          const translationAyah = entry.ayahMap.get(ayah.numberInSurah)
+          if (!translationAyah?.text) continue
+          const language = entry.edition?.language
+          const sanitizedText =
+            language?.toLowerCase() === "en"
+              ? this.sanitizeTranslationText(translationAyah.text)
+              : translationAyah.text
+          translations.push({
+            text: sanitizedText,
+            language: language,
+            translator: entry.edition?.name,
+            edition: entry.edition?.identifier,
+          })
+        }
+
+        let transliteration: Transliteration | undefined
+        for (const entry of transliterationLookup) {
+          const transliterationAyah = entry.ayahMap.get(ayah.numberInSurah)
+          if (!transliterationAyah?.text) continue
+          transliteration = {
+            text: transliterationAyah.text,
+            language: entry.edition?.language,
+            translator: entry.edition?.name,
+          }
+          break
+        }
+
+        if (!transliteration && translations.length > 0) {
+          const englishTranslation =
+            translations.find((translation) => translation.edition === DEFAULT_ENGLISH_TRANSLATION_EDITION) ??
+            translations.find((translation) => translation.language?.toLowerCase() === "en")
+          if (englishTranslation) {
+            transliteration = {
+              text: this.sanitizeTranslationText(englishTranslation.text),
+              language: englishTranslation.language,
+              translator: englishTranslation.translator,
+            }
+          }
+        }
+
+        result.set(ayah.numberInSurah, {
+          arabic: normalizedAyah,
+          translations,
+          transliteration,
+        })
+      }
+
+      this.setCache(cacheKey, result)
+      return result
+    } catch (error) {
+      console.error("Error fetching surah verse details:", error)
+      return null
+    }
+  }
+
   private sanitizeTranslationText(text: string): string {
     if (!text) return ""
     const withFootnotes = text.replace(/<sup[^>]*>(.*?)<\/sup>/gi, (_, content: string) => ` (${content})`)
