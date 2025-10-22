@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 
 import { HasanatCelebration } from "@/components/reader/hasanat-celebration"
-import { HasanatHud } from "@/components/reader/hasanat-hud"
 import { MilestoneCelebration } from "@/components/reader/milestone-celebration"
 import { GwaniSurahPlayer } from "@/components/reader/gwani-surah-player"
 import { MushafView } from "@/components/reader/mushaf-view"
@@ -102,14 +101,11 @@ export default function AlfawzReaderPage() {
   const nightMode = profile.theme === "dark" || (profile.theme === "auto" && systemPrefersDark)
 
   const {
-    state: hasanatState,
     recordRecitation,
     sparkles,
     removeSparkle,
     celebration: hasanatCelebration,
     dismissCelebration,
-    announcement: hasanatAnnouncement,
-    ramadanState,
   } = useHasanatTracker({ initialDailyGoal: dailyGoal })
 
   const {
@@ -542,17 +538,6 @@ export default function AlfawzReaderPage() {
           </div>
         </div>
       </header>
-
-      <HasanatHud
-        totalHasanat={hasanatState.totalHasanat}
-        dailyHasanat={hasanatState.dailyHasanat}
-        sessionHasanat={hasanatState.sessionHasanat}
-        dailyGoal={dailyGoal}
-        versesCompleted={versesCompleted}
-        ramadanMultiplier={ramadanState.multiplier}
-        isRamadan={ramadanState.isRamadan}
-        announcement={hasanatAnnouncement}
-      />
 
       <div className="mx-auto mt-6 flex w-full max-w-7xl flex-col gap-4 px-4 sm:px-6 lg:px-8">
         <EggChallengeWidget

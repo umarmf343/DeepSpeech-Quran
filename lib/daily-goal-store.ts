@@ -12,7 +12,7 @@ interface DailyGoalState {
   lastUpdated: string | null
 }
 
-const DEFAULT_TARGET = 30
+const DEFAULT_TARGET = 10
 
 const dailyGoalStore = new Map<string, DailyGoalState>()
 
