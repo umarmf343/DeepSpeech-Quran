@@ -36,7 +36,7 @@ export function EggChallengeWidget({
   const state = snapshot?.state
   const definition = snapshot?.current
   const nextChallenge = snapshot?.next
-  const showNextChallengeDetails =
+  const showNextChallengeCard =
     nextChallenge != null && nextChallenge.id !== "mystery-box"
 
   const goal = state?.goal ?? 10
@@ -93,7 +93,12 @@ export function EggChallengeWidget({
         </div>
       ) : null}
 
-      <div className="relative grid grid-cols-3 gap-4 sm:gap-6">
+      <div
+        className={cn(
+          "relative grid gap-4 sm:gap-6",
+          showNextChallengeCard ? "grid-cols-3" : "grid-cols-2",
+        )}
+      >
         <div className="flex min-w-0 flex-col items-center gap-4 rounded-2xl bg-white/70 p-4 text-center shadow-inner backdrop-blur-sm sm:p-6">
           <div className="relative h-24 w-20">
             <div
@@ -147,90 +152,49 @@ export function EggChallengeWidget({
           </p>
         </div>
 
-        <div className="flex min-w-0 flex-col justify-between gap-4 rounded-2xl bg-white/80 p-3 shadow-inner backdrop-blur-sm sm:p-4">
-          <div className="space-y-3">
-            <p className="bg-gradient-to-r from-purple-600 via-pink-500 to-amber-400 bg-clip-text text-xs font-semibold uppercase tracking-[0.35em] text-transparent">
-              Mystery Box
-            </p>
-            <div className="flex items-start gap-3">
-              <div className="flex flex-col items-center gap-2 flex-shrink-0">
-                <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center" aria-hidden="true">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-400/60 via-pink-400/60 to-amber-300/60 blur-md" />
-                  <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-white/90 shadow-inner ring-2 ring-purple-200">
-                    {typeof nextChallenge?.icon === "string" ? (
-                      <span className="text-2xl leading-none text-purple-500 drop-shadow-sm">
-                        {nextChallenge.icon}
-                      </span>
-                    ) : (
-                      <Gift className="h-6 w-6 text-purple-500 drop-shadow-sm" />
-                    )}
-                    <Sparkles className="pointer-events-none absolute -top-1 -right-1 h-4 w-4 text-amber-300" />
-                    <Sparkles className="pointer-events-none absolute -bottom-1 -left-1 h-3 w-3 text-pink-300" />
+        {showNextChallengeCard ? (
+          <div className="flex min-w-0 flex-col justify-between gap-4 rounded-2xl bg-white/80 p-3 shadow-inner backdrop-blur-sm sm:p-4">
+            <div className="space-y-3">
+              <p className="bg-gradient-to-r from-purple-600 via-pink-500 to-amber-400 bg-clip-text text-xs font-semibold uppercase tracking-[0.35em] text-transparent">
+                Mystery Box
+              </p>
+              <div className="flex items-start gap-3">
+                <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                  <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center" aria-hidden="true">
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-400/60 via-pink-400/60 to-amber-300/60 blur-md" />
+                    <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-white/90 shadow-inner ring-2 ring-purple-200">
+                      {typeof nextChallenge?.icon === "string" ? (
+                        <span className="text-2xl leading-none text-purple-500 drop-shadow-sm">
+                          {nextChallenge.icon}
+                        </span>
+                      ) : (
+                        <Gift className="h-6 w-6 text-purple-500 drop-shadow-sm" />
+                      )}
+                      <Sparkles className="pointer-events-none absolute -top-1 -right-1 h-4 w-4 text-amber-300" />
+                      <Sparkles className="pointer-events-none absolute -bottom-1 -left-1 h-3 w-3 text-pink-300" />
+                    </div>
                   </div>
                 </div>
-                {!showNextChallengeDetails ? (
-                  <span className="relative inline-flex flex-col items-center gap-1 font-semibold text-purple-600">
-                    <span className="inline-flex items-center gap-1">
-                      <Sparkles
-                        className="h-3.5 w-3.5 animate-pulse text-amber-400"
-                        aria-hidden="true"
-                      />
-                      <span className="animate-floating rounded-full bg-white/70 px-3 py-1 text-[0.65rem] uppercase tracking-[0.35em] text-emerald-600 shadow-sm ring-1 ring-emerald-200/60">
-                        Unluck me!
-                      </span>
-                      <Sparkles
-                        className="h-4 w-4 animate-ping text-pink-400"
-                        aria-hidden="true"
-                      />
-                    </span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="lucide lucide-sparkles h-3.5 w-3.5 animate-pulse text-amber-400"
-                      aria-hidden="true"
-                    >
-                      <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
-                      <path d="M20 3v4" />
-                      <path d="M22 5h-4" />
-                      <path d="M4 17v2" />
-                      <path d="M5 18H3" />
-                    </svg>
-                  </span>
-                ) : null}
-              </div>
-              <div className="space-y-1">
-                {showNextChallengeDetails && nextChallenge?.title ? (
-                  <p className="text-base font-semibold text-slate-800">
-                    {nextChallenge.title}
-                  </p>
-                ) : null}
-                {showNextChallengeDetails && nextChallenge?.tagline ? (
-                  <p className="text-sm text-slate-500">{nextChallenge.tagline}</p>
-                ) : null}
+                <div className="space-y-1">
+                  {nextChallenge?.title ? (
+                    <p className="text-base font-semibold text-slate-800">
+                      {nextChallenge.title}
+                    </p>
+                  ) : null}
+                  {nextChallenge?.tagline ? (
+                    <p className="text-sm text-slate-500">{nextChallenge.tagline}</p>
+                  ) : null}
+                </div>
               </div>
             </div>
+            <div className="flex items-center justify-between text-xs text-slate-600">
+              {nextChallenge?.title ? (
+                <span>{`Stay steady to reach ${nextChallenge.title}.`}</span>
+              ) : null}
+              <ArrowRight className="h-4 w-4 text-purple-500" aria-hidden="true" />
+            </div>
           </div>
-          <div
-            className={cn(
-              "flex text-xs text-slate-600",
-              showNextChallengeDetails && nextChallenge
-                ? "items-center justify-between"
-                : "items-center justify-end"
-            )}
-          >
-            {showNextChallengeDetails && nextChallenge ? (
-              <span>{`Stay steady to reach ${nextChallenge.title}.`}</span>
-            ) : null}
-            <ArrowRight className="h-4 w-4 text-purple-500" aria-hidden="true" />
-          </div>
-        </div>
+        ) : null}
       </div>
 
       {showCelebration ? (
