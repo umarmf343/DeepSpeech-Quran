@@ -17,6 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -35,7 +36,7 @@ import {
 import { buildVerseKey } from "@/lib/hasanat"
 import { cn } from "@/lib/utils"
 
-import { BookOpen, Bookmark, Check, Settings, Share, Sparkles } from "lucide-react"
+import { BookOpen, Bookmark, Check, ChevronDown, Settings, Share, Sparkles } from "lucide-react"
 
 const RECITER_OPTIONS = [
   { edition: "ar.alafasy", label: "Mishary Rashid" },
@@ -77,6 +78,7 @@ export default function AlfawzReaderPage() {
   const [transliterationOptions, setTransliterationOptions] = useState(DEFAULT_TRANSLITERATION_OPTIONS)
   const [systemPrefersDark, setSystemPrefersDark] = useState(false)
   const [profile, setProfile] = useState<ReaderProfile>(DEFAULT_PROFILE)
+  const [configOpen, setConfigOpen] = useState(true)
 
   useEffect(() => {
     const storedProfile = loadReaderProfile()
@@ -560,98 +562,110 @@ export default function AlfawzReaderPage() {
 
       <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-          <Card className={cn("shadow-lg", cardBackground, selectedMushaf.visualStyle.background)}>
-            <CardHeader className="space-y-4 pb-4">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Check className="h-4 w-4 text-emerald-500" />
-                    {goalReached ? "Goal met" : `${versesCompleted}/${dailyGoal} verses today`}
+          <Collapsible open={configOpen} onOpenChange={setConfigOpen}>
+            <Card className={cn("shadow-lg", cardBackground, selectedMushaf.visualStyle.background)}>
+              <CardHeader className="pb-0">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Check className="h-4 w-4 text-emerald-500" />
+                      {goalReached ? "Goal met" : `${versesCompleted}/${dailyGoal} verses today`}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Sparkles className="h-4 w-4 text-amber-500" />
+                      {preferences.stageLabel ?? "AI Tajweed Coach"}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Sparkles className="h-4 w-4 text-amber-500" />
-                    {preferences.stageLabel ?? "AI Tajweed Coach"}
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="group h-8 w-8 rounded-full bg-transparent hover:bg-muted/50"
+                      aria-label={configOpen ? "Hide recitation configuration" : "Show recitation configuration"}
+                    >
+                      <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+              </CardHeader>
+
+              <CollapsibleContent asChild>
+                <CardContent className="grid grid-cols-2 gap-4 pb-4 pt-4 md:grid-cols-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">Select Surah</Label>
+                    <Select
+                      value={selectedSurahNumber?.toString() ?? ""}
+                      onValueChange={(value) => {
+                        const surahNumber = Number.parseInt(value)
+                        if (Number.isNaN(surahNumber)) return
+                        setSelectedSurahNumber(surahNumber)
+                        setSelectedAyahNumber(null)
+                      }}
+                    >
+                      <SelectTrigger className="bg-white/90 dark:bg-slate-900/70">
+                        <SelectValue placeholder="Choose a surah" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {surahs.map((surah) => (
+                          <SelectItem key={surah.number} value={surah.number.toString()}>
+                            {surah.number}. {surah.englishName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                <div className="space-y-2">
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Select Surah</Label>
-                  <Select
-                    value={selectedSurahNumber?.toString() ?? ""}
-                    onValueChange={(value) => {
-                      const surahNumber = Number.parseInt(value)
-                      if (Number.isNaN(surahNumber)) return
-                      setSelectedSurahNumber(surahNumber)
-                      setSelectedAyahNumber(null)
-                    }}
-                  >
-                    <SelectTrigger className="bg-white/90 dark:bg-slate-900/70">
-                      <SelectValue placeholder="Choose a surah" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60">
-                      {surahs.map((surah) => (
-                        <SelectItem key={surah.number} value={surah.number.toString()}>
-                          {surah.number}. {surah.englishName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">Select Ayah</Label>
+                    <Select value={selectedAyahNumber?.toString() ?? ""} onValueChange={handleAyahSelection}>
+                      <SelectTrigger className="bg-white/90 dark:bg-slate-900/70">
+                        <SelectValue placeholder="Ayah" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {ayahList.map((ayah) => (
+                          <SelectItem key={ayah.number} value={ayah.numberInSurah.toString()}>
+                            Ayah {ayah.numberInSurah}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Select Ayah</Label>
-                  <Select value={selectedAyahNumber?.toString() ?? ""} onValueChange={handleAyahSelection}>
-                    <SelectTrigger className="bg-white/90 dark:bg-slate-900/70">
-                      <SelectValue placeholder="Ayah" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60">
-                      {ayahList.map((ayah) => (
-                        <SelectItem key={ayah.number} value={ayah.numberInSurah.toString()}>
-                          Ayah {ayah.numberInSurah}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">Reciter</Label>
+                    <Select value={profile.reciterEdition} onValueChange={handleReciterChange}>
+                      <SelectTrigger className="bg-white/90 dark:bg-slate-900/70">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {RECITER_OPTIONS.map((reciter) => (
+                          <SelectItem key={reciter.edition} value={reciter.edition}>
+                            {reciter.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Reciter</Label>
-                  <Select value={profile.reciterEdition} onValueChange={handleReciterChange}>
-                    <SelectTrigger className="bg-white/90 dark:bg-slate-900/70">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {RECITER_OPTIONS.map((reciter) => (
-                        <SelectItem key={reciter.edition} value={reciter.edition}>
-                          {reciter.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">Translation</Label>
+                    <Select value={profile.translationEdition} onValueChange={handleTranslationChange}>
+                      <SelectTrigger className="bg-white/90 dark:bg-slate-900/70">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {translationOptions.map((translation) => (
+                          <SelectItem key={translation.edition} value={translation.edition}>
+                            {translation.label} ({translation.language.toUpperCase()})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
 
-                <div className="space-y-2">
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Translation</Label>
-                  <Select value={profile.translationEdition} onValueChange={handleTranslationChange}>
-                    <SelectTrigger className="bg-white/90 dark:bg-slate-900/70">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60">
-                      {translationOptions.map((translation) => (
-                        <SelectItem key={translation.edition} value={translation.edition}>
-                          {translation.label} ({translation.language.toUpperCase()})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-              </div>
-            </CardHeader>
-
-            <CardContent className="space-y-6">
+              <CardContent className="space-y-6">
               <div className="flex flex-wrap items-center gap-2">
                 {surahMeta && (
                   <Badge className="bg-emerald-100 text-emerald-800">{surahMeta.revelationType}</Badge>
@@ -751,7 +765,8 @@ export default function AlfawzReaderPage() {
               </div>
 
             </CardContent>
-          </Card>
+            </Card>
+          </Collapsible>
 
           <div className="space-y-6">
             {selectedSurahNumber && selectedAyahNumber ? (
