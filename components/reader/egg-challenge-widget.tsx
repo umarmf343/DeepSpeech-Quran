@@ -146,22 +146,24 @@ export function EggChallengeWidget({
               Total completions: {totalCompletions}
             </span>
           </div>
-          <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-center">
-            <Progress
-              value={percent}
-              className="h-3 bg-amber-100"
-              aria-hidden={false}
-              aria-valuenow={percent}
-            />
+          <div className="grid gap-2 sm:grid-cols-3 sm:grid-rows-3 sm:items-center">
+            <div className="sm:col-span-3 sm:row-span-2">
+              <Progress
+                value={percent}
+                className="h-3 bg-amber-100"
+                aria-hidden={false}
+                aria-valuenow={percent}
+              />
+            </div>
             {nextChallenge ? (
-              <span className="flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-slate-600 shadow-sm">
+              <span className="flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-slate-600 shadow-sm sm:col-span-2 sm:row-start-3">
                 <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                 {nextLabel}
               </span>
             ) : (
-              <span aria-hidden="true" className="hidden md:block" />
+              <span aria-hidden="true" className="hidden sm:block sm:col-span-2 sm:row-start-3" />
             )}
-            <p className="text-xs text-slate-600 md:text-right">{progressCaption}</p>
+            <p className="text-xs text-slate-600 sm:col-span-1 sm:row-start-3 sm:text-right">{progressCaption}</p>
           </div>
           <div className="flex items-center justify-between pt-1 text-xs text-slate-500">
             <span>{definition?.description ?? "Recite with presence to unlock the surprise."}</span>
