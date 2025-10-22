@@ -66,14 +66,6 @@ export function EggChallengeWidget({
     })
   }, [showCelebration])
 
-  const encouragement = percent >= 100
-    ? "Takbir! Challenge complete."
-    : percent >= 75
-      ? "You're nearly there—keep the recitation flowing!"
-      : percent >= 40
-        ? "Beautiful rhythm. The egg is warming up."
-        : "Begin with presence. Each verse nourishes the nur."
-
   const progressCaption = percent >= 100
     ? "Egg cracked! Preparing the next blessing."
     : `${remainingVerses} Verse${remainingVerses === 1 ? "" : "s"} Left`
@@ -144,9 +136,6 @@ export function EggChallengeWidget({
             aria-hidden={false}
             aria-valuenow={percent}
           />
-          <p className="text-xs font-semibold text-emerald-700">
-            {encouragement}
-          </p>
           <p className="text-xs text-slate-600">{progressCaption}</p>
           <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-slate-500">
             <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-700">
