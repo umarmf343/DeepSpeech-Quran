@@ -27,6 +27,20 @@ import type {
 } from "@/lib/data/mock-db"
 import { HASANAT_PROGRESS_EVENT, type HasanatProgressDetail } from "@/hooks/use-hasanat-tracker"
 
+class HttpError extends Error {
+  status: number
+
+  constructor(status: number, message?: string) {
+    super(message ?? `Request failed with status ${status}`)
+    this.name = "HttpError"
+    this.status = status
+  }
+}
+
+function isUnauthorizedError(error: unknown): error is HttpError {
+  return error instanceof HttpError && error.status === 401
+}
+
 export type UserRole = "visitor" | "student" | "teacher" | "parent" | "admin"
 export type SubscriptionPlan = "free" | "premium"
 export type HabitDifficulty = "easy" | "medium" | "hard"
@@ -337,9 +351,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         credentials: init.credentials ?? "include",
       })
       if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`)
+        throw new HttpError(response.status, response.statusText || undefined)
       }
-      return response.json()
+      if (response.status === 204) {
+        return null
+      }
+      const contentType = response.headers.get("Content-Type")
+      if (contentType && contentType.includes("application/json")) {
+        return response.json()
+      }
+      return response.text()
     },
     [token],
   )
@@ -482,6 +503,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify(nextPreferences),
         })
       } catch (error) {
+        if (isUnauthorizedError(error)) {
+          return
+        }
         console.error("Failed to persist preferences", error)
       }
     },
@@ -504,6 +528,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify({ action: "mark-read", id }),
         })
       } catch (error) {
+        if (isUnauthorizedError(error)) {
+          return
+        }
         console.error("Failed to mark notification as read", error)
       }
     },
@@ -518,6 +545,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       const { runtime: runtimeData } = await authorizedFetch("/api/runtime")
       setRuntime(runtimeData)
     } catch (error) {
+      if (isUnauthorizedError(error)) {
+        return
+      }
       console.error("Failed to refresh runtime", error)
     }
   }, [authorizedFetch, token])
@@ -532,13 +562,19 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           method: "POST",
           body: JSON.stringify(payload),
         })
-        if (response.gamification) {
-          setGamification(response.gamification)
-        }
-        if (response.notifications) {
-          setNotifications(response.notifications)
+        if (response && typeof response === "object") {
+          const data = response as Partial<{ gamification: GamificationState; notifications: Notification[] }>
+          if (data.gamification) {
+            setGamification(data.gamification)
+          }
+          if (data.notifications) {
+            setNotifications(data.notifications)
+          }
         }
       } catch (error) {
+        if (isUnauthorizedError(error)) {
+          return
+        }
         console.error("Failed to update gamification", error)
       }
     },
@@ -587,6 +623,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         }
         return { success: true, message: "Habit completed." }
       } catch (error) {
+        if (isUnauthorizedError(error)) {
+          return { success: false, message: "Unable to record habit progress right now." }
+        }
         console.error("Failed to complete habit", error)
         return { success: false, message: "Unable to complete habit." }
       }
