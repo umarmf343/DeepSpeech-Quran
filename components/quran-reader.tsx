@@ -414,7 +414,7 @@ export function QuranReader({
               <Egg className="relative h-full w-full text-amber-600 drop-shadow-lg animate-bounce" aria-hidden="true" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm uppercase tracking-widest text-amber-700">Break the Egg Challenge</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-amber-700">Break the Egg</p>
               <h2 className="text-2xl font-semibold text-maroon-800">
                 Level {challengeLevel}
               </h2>
