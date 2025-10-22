@@ -11,6 +11,11 @@ import { AdvancedAudioRecorder } from "@/components/advanced-audio-recorder"
 import { MorphologyBreakdown } from "@/components/morphology-breakdown"
 import { deepspeechResources, deepspeechStages, mushafVariants } from "@/lib/integration-data"
 import type { MorphologyResponse } from "@/types/morphology"
+import type {
+  TajweedAlignmentOperation,
+  TajweedMistakeSummary,
+  TajweedPaceInsight,
+} from "@/types/deepspeech-analysis"
 import {
   Activity,
   ArrowRight,
@@ -67,13 +72,18 @@ const sampleAyahs: SampleAyah[] = [
 
 type TajweedAnalysis = {
   transcript: string
+  recognizedTranscript: string | null
+  referenceText: string
+  ayahReference: string | null
   duration: number
   stage: string
   confidence: number
   evaluation: { wer: number; cer: number; loss: number }
   notes: string
   enhancements: string[]
-  tajweedMistakes: { rule: string; severity: string; description: string }[]
+  tajweedMistakes: TajweedMistakeSummary[]
+  alignment: TajweedAlignmentOperation[]
+  pace: TajweedPaceInsight | null
   morphology: MorphologyResponse | null
   recommendations: string[]
 }
@@ -120,8 +130,23 @@ export default function PracticePage() {
       stage.notes ||
       "Offline fallback guidance generated from the current DeepSpeech stage profile while the analysis service is unavailable."
 
+    const fallbackAlignment: TajweedAlignmentOperation[] = ayahText
+      ? ayahText
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean)
+          .map((word) => ({
+            type: "match" as const,
+            reference: word,
+            hypothesis: word,
+          }))
+      : []
+
     return {
       transcript: ayahText || "",
+      recognizedTranscript: null,
+      referenceText: ayahText || "",
+      ayahReference: ayahReference || null,
       duration,
       stage: stage.stage,
       confidence: Number.isFinite(confidence) ? confidence : 0.75,
@@ -142,6 +167,8 @@ export default function PracticePage() {
             "Maintain a gentle nasal resonance on doubled letters such as meem and noon to keep articulation smooth offline.",
         },
       ],
+      alignment: fallbackAlignment,
+      pace: null,
       morphology: null,
       recommendations: [
         "Retry the DeepSpeech analysis once your connection stabilizes to compare automated feedback.",
@@ -214,6 +241,46 @@ export default function PracticePage() {
     const currentIndex = sampleAyahs.findIndex((ayah) => ayah.id === currentAyah.id)
     const nextIndex = (currentIndex + 1) % sampleAyahs.length
     setCurrentAyah(sampleAyahs[nextIndex])
+  }
+
+  const alignmentChipClass = (
+    operation: TajweedAlignmentOperation,
+    view: "reference" | "recognized",
+  ) => {
+    switch (operation.type) {
+      case "match":
+        return "bg-green-50 text-maroon-800 border border-green-200"
+      case "substitution":
+        return "bg-amber-50 text-amber-800 border border-amber-300"
+      case "deletion":
+        return view === "reference"
+          ? "bg-red-50 text-red-700 border border-red-200 line-through"
+          : "bg-red-50 text-red-700 border border-red-200"
+      case "insertion":
+        return view === "reference"
+          ? "bg-slate-100 text-slate-500 border border-dashed border-slate-300"
+          : "bg-blue-50 text-blue-700 border border-blue-200"
+      default:
+        return "bg-gray-50 text-gray-600 border border-gray-200"
+    }
+  }
+
+  const alignmentWord = (
+    operation: TajweedAlignmentOperation,
+    view: "reference" | "recognized",
+  ) => {
+    if (view === "reference") {
+      if (operation.type === "insertion") {
+        return "∅"
+      }
+      return operation.reference ?? "∅"
+    }
+
+    if (operation.type === "deletion") {
+      return "∅"
+    }
+
+    return operation.hypothesis ?? "∅"
   }
 
   return (
@@ -412,7 +479,48 @@ export default function PracticePage() {
                   <Badge variant="outline" className="border-amber-200 text-amber-700 bg-amber-50">
                     Duration {analysis.duration.toFixed(1)}s
                   </Badge>
+                  {analysis.pace && (
+                    <Badge variant="outline" className="border-purple-200 text-purple-700 bg-purple-50">
+                      Pace {analysis.pace.wordsPerMinute.toFixed(1)} wpm ·
+                      {analysis.pace.rating === "fast"
+                        ? " Fast"
+                        : analysis.pace.rating === "slow"
+                          ? " Deliberate"
+                          : " Balanced"}
+                    </Badge>
+                  )}
                 </div>
+
+                {analysis.alignment.length > 0 && (
+                  <div className="rounded-lg border border-maroon-100 bg-white/80 px-4 py-3 space-y-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-gray-500">Reference (Mushaf)</p>
+                      <div className="mt-1 flex flex-wrap gap-2 font-arabic text-lg">
+                        {analysis.alignment.map((operation, index) => (
+                          <span
+                            key={`ref-${index}-${operation.reference ?? index}`}
+                            className={`rounded-full px-3 py-1 ${alignmentChipClass(operation, "reference")}`}
+                          >
+                            {alignmentWord(operation, "reference")}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-gray-500">Recognized (DeepSpeech)</p>
+                      <div className="mt-1 flex flex-wrap gap-2 font-arabic text-lg">
+                        {analysis.alignment.map((operation, index) => (
+                          <span
+                            key={`hyp-${index}-${operation.hypothesis ?? index}`}
+                            className={`rounded-full px-3 py-1 ${alignmentChipClass(operation, "recognized")}`}
+                          >
+                            {alignmentWord(operation, "recognized")}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid md:grid-cols-2 gap-4">
                   {analysis.tajweedMistakes.map((mistake) => (
@@ -439,6 +547,13 @@ export default function PracticePage() {
                   <p className="font-semibold text-maroon-800">Stage Notes</p>
                   <p>{analysis.notes}</p>
                 </div>
+
+                {analysis.pace && (
+                  <div className="rounded-lg border border-purple-200 bg-purple-50/60 px-4 py-3 text-sm text-purple-900">
+                    <p className="font-semibold">Pace Insight</p>
+                    <p>{analysis.pace.comment}</p>
+                  </div>
+                )}
 
                 <div className="flex flex-wrap gap-2">
                   {analysis.recommendations.map((recommendation) => (
@@ -496,8 +611,8 @@ export default function PracticePage() {
               </Card>
 
               <MorphologyBreakdown
-                ayahReference={currentAyah.reference}
-                ayahText={currentAyah.arabic}
+                ayahReference={analysis?.ayahReference ?? currentAyah.reference}
+                ayahText={analysis?.referenceText ?? currentAyah.arabic}
                 initialData={analysis?.morphology ?? null}
               />
             </div>
