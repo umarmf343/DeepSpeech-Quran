@@ -123,7 +123,7 @@ export function EggChallengeWidget({
           </div>
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.35em] text-amber-700">
-              {definition?.icon ?? "🥚"} {definition?.title ?? "Break the Egg"}
+              {definition?.title ?? "Break the Egg"}
             </p>
             {definition?.tagline ? (
               <p className="text-sm font-medium text-slate-600">{definition.tagline}</p>
