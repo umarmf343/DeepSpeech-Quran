@@ -199,11 +199,23 @@ export function EggChallengeWidget({
             </div>
           </div>
           <div className="flex items-center justify-between text-xs text-slate-600">
-            <span>
-              {showNextChallengeDetails && nextChallenge
-                ? `Stay steady to reach ${nextChallenge.title}.`
-                : "Complete this challenge to reveal the next blessing."}
-            </span>
+            {showNextChallengeDetails && nextChallenge ? (
+              <span>{`Stay steady to reach ${nextChallenge.title}.`}</span>
+            ) : (
+              <span className="relative inline-flex items-center gap-1 font-semibold text-purple-600">
+                <Sparkles
+                  className="h-3.5 w-3.5 animate-pulse text-amber-400"
+                  aria-hidden="true"
+                />
+                <span className="animate-floating rounded-full bg-white/70 px-3 py-1 text-[0.65rem] uppercase tracking-[0.35em] text-emerald-600 shadow-sm ring-1 ring-emerald-200/60">
+                  Unluck me!
+                </span>
+                <Sparkles
+                  className="h-4 w-4 animate-ping text-pink-400"
+                  aria-hidden="true"
+                />
+              </span>
+            )}
             <ArrowRight className="h-4 w-4 text-purple-500" aria-hidden="true" />
           </div>
         </div>
