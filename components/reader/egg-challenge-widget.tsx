@@ -10,7 +10,7 @@ import type {
 } from "@/lib/reader/challenges"
 import { cn } from "@/lib/utils"
 
-import { ArrowRight, RotateCcw, Sparkles } from "lucide-react"
+import { ArrowRight, Gift, RotateCcw, Sparkles } from "lucide-react"
 
 interface EggChallengeWidgetProps {
   snapshot: ReaderChallengeSnapshot | null
@@ -166,11 +166,24 @@ export function EggChallengeWidget({
 
         <div className="flex min-w-0 flex-col justify-between gap-4 rounded-2xl bg-white/80 p-3 shadow-inner backdrop-blur-sm sm:p-4">
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-purple-700">Mystery Box</p>
+            <p className="bg-gradient-to-r from-purple-600 via-pink-500 to-amber-400 bg-clip-text text-xs font-semibold uppercase tracking-[0.35em] text-transparent">
+              Mystery Box
+            </p>
             <div className="flex items-center gap-3">
-              <span className="text-3xl" aria-hidden="true">
-                {nextChallenge?.icon ?? "🎁"}
-              </span>
+              <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center" aria-hidden="true">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-400/60 via-pink-400/60 to-amber-300/60 blur-md" />
+                <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-white/90 shadow-inner ring-2 ring-purple-200">
+                  {typeof nextChallenge?.icon === "string" ? (
+                    <span className="text-2xl leading-none text-purple-500 drop-shadow-sm">
+                      {nextChallenge.icon}
+                    </span>
+                  ) : (
+                    <Gift className="h-6 w-6 text-purple-500 drop-shadow-sm" />
+                  )}
+                  <Sparkles className="pointer-events-none absolute -top-1 -right-1 h-4 w-4 text-amber-300" />
+                  <Sparkles className="pointer-events-none absolute -bottom-1 -left-1 h-3 w-3 text-pink-300" />
+                </div>
+              </div>
               <div className="space-y-1">
                 <p className="text-base font-semibold text-slate-800">
                   {nextChallenge?.title ?? "Unlock the Mystery"}
