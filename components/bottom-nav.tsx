@@ -37,6 +37,7 @@ type TabSlug =
   | "memorization"
   | "qaidah"
   | "quran-companion"
+  | "grammar"
   | "leaderboard"
   | "game"
   | "teacher-dashboard"
@@ -63,6 +64,12 @@ const TAB_REGISTRY: Record<TabSlug, TabDefinition> = {
     href: "/quran-companion",
     icon: "companion",
   },
+  grammar: {
+    slug: "grammar",
+    label: "Grammar Lab",
+    href: "/grammar",
+    icon: "scroll",
+  },
   leaderboard: { slug: "leaderboard", label: "Leaderboard", href: "/leaderboard", icon: "crown" },
   game: { slug: "game", label: "Game Lab", href: "/game", icon: "gamepad" },
   "teacher-dashboard": {
@@ -84,24 +91,36 @@ const ROLE_TAB_MAP: Record<UserRole, TabSlug[]> = {
     "kid-class",
     "memorization",
     "qaidah",
+    "grammar",
     "quran-companion",
     "settings",
     "profile",
   ],
-  teacher: ["dashboard", "reader", "kid-class", "memorization", "qaidah", "teacher-dashboard", "settings", "profile"],
+  teacher: [
+    "dashboard",
+    "reader",
+    "kid-class",
+    "memorization",
+    "qaidah",
+    "grammar",
+    "teacher-dashboard",
+    "settings",
+    "profile",
+  ],
   admin: [
     "dashboard",
     "reader",
     "kid-class",
     "memorization",
     "qaidah",
+    "grammar",
     "leaderboard",
     "game",
     "admin-dashboard",
     "settings",
     "profile",
   ],
-  parent: ["dashboard", "reader", "kid-class", "settings", "profile"],
+  parent: ["dashboard", "reader", "kid-class", "qaidah", "grammar", "settings", "profile"],
 }
 
 const iconMap: Record<string, ComponentType<{ className?: string }>> = {
@@ -131,6 +150,7 @@ const SENIOR_MODE_TABS = new Set<TabSlug>([
   "reader",
   "memorization",
   "qaidah",
+  "grammar",
   "quran-companion",
   "settings",
   "profile",
