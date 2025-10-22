@@ -578,6 +578,14 @@ export function QuranReaderContainer({
         return
       }
 
+      if (!profile.showTranslation && !profile.showTransliteration) {
+        toast({
+          title: "Enable verse narration",
+          description: "Turn on translation or transliteration to play this verse.",
+        })
+        return
+      }
+
       const verseKey = surahNumber ? `${surahNumber}:${ayah.numberInSurah}` : `${ayah.numberInSurah}`
       if (speakingId === verseKey) {
         stopCurrentSpeech()
@@ -643,6 +651,8 @@ export function QuranReaderContainer({
       }
     },
     [
+      profile.showTranslation,
+      profile.showTransliteration,
       profile.translationLanguage,
       speakText,
       speakingId,
