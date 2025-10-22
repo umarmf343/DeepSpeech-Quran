@@ -80,7 +80,7 @@ export const READER_CHALLENGE_DEFINITIONS: Record<ReaderChallengeId, ReaderChall
   "break-egg": {
     id: "break-egg",
     title: "Break the Egg",
-    tagline: "Warm up the egg with steady recitation",
+    tagline: "",
     description: "",
     baseGoal: 10,
     goalIncrement: 2,
