@@ -104,8 +104,8 @@ export function EggChallengeWidget({
         </div>
       ) : null}
 
-      <div className="relative grid gap-6 md:grid-cols-3">
-        <div className="flex flex-col items-center gap-4 rounded-2xl bg-white/70 p-6 text-center shadow-inner backdrop-blur-sm">
+      <div className="relative grid grid-cols-3 gap-4 sm:gap-6">
+        <div className="flex min-w-0 flex-col items-center gap-4 rounded-2xl bg-white/70 p-4 text-center shadow-inner backdrop-blur-sm sm:p-6">
           <div className="relative h-24 w-20">
             <div
               className={cn(
@@ -131,7 +131,7 @@ export function EggChallengeWidget({
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 rounded-2xl bg-white/80 p-4 shadow-inner backdrop-blur-sm">
+        <div className="flex min-w-0 flex-col gap-3 rounded-2xl bg-white/80 p-3 shadow-inner backdrop-blur-sm sm:p-4">
           <div className="flex items-center justify-between text-xs font-medium uppercase tracking-wide text-maroon-600">
             <span>Progress</span>
             <span>
@@ -175,7 +175,7 @@ export function EggChallengeWidget({
           </div>
         </div>
 
-        <div className="flex flex-col justify-between gap-4 rounded-2xl bg-white/80 p-4 shadow-inner backdrop-blur-sm">
+        <div className="flex min-w-0 flex-col justify-between gap-4 rounded-2xl bg-white/80 p-3 shadow-inner backdrop-blur-sm sm:p-4">
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase tracking-[0.35em] text-purple-700">Mystery Box</p>
             <div className="flex items-center gap-3">
