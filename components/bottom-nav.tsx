@@ -8,8 +8,10 @@ import {
   BarChart3,
   BookOpen,
   Calendar,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   ClipboardList,
   Crown,
   CreditCard,
@@ -182,6 +184,7 @@ export function BottomNavigation() {
   const pathname = usePathname()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [reduceMotion, setReduceMotion] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const [shadow, setShadow] = useState({ left: false, right: false })
 
   useEffect(() => {
@@ -269,10 +272,32 @@ export function BottomNavigation() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-4xl flex-col gap-2 border-t border-maroon-100/70 bg-gradient-to-r from-cream-50/95 via-white/95 to-cream-50/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl shadow-[0_-18px_42px_rgba(122,46,37,0.15)] sm:rounded-t-3xl lg:hidden"
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-4xl flex-col gap-2 border-t border-maroon-100/70 bg-gradient-to-r from-cream-50/95 via-white/95 to-cream-50/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl shadow-[0_-18px_42px_rgba(122,46,37,0.15)] sm:rounded-t-3xl lg:hidden",
+        reduceMotion ? "" : "transition-transform duration-300",
+        isCollapsed ? "translate-y-[calc(100%-3.25rem)]" : "translate-y-0",
+      )}
       aria-label="AlFawz navigation"
     >
-      <div className="relative">
+      <button
+        type="button"
+        onClick={() => setIsCollapsed((prev) => !prev)}
+        className="mx-auto flex items-center gap-1 rounded-full border border-maroon-100/70 bg-white/90 px-4 py-1 text-xs font-semibold text-maroon-700 shadow-sm transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maroon-300"
+        aria-controls="alfawz-mobile-nav-content"
+        aria-expanded={!isCollapsed}
+      >
+        <span>{isCollapsed ? "Expand menu" : "Collapse menu"}</span>
+        {isCollapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+      </button>
+      <div
+        id="alfawz-mobile-nav-content"
+        className={cn(
+          "relative",
+          reduceMotion ? "" : "transition-[opacity,transform] duration-300",
+          isCollapsed ? "pointer-events-none -translate-y-3 opacity-0" : "opacity-100",
+        )}
+        aria-hidden={isCollapsed}
+      >
         <div
           aria-hidden="true"
           className={cn(
