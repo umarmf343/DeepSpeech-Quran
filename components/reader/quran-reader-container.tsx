@@ -16,7 +16,9 @@ import type { SparkleEvent } from "@/hooks/use-hasanat-tracker"
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion"
 import { HasanatSparkleEmitter } from "./hasanat-sparkles"
 
-import { Pause, Volume2, Mic, ChevronLeft, ChevronRight } from "lucide-react"
+import { Pause, Volume2, Mic, ChevronLeft, ChevronRight, StopCircle } from "lucide-react"
+import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis"
+import { useToast } from "@/hooks/use-toast"
 
 interface VerseRenderData {
   arabic: Ayah
@@ -42,6 +44,85 @@ interface QuranReaderContainerProps {
 
 const rtlLanguages = new Set(["ar", "fa", "ur", "ps", "he"])
 
+const languageNameMap: Record<string, string> = {
+  arabic: "ar",
+  english: "en",
+  french: "fr",
+  spanish: "es",
+  german: "de",
+  indonesian: "id",
+  malay: "ms",
+  malayalam: "ml",
+  turkish: "tr",
+  bengali: "bn",
+  hindi: "hi",
+  urdu: "ur",
+  persian: "fa",
+  farsi: "fa",
+  swahili: "sw",
+  tamil: "ta",
+  chinese: "zh",
+  japanese: "ja",
+  korean: "ko",
+  russian: "ru",
+  somali: "so",
+  hausa: "ha",
+  thai: "th",
+  filipino: "fil",
+  portuguese: "pt",
+}
+
+const normalizeLanguageTag = (input?: string | null): string | undefined => {
+  if (!input) return undefined
+  const trimmed = input.trim()
+  if (!trimmed) return undefined
+  const lower = trimmed.toLowerCase()
+  if (languageNameMap[lower]) {
+    return languageNameMap[lower]
+  }
+  if (lower.includes("-")) {
+    return lower
+  }
+  if (lower.length === 2) {
+    return lower
+  }
+  return lower.slice(0, 2)
+}
+
+const selectVoiceForLanguage = (
+  voices: SpeechSynthesisVoice[],
+  languagePreferences: string[],
+): SpeechSynthesisVoice | undefined => {
+  if (!voices.length) return undefined
+  const normalizedPrefs = languagePreferences
+    .map((lang) => normalizeLanguageTag(lang))
+    .filter((lang): lang is string => Boolean(lang))
+
+  const exactMatch = normalizedPrefs
+    .map((pref) => voices.find((voice) => voice.lang?.toLowerCase() === pref))
+    .find((voice): voice is SpeechSynthesisVoice => Boolean(voice))
+  if (exactMatch) {
+    return exactMatch
+  }
+
+  const partialMatch = normalizedPrefs
+    .map((pref) => {
+      const prefix = pref.split("-")[0]
+      return voices.find((voice) => voice.lang?.toLowerCase().startsWith(prefix))
+    })
+    .find((voice): voice is SpeechSynthesisVoice => Boolean(voice))
+  if (partialMatch) {
+    return partialMatch
+  }
+
+  const defaultVoice = voices.find((voice) => voice.default)
+  return defaultVoice ?? voices[0]
+}
+
+const sanitizeSpeechText = (input: string): string => {
+  return input.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
+}
+
 export function QuranReaderContainer({
   surahNumber,
   surahMeta,
@@ -57,23 +138,42 @@ export function QuranReaderContainer({
   sparkleEvents = [],
   onSparkleComplete,
 }: QuranReaderContainerProps) {
+  const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [offline, setOffline] = useState(false)
   const [activeVerse, setActiveVerse] = useState<number | null>(null)
   const [tajweedError, setTajweedError] = useState<string | null>(null)
   const [tajweedMap, setTajweedMap] = useState<Map<number, string>>(new Map())
+  const [speakingVerse, setSpeakingVerse] = useState<number | null>(null)
   const verseCacheRef = useRef<Map<string, VerseRenderData>>(new Map())
   const verseDataRef = useRef<Map<number, VerseRenderData>>(new Map())
   const verseRefs = useRef<Map<number, HTMLDivElement | null>>(new Map())
   const audioServiceRef = useRef<ReturnType<typeof createAudioPlayerService> | null>(null)
   const prefersReducedMotion = usePrefersReducedMotion()
+  const {
+    supported: speechSupported,
+    voices: speechVoices,
+    speak: speakText,
+    cancel: cancelSpeech,
+    speakingId,
+  } = useSpeechSynthesis()
+  const stopCurrentSpeech = useCallback(() => {
+    cancelSpeech()
+    setSpeakingVerse(null)
+  }, [cancelSpeech])
   const handleSparkleComplete = useCallback(
     (id: string) => {
       onSparkleComplete?.(id)
     },
     [onSparkleComplete],
   )
+
+  useEffect(() => {
+    return () => {
+      cancelSpeech()
+    }
+  }, [cancelSpeech])
 
   const translationDir = rtlLanguages.has(profile.translationLanguage) ? "rtl" : "ltr"
 
@@ -327,6 +427,7 @@ export function QuranReaderContainer({
 
   const handlePlay = useCallback(
     async (ayah: Ayah) => {
+      stopCurrentSpeech()
       const audioService = audioServiceRef.current
       if (!audioService) return
       const index = ayah.numberInSurah - 1
@@ -358,17 +459,103 @@ export function QuranReaderContainer({
         },
       })
     },
-    [audioSegments, onVersePlaybackEnd, profile.playbackSpeed, profile.reciterEdition, profile.volume, surahNumber, telemetryEnabled],
+    [
+      audioSegments,
+      onVersePlaybackEnd,
+      profile.playbackSpeed,
+      profile.reciterEdition,
+      profile.volume,
+      stopCurrentSpeech,
+      surahNumber,
+      telemetryEnabled,
+    ],
   )
 
-  const speakVerse = useCallback((ayah: Ayah, detail?: VerseRenderData) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return
-    window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance()
-    utterance.text = detail?.translations?.[0]?.text ?? ayah.text
-    utterance.lang = detail?.translations?.[0]?.language ?? "ar-SA"
-    window.speechSynthesis.speak(utterance)
-  }, [])
+  const speakVerse = useCallback(
+    (ayah: Ayah, detail?: VerseRenderData) => {
+      if (!speechSupported) {
+        toast({
+          title: "Speech unavailable",
+          description: "Your browser does not support verse narration.",
+        })
+        return
+      }
+
+      const verseKey = surahNumber ? `${surahNumber}:${ayah.numberInSurah}` : `${ayah.numberInSurah}`
+      if (speakingId === verseKey) {
+        stopCurrentSpeech()
+        return
+      }
+
+      const textCandidates = [
+        detail?.translations?.[0]?.text,
+        detail?.transliteration?.text,
+        ayah.text,
+      ]
+        .map((value) => (value ? sanitizeSpeechText(value) : value))
+        .filter((value): value is string => Boolean(value))
+
+      const textToSpeak = textCandidates[0]
+      if (!textToSpeak) {
+        toast({
+          title: "Nothing to narrate",
+          description: "We couldn't find readable text for this verse.",
+        })
+        return
+      }
+
+      const languagePreferences = [
+        detail?.translations?.[0]?.language,
+        profile.translationLanguage,
+        detail?.transliteration?.language,
+        "ar-SA",
+        "ar",
+      ].filter((lang): lang is string => Boolean(lang))
+
+      const selectedVoice = selectVoiceForLanguage(speechVoices, languagePreferences)
+      const preferredLang =
+        selectedVoice?.lang ?? normalizeLanguageTag(languagePreferences[0]) ?? "ar-SA"
+
+      const success = speakText({
+        id: verseKey,
+        text: textToSpeak,
+        lang: preferredLang,
+        voice: selectedVoice,
+        onStart: () => {
+          setSpeakingVerse(ayah.numberInSurah)
+        },
+        onEnd: () => {
+          setSpeakingVerse((current) => (current === ayah.numberInSurah ? null : current))
+        },
+        onError: () => {
+          setSpeakingVerse((current) => (current === ayah.numberInSurah ? null : current))
+          toast({
+            title: "Speech error",
+            description: "We couldn't finish narrating the verse. Please try again.",
+            variant: "destructive",
+          })
+        },
+      })
+
+      if (!success) {
+        toast({
+          title: "Speech error",
+          description: "We couldn't start narrating the verse. Please try again.",
+          variant: "destructive",
+        })
+      }
+    },
+    [
+      profile.translationLanguage,
+      speakText,
+      speakingId,
+      speechSupported,
+      speechVoices,
+      stopCurrentSpeech,
+      surahNumber,
+      toast,
+    ],
+  )
 
   useEffect(() => {
     if (!activeVerse || prefersReducedMotion) return
@@ -511,11 +698,25 @@ export function QuranReaderContainer({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-10 w-10 rounded-full bg-gradient-to-br from-sky-400 via-indigo-400 to-violet-500 text-white shadow-md shadow-sky-500/40 opacity-100 transition-all duration-200 hover:from-sky-300 hover:via-indigo-300 hover:to-violet-400 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-sky-200 dark:from-sky-500 dark:via-indigo-500 dark:to-violet-600"
+                    className={cn(
+                      "h-10 w-10 rounded-full bg-gradient-to-br from-sky-400 via-indigo-400 to-violet-500 text-white shadow-md shadow-sky-500/40 opacity-100 transition-all duration-200 hover:from-sky-300 hover:via-indigo-300 hover:to-violet-400 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-sky-200 dark:from-sky-500 dark:via-indigo-500 dark:to-violet-600",
+                      speakingVerse === ayah.numberInSurah &&
+                        "ring-2 ring-offset-2 ring-sky-300 shadow-lg dark:ring-sky-500",
+                      !speechSupported && "opacity-75",
+                    )}
                     onClick={() => speakVerse(ayah, detail)}
-                    aria-label={`Speak verse ${ayah.numberInSurah}`}
+                    aria-label={
+                      speakingVerse === ayah.numberInSurah
+                        ? `Stop speaking verse ${ayah.numberInSurah}`
+                        : `Speak verse ${ayah.numberInSurah}`
+                    }
+                    aria-pressed={speakingVerse === ayah.numberInSurah}
                   >
-                    <Mic className="h-5 w-5" />
+                    {speakingVerse === ayah.numberInSurah ? (
+                      <StopCircle className="h-5 w-5" />
+                    ) : (
+                      <Mic className="h-5 w-5" />
+                    )}
                   </Button>
                 </div>
                 <Button
