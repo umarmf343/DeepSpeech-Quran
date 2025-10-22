@@ -3,9 +3,10 @@ import { verifyJwt } from "./jwt"
 import { getUserById } from "@/lib/data/mock-db"
 
 export function extractToken(request: NextRequest): string | null {
-  const authHeader = request.headers.get("authorization")
-  if (authHeader?.startsWith("Bearer ")) {
-    return authHeader.slice("Bearer ".length)
+  const authHeader = request.headers.get("authorization") ?? request.headers.get("Authorization")
+  const headerToken = authHeader?.match(/^Bearer\s+(.+)$/i)?.[1]
+  if (headerToken) {
+    return headerToken
   }
   const cookieToken = request.cookies.get("alfawz_token")?.value
   return cookieToken ?? null
