@@ -1,25 +1,13 @@
-import Link from "next/link"
 import Image from "next/image"
 import type { Metadata } from "next"
+
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+
 import {
   AppWindow,
-  Code2,
-  Download,
-  Github,
-  Images as ImagesIcon,
-  Laptop,
   LayoutDashboard,
   Library,
-  Link2,
   MoonStar,
   Repeat2,
   Search,
@@ -41,132 +29,66 @@ export const metadata: Metadata = {
   ],
 }
 
-const installationOptions = [
+const readerExperience = [
   {
-    name: "Windows",
+    title: "Mushaf and verse layouts",
     description:
-      "Download the online installer and follow the installation steps to get started immediately.",
-    icon: AppWindow,
-    links: [
-      {
-        label: "Installer",
-        href: "https://github.com/0xzer0x/quran-companion/releases/download/v1.1.9/qc_online_installer_x64_win.exe",
-      },
-    ],
-  },
-  {
-    name: "Linux",
-    description:
-      "Choose the package that best fits your distribution and enjoy native performance across the desktop.",
-    icon: Laptop,
-    links: [
-      {
-        label: "AppImage",
-        href: "https://github.com/0xzer0x/quran-companion/releases/download/v1.3.3/Quran_Companion-1.3.3-x86_64.AppImage",
-      },
-      {
-        label: "Flatpak",
-        href: "https://flathub.org/apps/io.github._0xzer0x.qurancompanion",
-      },
-      {
-        label: "Snap",
-        href: "https://snapcraft.io/quran-companion",
-      },
-      {
-        label: "AUR",
-        href: "https://aur.archlinux.org/packages/quran-companion",
-      },
-    ],
-  },
-  {
-    name: "macOS",
-    description:
-      "Download the DMG, open it, and drag Quran Companion into your Applications folder to finish setup.",
-    icon: MoonStar,
-    links: [
-      {
-        label: "DMG",
-        href: "https://github.com/0xzer0x/quran-companion/releases/download/v1.3.3/Quran_Companion-1.3.3-x86_64.dmg",
-      },
-    ],
-  },
-  {
-    name: "Build from source",
-    description:
-      "Follow the compilation instructions to build the application yourself from the official repository.",
-    icon: Code2,
-    links: [
-      {
-        label: "Build instructions",
-        href: "https://github.com/0xzer0x/quran-companion?tab=readme-ov-file#compilation-%EF%B8%8F",
-      },
-    ],
-  },
-]
-
-const features = [
-  {
-    title: "Modern interface",
-    description: "Sleek, desktop-friendly design with full dark theme support.",
-    icon: Sparkles,
-  },
-  {
-    title: "Lightning-fast search",
-    description: "Quickly locate verses, topics, and translations across the Quran.",
-    icon: Search,
-  },
-  {
-    title: "Flexible reading modes",
-    description: "Switch between single or two-page layouts for a comfortable reading experience.",
+      "Navigate between a classical mushaf presentation and focused verse-by-verse reading while keeping controls within reach.",
     icon: LayoutDashboard,
   },
   {
-    title: "Mushaf or verse view",
-    description: "Read from the classic mushaf layout or focus verse-by-verse when studying.",
-    icon: TextQuote,
+    title: "Adaptive themes",
+    description:
+      "Night mode and automatic theme detection keep long recitation sessions comfortable, matching the reader's environment.",
+    icon: MoonStar,
   },
   {
-    title: "Customizable page size",
-    description: "Adjust the Quran page dimensions to match your display and preferences.",
-    icon: AppWindow,
-  },
-  {
-    title: "Translations and tafsir",
-    description: "Access an expanding library of translations and tafsir works.",
-    icon: Library,
-  },
-  {
-    title: "Multiple reciters",
-    description: "Listen to recitations from renowned reciters with seamless audio playback.",
-    icon: Volume2,
-  },
-  {
-    title: "Memorization tools",
-    description: "Repeat selected verses to strengthen memorization and retention.",
-    icon: Repeat2,
+    title: "Quick navigation",
+    description:
+      "Surah and ayah selectors, paired with responsive interface panels, make it effortless to jump across the mushaf.",
+    icon: Search,
   },
 ]
 
-const screenshots = [
+const audioAndMemorization = [
   {
-    src: "https://0xzer0x.github.io/imgs/quran-companion/screenshots/light.png",
-    alt: "Quran Companion light mode interface",
+    title: "Renowned reciters",
+    description:
+      "Choose from multiple recitation editions and adjust playback speed to suit memorization or reflective listening.",
+    icon: Volume2,
   },
   {
-    src: "https://0xzer0x.github.io/imgs/quran-companion/screenshots/two-pages.png",
-    alt: "Two-page reading mode",
+    title: "Focused repetition",
+    description:
+      "Loop verses, monitor repetitions, and keep track of memorization streaks with the built-in hasanat tracker.",
+    icon: Repeat2,
   },
   {
-    src: "https://0xzer0x.github.io/imgs/quran-companion/screenshots/dark.png",
-    alt: "Dark mode interface",
+    title: "Motivating celebrations",
+    description:
+      "Milestone effects and celebratory overlays reinforce progress as users complete their daily goals.",
+    icon: Sparkles,
+  },
+]
+
+const studyTools = [
+  {
+    title: "Context-rich toggles",
+    description:
+      "Fine-grained controls toggle translations, transliterations, tajweed overlays, and full-surah reading views on demand.",
+    icon: AppWindow,
   },
   {
-    src: "https://0xzer0x.github.io/imgs/quran-companion/screenshots/ar_light.png",
-    alt: "Arabic UI in light mode",
+    title: "Linguistic insights",
+    description:
+      "Dive into morphology breakdowns that surface roots, stems, and lemmas directly alongside the recited ayat.",
+    icon: TextQuote,
   },
   {
-    src: "https://0xzer0x.github.io/imgs/quran-companion/screenshots/ar_dark.png",
-    alt: "Arabic UI in dark mode",
+    title: "Expanding library",
+    description:
+      "A curated list of translation editions in multiple languages keeps the experience accessible worldwide.",
+    icon: Library,
   },
 ]
 
@@ -182,27 +104,9 @@ export default function QuranCompanionPage() {
               Quran Companion
             </h1>
             <p className="mx-auto max-w-3xl text-lg text-muted-foreground sm:text-xl">
-              Quran Companion is a free and open-source desktop Quran reader and player that brings together a modern interface,
-              powerful search, and rich audio features to support your daily recitation and memorization journey.
+              Quran Companion is a desktop-class reader built for deep study and memorization. It distills the full AlFawz reader
+              experience into a polished package that emphasizes comfort, clarity, and steady spiritual growth.
             </p>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            <Button asChild size="lg" className="gradient-maroon border-0 px-8 text-lg text-white">
-              <Link
-                href="https://github.com/0xzer0x/quran-companion/releases/latest"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Download className="mr-2 h-5 w-5" />
-                Download latest release
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="px-8 text-lg">
-              <Link href="https://github.com/0xzer0x/quran-companion" target="_blank" rel="noopener noreferrer">
-                <Github className="mr-2 h-5 w-5" />
-                View on GitHub
-              </Link>
-            </Button>
           </div>
           <div className="relative w-full max-w-4xl overflow-hidden rounded-3xl border border-border/50 bg-background/70 shadow-xl">
             <Image
@@ -221,41 +125,26 @@ export default function QuranCompanionPage() {
       <section className="py-16">
         <div className="mx-auto max-w-6xl px-4">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-3xl font-semibold text-foreground sm:text-4xl">Installation</h2>
+            <h2 className="text-3xl font-semibold text-foreground sm:text-4xl">Reader Experience</h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Quran Companion is available across platforms so you can enjoy the same polished experience on Windows, Linux,
-              and macOS—or build it yourself from source.
+              The Quran Companion interface mirrors the live reader with familiar panels, responsive controls, and streamlined
+              navigation.
             </p>
           </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-2">
-            {installationOptions.map((option) => (
-              <Card key={option.name} className="border-border/60 bg-background/80 backdrop-blur">
+          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {readerExperience.map((feature) => (
+              <Card key={feature.title} className="border-border/60 bg-background/80">
                 <CardHeader className="items-start gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <option.icon className="h-6 w-6" />
+                    <feature.icon className="h-6 w-6" />
                   </div>
                   <div>
-                    <CardTitle className="text-2xl font-semibold text-foreground">{option.name}</CardTitle>
+                    <CardTitle className="text-xl font-semibold text-foreground">{feature.title}</CardTitle>
                     <CardDescription className="mt-2 text-base leading-relaxed text-muted-foreground">
-                      {option.description}
+                      {feature.description}
                     </CardDescription>
                   </div>
                 </CardHeader>
-                <CardContent className="flex flex-wrap gap-3">
-                  {option.links.map((link) => (
-                    <Button
-                      key={`${option.name}-${link.label}`}
-                      asChild
-                      variant="outline"
-                      className="border-primary/30 text-primary hover:bg-primary/10"
-                    >
-                      <Link href={link.href} target="_blank" rel="noopener noreferrer">
-                        {link.label}
-                        <Link2 className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
-                  ))}
-                </CardContent>
               </Card>
             ))}
           </div>
@@ -265,15 +154,14 @@ export default function QuranCompanionPage() {
       <section className="bg-background/60 py-16">
         <div className="mx-auto max-w-6xl px-4">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-3xl font-semibold text-foreground sm:text-4xl">Key Features</h2>
+            <h2 className="text-3xl font-semibold text-foreground sm:text-4xl">Audio &amp; Memorization</h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Every detail of Quran Companion is crafted to make reading, listening, and memorizing the Quran delightful and
-              efficient.
+              Built-in audio tools and celebration systems sustain consistent recitation habits and memorization sessions.
             </p>
           </div>
           <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => (
-              <Card key={feature.title} className="border-border/50 bg-card/80">
+            {audioAndMemorization.map((feature) => (
+              <Card key={feature.title} className="border-border/60 bg-card/80">
                 <CardHeader className="items-start gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary/15 text-secondary-foreground">
                     <feature.icon className="h-6 w-6" />
@@ -293,36 +181,27 @@ export default function QuranCompanionPage() {
 
       <section className="py-16">
         <div className="mx-auto max-w-6xl px-4">
-          <div className="flex flex-col items-center gap-4 text-center">
-            <Badge variant="secondary" className="px-4 py-1 text-sm">
-              Visual Tour
-            </Badge>
-            <h2 className="text-3xl font-semibold text-foreground sm:text-4xl">Screenshots</h2>
-            <p className="max-w-3xl text-lg text-muted-foreground">
-              Explore the clean layouts, language options, and reading modes available throughout Quran Companion.
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className="text-3xl font-semibold text-foreground sm:text-4xl">Study Tools</h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Engage every ayah with rich linguistic data and tailored presentation controls designed for serious learners.
             </p>
           </div>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {screenshots.map((screenshot) => (
-              <div
-                key={screenshot.src}
-                className="group overflow-hidden rounded-2xl border border-border/40 bg-background/80 shadow-sm transition hover:shadow-lg"
-              >
-                <div className="relative flex h-64 items-center justify-center bg-muted/30">
-                  <Image
-                    src={screenshot.src}
-                    alt={screenshot.alt}
-                    width={1280}
-                    height={720}
-                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                    unoptimized
-                  />
-                </div>
-                <div className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground">
-                  <ImagesIcon className="h-4 w-4" />
-                  {screenshot.alt}
-                </div>
-              </div>
+          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {studyTools.map((feature) => (
+              <Card key={feature.title} className="border-border/60 bg-background/80">
+                <CardHeader className="items-start gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <feature.icon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-semibold text-foreground">{feature.title}</CardTitle>
+                    <CardDescription className="mt-2 text-base leading-relaxed text-muted-foreground">
+                      {feature.description}
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+              </Card>
             ))}
           </div>
         </div>
@@ -332,22 +211,20 @@ export default function QuranCompanionPage() {
         <div className="mx-auto max-w-4xl px-4">
           <Card className="border-border/70 bg-card/80 p-8 text-center shadow-lg">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <Github className="h-8 w-8" />
+              <Sparkles className="h-8 w-8" />
             </div>
             <CardHeader className="mt-6 space-y-4 text-center">
-              <CardTitle className="text-3xl font-semibold text-foreground">Explore the Source Code</CardTitle>
+              <CardTitle className="text-3xl font-semibold text-foreground">Crafted for Daily Devotion</CardTitle>
               <CardDescription className="text-lg leading-relaxed text-muted-foreground">
-                Quran Companion is actively developed in the open. Dive into the code, report issues, or contribute new features
-                to help the global community benefit from a refined Quran reading experience.
+                Quran Companion channels the heart of the AlFawz experience into a desktop environment, keeping your reading
+                rhythm grounded with thoughtful design, uplifting celebrations, and deep study aids.
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex justify-center">
-              <Button asChild size="lg" className="gradient-maroon border-0 px-8 text-lg text-white">
-                <Link href="https://github.com/0xzer0x/quran-companion" target="_blank" rel="noopener noreferrer">
-                  <Github className="mr-2 h-5 w-5" />
-                  Visit Repository
-                </Link>
-              </Button>
+            <CardContent>
+              <p className="text-base text-muted-foreground">
+                Whether preparing for class, revising memorized passages, or exploring linguistic nuance, every panel is tuned to
+                make the Qur'an feel close at hand.
+              </p>
             </CardContent>
           </Card>
         </div>
