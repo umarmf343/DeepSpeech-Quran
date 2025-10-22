@@ -64,6 +64,13 @@ export function QuranReaderContainer({
   const [tajweedError, setTajweedError] = useState<string | null>(null)
   const [tajweedMap, setTajweedMap] = useState<Map<number, string>>(new Map())
   const verseCacheRef = useRef<Map<string, VerseRenderData>>(new Map())
+  const surahVerseDetailsRef = useRef<{
+    key: string
+    data: Map<number, { arabic: Ayah; translations: Translation[]; transliteration?: Transliteration }>
+  } | null>(null)
+  const surahVerseDetailsPromiseRef = useRef<
+    Promise<Map<number, { arabic: Ayah; translations: Translation[]; transliteration?: Transliteration }> | null> | null
+  >(null)
   const verseDataRef = useRef<Map<number, VerseRenderData>>(new Map())
   const verseRefs = useRef<Map<number, HTMLDivElement | null>>(new Map())
   const audioServiceRef = useRef<ReturnType<typeof createAudioPlayerService> | null>(null)
@@ -188,6 +195,68 @@ export function QuranReaderContainer({
     ],
   )
 
+  const buildSurahPreferenceKey = useCallback(() => {
+    if (!surahNumber) return "no-surah"
+    return [
+      surahNumber,
+      profile.translationEdition ?? "",
+      profile.translationLanguage ?? "",
+      profile.transliterationEdition ?? "",
+      profile.showTranslation ? "1" : "0",
+      profile.showTransliteration ? "1" : "0",
+    ].join(":")
+  }, [
+    profile.showTranslation,
+    profile.showTransliteration,
+    profile.translationEdition,
+    profile.translationLanguage,
+    profile.transliterationEdition,
+    surahNumber,
+  ])
+
+  const processVerseDetail = useCallback(
+    (
+      detail:
+        | { arabic: Ayah; translations: Translation[]; transliteration?: Transliteration }
+        | null
+        | undefined,
+    ): VerseRenderData | null => {
+      if (!detail) return null
+      const translationsForDisplay = profile.showTranslation
+        ? (() => {
+            const byEdition = detail.translations.filter(
+              (translation) => translation.edition === profile.translationEdition,
+            )
+            if (byEdition.length) {
+              return byEdition
+            }
+            const languageCode = profile.translationLanguage?.toLowerCase()
+            if (languageCode) {
+              const byLanguage = detail.translations.filter(
+                (translation) => translation.language?.toLowerCase() === languageCode,
+              )
+              if (byLanguage.length) {
+                return byLanguage
+              }
+            }
+            return detail.translations
+          })()
+        : []
+
+      return {
+        arabic: detail.arabic,
+        translations: translationsForDisplay,
+        transliteration: profile.showTransliteration ? detail.transliteration : undefined,
+      }
+    },
+    [
+      profile.showTranslation,
+      profile.showTransliteration,
+      profile.translationEdition,
+      profile.translationLanguage,
+    ],
+  )
+
   const fetchVerseData = useCallback(
     async (ayahNumber: number): Promise<VerseRenderData | null> => {
       if (!surahNumber) return null
@@ -196,62 +265,90 @@ export function QuranReaderContainer({
         return verseCacheRef.current.get(cacheKey) ?? null
       }
       const editions = new Set<string>(["quran-uthmani"])
-      if (profile.showTranslation) {
+      if (profile.showTranslation && profile.translationEdition) {
         editions.add(profile.translationEdition)
       }
-      if (profile.showTransliteration) {
+      if (profile.showTransliteration && profile.transliterationEdition) {
         editions.add(profile.transliterationEdition)
+      }
+      if (profile.showTransliteration) {
         editions.add(DEFAULT_ENGLISH_TRANSLATION_EDITION)
       }
-      try {
-        const detail = await quranAPI.getAyah(surahNumber, ayahNumber, Array.from(editions), {
-          translationLanguage: profile.translationLanguage,
-        })
-        if (!detail) {
-          return null
+
+      const editionList = Array.from(editions)
+      const preferenceKey = buildSurahPreferenceKey()
+
+      const ensureSurahDetails = async () => {
+        if (surahVerseDetailsRef.current?.key === preferenceKey) {
+          return surahVerseDetailsRef.current.data
         }
-        const translationsForDisplay = profile.showTranslation
-          ? (() => {
-              const byEdition = detail.translations.filter(
-                (translation) => translation.edition === profile.translationEdition,
-              )
-              if (byEdition.length) {
-                return byEdition
+        if (!surahVerseDetailsPromiseRef.current) {
+          surahVerseDetailsPromiseRef.current = quranAPI
+            .getSurahVerseDetails(surahNumber, editionList)
+            .then((result) => {
+              if (result) {
+                surahVerseDetailsRef.current = { key: preferenceKey, data: result }
+              } else if (surahVerseDetailsRef.current?.key === preferenceKey) {
+                surahVerseDetailsRef.current = null
               }
-              const languageCode = profile.translationLanguage?.toLowerCase()
-              if (languageCode) {
-                const byLanguage = detail.translations.filter(
-                  (translation) => translation.language?.toLowerCase() === languageCode,
-                )
-                if (byLanguage.length) {
-                  return byLanguage
-                }
-              }
-              return detail.translations
-            })()
-          : []
-        const normalized: VerseRenderData = {
-          arabic: detail.arabic,
-          translations: translationsForDisplay,
-          transliteration: profile.showTransliteration ? detail.transliteration : undefined,
+              return result
+            })
+            .catch((error) => {
+              console.error("Failed to fetch batched verses", error)
+              return null
+            })
+            .finally(() => {
+              surahVerseDetailsPromiseRef.current = null
+            })
         }
-        verseCacheRef.current.set(cacheKey, normalized)
-        return normalized
-      } catch (fetchError) {
-        console.error("Failed to fetch verse", fetchError)
-        return null
+        return surahVerseDetailsPromiseRef.current
       }
+
+      let rawDetail:
+        | { arabic: Ayah; translations: Translation[]; transliteration?: Transliteration }
+        | null = null
+
+      const batched = await ensureSurahDetails()
+      if (batched) {
+        rawDetail = batched.get(ayahNumber) ?? null
+      }
+
+      if (!rawDetail) {
+        try {
+          rawDetail = await quranAPI.getAyah(surahNumber, ayahNumber, editionList, {
+            translationLanguage: profile.translationLanguage,
+          })
+        } catch (fetchError) {
+          console.error("Failed to fetch verse", fetchError)
+          rawDetail = null
+        }
+      }
+
+      const normalized = processVerseDetail(rawDetail)
+      if (normalized) {
+        verseCacheRef.current.set(cacheKey, normalized)
+      }
+      return normalized
     },
     [
       buildCacheKey,
+      buildSurahPreferenceKey,
       profile.showTranslation,
       profile.showTransliteration,
       profile.translationEdition,
       profile.translationLanguage,
       profile.transliterationEdition,
+      processVerseDetail,
       surahNumber,
     ],
   )
+
+  useEffect(() => {
+    if (!surahNumber) {
+      surahVerseDetailsRef.current = null
+      surahVerseDetailsPromiseRef.current = null
+    }
+  }, [surahNumber])
 
   useEffect(() => {
     if (!surahNumber || versesToRender.length === 0) {
