@@ -355,38 +355,78 @@ export default function QaidahAssignmentsPage() {
             )}
 
             <div className="grid gap-4 lg:grid-cols-2">
-              {visibleAssignments.map((assignment) => (
-                <Card key={assignment.id} className="border border-maroon-100/60 bg-white/80">
-                  <CardHeader className="space-y-2">
-                    <CardTitle className="text-xl text-maroon-900">{assignment.title}</CardTitle>
-                    <CardDescription className="flex flex-wrap items-center gap-2 text-sm text-maroon-600">
-                      <span>From {assignment.teacherName ?? "your ustadh"}</span>
-                      <span aria-hidden>•</span>
-                      <span>{new Date(assignment.createdAt).toLocaleString()}</span>
-                      <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-700">
-                        <Headphones className="mr-1 h-3 w-3" /> {assignment.hotspots?.length ?? 0} practice points
-                      </Badge>
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <p className="text-sm text-maroon-700">{assignment.description}</p>
-                    <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                      <Badge variant="secondary">Mode: {assignment.mode}</Badge>
-                      {assignment.recipients.type === "class" && (
-                        <Badge variant="outline">Class assignment</Badge>
-                      )}
-                      {assignment.recipients.type === "student" && (
-                        <Badge variant="outline" className="border-emerald-200 text-emerald-700">
-                          Personal practice
-                        </Badge>
-                      )}
+              {visibleAssignments.map((assignment) => {
+                const formattedCreatedAt = new Date(assignment.createdAt).toLocaleString()
+                const practicePoints = assignment.hotspots?.length ?? 0
+                const modeLabel =
+                  assignment.mode === "hotspot"
+                    ? "hotspot"
+                    : assignment.mode === "linear"
+                      ? "linear"
+                      : "audio"
+                const modeDisplay = modeLabel.charAt(0).toUpperCase() + modeLabel.slice(1)
+
+                return (
+                  <div
+                    key={assignment.id}
+                    data-slot="card"
+                    className="text-card-foreground flex flex-col gap-6 rounded-xl border border-maroon-100/60 bg-white/80 py-6 shadow-sm"
+                  >
+                    <div
+                      data-slot="card-header"
+                      className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] space-y-2"
+                    >
+                      <div data-slot="card-title" className="text-xl font-semibold text-maroon-900">
+                        {assignment.title}
+                      </div>
+                      <div
+                        data-slot="card-description"
+                        className="flex flex-wrap items-center gap-2 text-sm text-maroon-600"
+                      >
+                        <span>From {assignment.teacherName ?? "your ustadh"}</span>
+                        <span aria-hidden="true">•</span>
+                        <span>{formattedCreatedAt}</span>
+                        <span
+                          data-slot="badge"
+                          className="inline-flex w-fit shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-md border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 [&>svg]:pointer-events-none [&>svg]:size-3"
+                        >
+                          <Headphones className="h-3 w-3" /> {practicePoints} practice points
+                        </span>
+                      </div>
                     </div>
-                    <Button className="w-full bg-maroon-600" onClick={() => openAssignment(assignment)}>
-                      <ArrowRight className="mr-2 h-4 w-4" /> Open assignment
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                    <div data-slot="card-content" className="space-y-3 px-6">
+                      <p className="text-sm text-maroon-700">{assignment.description}</p>
+                      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                        <span
+                          data-slot="badge"
+                          className="inline-flex w-fit shrink-0 items-center justify-center whitespace-nowrap rounded-md border border-transparent bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
+                        >
+                          Mode: {modeDisplay}
+                        </span>
+                        <span
+                          data-slot="badge"
+                          className={cn(
+                            "inline-flex w-fit shrink-0 items-center justify-center whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium",
+                            assignment.recipients.type === "class"
+                              ? "border-transparent text-foreground"
+                              : "border-emerald-200 text-emerald-700",
+                          )}
+                        >
+                          {assignment.recipients.type === "class" ? "Class assignment" : "Personal practice"}
+                        </span>
+                      </div>
+                      <button
+                        data-slot="button"
+                        type="button"
+                        onClick={() => openAssignment(assignment)}
+                        className="inline-flex h-9 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md bg-maroon-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-maroon-700 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0"
+                      >
+                        <ArrowRight className="h-4 w-4" /> Open assignment
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </TabsContent>
           <TabsContent value="reflection" className="mt-4 space-y-3">
