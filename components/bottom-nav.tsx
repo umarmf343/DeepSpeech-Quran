@@ -36,6 +36,7 @@ type TabSlug =
   | "kid-class"
   | "memorization"
   | "qaidah"
+  | "quran-companion"
   | "leaderboard"
   | "game"
   | "teacher-dashboard"
@@ -56,6 +57,12 @@ const TAB_REGISTRY: Record<TabSlug, TabDefinition> = {
   "kid-class": { slug: "kid-class", label: "Kids Class", href: "/kid-class", icon: "sparkles" },
   memorization: { slug: "memorization", label: "Memorization", href: "/memorization", icon: "target" },
   qaidah: { slug: "qaidah", label: "Qa'idah", href: "/qaidah", icon: "scroll" },
+  "quran-companion": {
+    slug: "quran-companion",
+    label: "Quran Companion",
+    href: "/quran-companion",
+    icon: "companion",
+  },
   leaderboard: { slug: "leaderboard", label: "Leaderboard", href: "/leaderboard", icon: "crown" },
   game: { slug: "game", label: "Game Lab", href: "/game", icon: "gamepad" },
   "teacher-dashboard": {
@@ -71,7 +78,16 @@ const TAB_REGISTRY: Record<TabSlug, TabDefinition> = {
 
 const ROLE_TAB_MAP: Record<UserRole, TabSlug[]> = {
   visitor: ["dashboard", "reader", "kid-class", "memorization", "qaidah", "profile"],
-  student: ["dashboard", "reader", "kid-class", "memorization", "qaidah", "settings", "profile"],
+  student: [
+    "dashboard",
+    "reader",
+    "kid-class",
+    "memorization",
+    "qaidah",
+    "quran-companion",
+    "settings",
+    "profile",
+  ],
   teacher: ["dashboard", "reader", "kid-class", "memorization", "qaidah", "teacher-dashboard", "settings", "profile"],
   admin: [
     "dashboard",
@@ -107,9 +123,18 @@ const iconMap: Record<string, ComponentType<{ className?: string }>> = {
   calendar: Calendar,
   scroll: ScrollText,
   gamepad: Gamepad2,
+  companion: BookOpen,
 }
 
-const SENIOR_MODE_TABS = new Set<TabSlug>(["dashboard", "reader", "memorization", "qaidah", "settings", "profile"])
+const SENIOR_MODE_TABS = new Set<TabSlug>([
+  "dashboard",
+  "reader",
+  "memorization",
+  "qaidah",
+  "quran-companion",
+  "settings",
+  "profile",
+])
 
 export function alfawz_get_bottom_nav_url(slug: TabSlug): string {
   return TAB_REGISTRY[slug]?.href ?? "/"
