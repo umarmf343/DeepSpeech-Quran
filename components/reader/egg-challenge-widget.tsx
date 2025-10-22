@@ -100,7 +100,7 @@ export function EggChallengeWidget({
         )}
       >
         <div className="flex min-w-0 flex-col items-center gap-4 rounded-2xl bg-white/70 p-4 text-center shadow-inner backdrop-blur-sm sm:p-6">
-          <div className="relative h-24 w-20">
+          <div className="relative h-16 w-[3.33rem]">
             <div
               className={cn(
                 "egg-shell",
