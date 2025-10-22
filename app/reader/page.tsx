@@ -547,10 +547,6 @@ export default function AlfawzReaderPage() {
           celebration={challengeCelebration}
           loading={challengeLoading}
           updating={challengeUpdating}
-          onReset={() => {
-            void handleChallengeReset()
-          }}
-          onDismissCelebration={handleDismissChallengeCelebration}
         />
         {challengeError ? (
           <Alert variant="destructive" role="alert">

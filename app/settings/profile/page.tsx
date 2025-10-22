@@ -10,6 +10,7 @@ import {
   Crown,
   Lock,
   Palette,
+  RotateCcw,
   ShieldCheck,
   Sparkles,
 } from "lucide-react"
@@ -91,6 +92,7 @@ export default function ProfileSettingsPage() {
   const [isPlanPending, startPlanTransition] = useTransition()
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [statusTone, setStatusTone] = useState<"success" | "error">("success")
+  const [isResettingChallenge, setIsResettingChallenge] = useState(false)
 
   useEffect(() => {
     setFormState({
@@ -197,6 +199,34 @@ export default function ProfileSettingsPage() {
         setStatusMessage("We could not save your changes. Please try again.")
       }
     })
+  }
+
+  const handleChallengeReset = () => {
+    setStatusMessage(null)
+    setIsResettingChallenge(true)
+
+    void (async () => {
+      try {
+        const response = await fetch("/api/reader-challenge", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "reset" }),
+        })
+        if (!response.ok) {
+          throw new Error(`Request failed with status ${response.status}`)
+        }
+        setStatusTone("success")
+        setStatusMessage("Your egg challenge progress has been reset.")
+      } catch (error) {
+        console.error("Failed to reset challenge progress", error)
+        setStatusTone("error")
+        setStatusMessage("We couldn't reset your challenge. Please try again.")
+      } finally {
+        setIsResettingChallenge(false)
+      }
+    })()
   }
 
   return (
@@ -349,14 +379,27 @@ export default function ProfileSettingsPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="col-span-full flex items-center justify-between rounded-2xl bg-maroon-50/70 px-4 py-3">
+              <div className="col-span-full flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-maroon-50/70 px-4 py-3">
                 <div>
                   <p className="font-medium text-maroon-900">Opt into challenges</p>
                   <p className="text-sm text-maroon-600">
                     Receive curated memorization quests and weekly competitions aligned with your goals.
                   </p>
                 </div>
-                <Switch checked={formState.challengeOptIn} onCheckedChange={handleToggle("challengeOptIn")} />
+                <div className="flex items-center gap-3">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="gap-1 text-emerald-700 hover:text-emerald-800"
+                    onClick={handleChallengeReset}
+                    disabled={isResettingChallenge || !formState.challengeOptIn}
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                    {isResettingChallenge ? "Resetting…" : "Reset challenge"}
+                  </Button>
+                  <Switch checked={formState.challengeOptIn} onCheckedChange={handleToggle("challengeOptIn")} />
+                </div>
               </div>
             </CardContent>
           </Card>
