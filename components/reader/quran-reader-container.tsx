@@ -737,20 +737,22 @@ export function QuranReaderContainer({
               role="listitem"
             >
               {showNavigation ? (
-                <div className="pointer-events-none absolute inset-y-0 left-0 right-0 flex items-center justify-between">
+                <div
+                  className="pointer-events-none absolute inset-y-0 -left-12 -right-12 flex items-center justify-between"
+                >
                   <Button
                     type="button"
                     size="icon"
                     variant="ghost"
                     className={cn(
-                      "pointer-events-auto z-20 h-12 w-12 rounded-full bg-gradient-to-br from-emerald-500 via-teal-400 to-sky-500 text-white shadow-lg shadow-emerald-500/40 transition-transform hover:-translate-y-1 hover:scale-105 hover:from-emerald-400 hover:via-teal-300 hover:to-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 dark:shadow-emerald-900/50",
+                      "pointer-events-auto z-10 h-8 w-8 rounded-full bg-gradient-to-br from-emerald-500 via-teal-400 to-sky-500 text-white shadow-lg shadow-emerald-500/40 transition-transform hover:-translate-y-1 hover:scale-105 hover:from-emerald-400 hover:via-teal-300 hover:to-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 dark:shadow-emerald-900/50",
                       !canGoPrevious && "pointer-events-none opacity-40",
                     )}
                     onClick={() => handleNavigate("previous")}
                     aria-label="Go to previous verse"
                     disabled={!canGoPrevious}
                   >
-                    <ChevronLeft className="h-6 w-6" aria-hidden="true" />
+                    <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                   </Button>
                   <HasanatSparkleEmitter
                     events={sparkleEvents}
@@ -762,14 +764,14 @@ export function QuranReaderContainer({
                       size="icon"
                       variant="ghost"
                       className={cn(
-                        "pointer-events-auto z-20 h-12 w-12 rounded-full bg-gradient-to-br from-sky-500 via-indigo-500 to-violet-500 text-white shadow-lg shadow-sky-500/40 transition-transform hover:-translate-y-1 hover:scale-105 hover:from-sky-400 hover:via-indigo-400 hover:to-violet-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 dark:shadow-sky-900/50",
+                        "pointer-events-auto z-10 h-8 w-8 rounded-full bg-gradient-to-br from-sky-500 via-indigo-500 to-violet-500 text-white shadow-lg shadow-sky-500/40 transition-transform hover:-translate-y-1 hover:scale-105 hover:from-sky-400 hover:via-indigo-400 hover:to-violet-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 dark:shadow-sky-900/50",
                         !canGoNext && "pointer-events-none opacity-40",
                       )}
                       onClick={() => handleNavigate("next")}
                       aria-label="Go to next verse"
                       disabled={!canGoNext}
                     >
-                      <ChevronRight className="h-6 w-6" aria-hidden="true" />
+                      <ChevronRight className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </HasanatSparkleEmitter>
                 </div>
