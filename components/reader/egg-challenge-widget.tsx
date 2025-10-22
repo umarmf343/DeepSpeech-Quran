@@ -138,31 +138,31 @@ export function EggChallengeWidget({
               {progress}/{goal}
             </span>
           </div>
-          <div className="grid grid-cols-3 gap-2 md:items-center">
-            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
+          <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-slate-500">
+            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-700">
               Rounds: {Math.min(roundsCompleted, roundsTarget)}/{roundsTarget}
             </span>
-            <span className="hidden text-[11px] font-medium text-slate-500">
+            <span className="hidden md:inline-flex">
               Total completions: {totalCompletions}
             </span>
-            <div className="col-span-3 flex flex-col gap-2 md:col-span-2 md:col-start-2 md:flex-row md:items-center md:justify-end">
-              <div className="w-full md:w-40">
-                <Progress
-                  value={percent}
-                  className="h-3 bg-amber-100"
-                  aria-hidden={false}
-                  aria-valuenow={percent}
-                />
-              </div>
-              {nextChallenge ? (
-                <span className="flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-slate-600 shadow-sm md:col-auto">
-                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                  {nextLabel}
-                </span>
-              ) : null}
-            </div>
           </div>
-          <p className="text-xs text-slate-600">{progressCaption}</p>
+          <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-center">
+            <Progress
+              value={percent}
+              className="h-3 bg-amber-100"
+              aria-hidden={false}
+              aria-valuenow={percent}
+            />
+            {nextChallenge ? (
+              <span className="flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-slate-600 shadow-sm">
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                {nextLabel}
+              </span>
+            ) : (
+              <span aria-hidden="true" className="hidden md:block" />
+            )}
+            <p className="text-xs text-slate-600 md:text-right">{progressCaption}</p>
+          </div>
           <div className="flex items-center justify-between pt-1 text-xs text-slate-500">
             <span>{definition?.description ?? "Recite with presence to unlock the surprise."}</span>
             <Button
