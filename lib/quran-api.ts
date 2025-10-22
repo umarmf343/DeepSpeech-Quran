@@ -26,7 +26,10 @@ export interface Translation {
   text: string
   language: string
   translator: string
+  edition?: string
 }
+
+export const DEFAULT_ENGLISH_TRANSLATION_EDITION = "en.sahih"
 
 export interface Transliteration {
   text: string
@@ -178,7 +181,17 @@ class QuranCloudAPI {
           text: t.text,
           language: t.edition.language,
           translator: t.edition.name,
+          edition: t.edition.identifier,
         }))
+
+        translations = translations.map((translation) =>
+          translation.language?.toLowerCase() === "en"
+            ? {
+                ...translation,
+                text: this.sanitizeTranslationText(translation.text),
+              }
+            : translation,
+        )
 
         if (translationLanguage === "en") {
           const verseKey = `${surahNumber}:${ayahNumber}`
@@ -200,6 +213,24 @@ class QuranCloudAPI {
           }
         }
 
+        const englishTranslationForTransliteration =
+          translations.find((t) => t.edition === DEFAULT_ENGLISH_TRANSLATION_EDITION) ??
+          translations.find((t) => t.language?.toLowerCase() === "en")
+
+        const transliteration: Transliteration | undefined = englishTranslationForTransliteration
+          ? {
+              text: this.sanitizeTranslationText(englishTranslationForTransliteration.text),
+              language: englishTranslationForTransliteration.language,
+              translator: englishTranslationForTransliteration.translator,
+            }
+          : transliterationAyah
+          ? {
+              text: transliterationAyah.text,
+              language: transliterationAyah.edition.language,
+              translator: transliterationAyah.edition.name,
+            }
+          : undefined
+
         const result = {
           arabic: {
             number: arabicAyah.number,
@@ -213,13 +244,7 @@ class QuranCloudAPI {
             sajda: arabicAyah.sajda,
           },
           translations,
-          transliteration: transliterationAyah
-            ? {
-                text: transliterationAyah.text,
-                language: transliterationAyah.edition.language,
-                translator: transliterationAyah.edition.name,
-              }
-            : undefined,
+          transliteration,
         }
 
         this.setCache(cacheKey, result)
@@ -262,6 +287,7 @@ class QuranCloudAPI {
         text: sanitizedText,
         language: "en",
         translator: data?.meta?.translation_name ?? "Saheeh International",
+        edition: DEFAULT_ENGLISH_TRANSLATION_EDITION,
       }
       this.setCache(cacheKey, translation)
       return translation

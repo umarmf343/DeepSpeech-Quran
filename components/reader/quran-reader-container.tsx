@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { AudioSegment, Ayah, Surah, Translation, Transliteration } from "@/lib/quran-api"
-import { quranAPI } from "@/lib/quran-api"
+import { DEFAULT_ENGLISH_TRANSLATION_EDITION, quranAPI } from "@/lib/quran-api"
 import { cn } from "@/lib/utils"
 import { createAudioPlayerService } from "@/lib/reader/audio-player-service"
 import type { ReaderProfile } from "@/lib/reader/preference-manager"
@@ -201,6 +201,7 @@ export function QuranReaderContainer({
       }
       if (profile.showTransliteration) {
         editions.add(profile.transliterationEdition)
+        editions.add(DEFAULT_ENGLISH_TRANSLATION_EDITION)
       }
       try {
         const detail = await quranAPI.getAyah(surahNumber, ayahNumber, Array.from(editions), {
@@ -209,9 +210,29 @@ export function QuranReaderContainer({
         if (!detail) {
           return null
         }
+        const translationsForDisplay = profile.showTranslation
+          ? (() => {
+              const byEdition = detail.translations.filter(
+                (translation) => translation.edition === profile.translationEdition,
+              )
+              if (byEdition.length) {
+                return byEdition
+              }
+              const languageCode = profile.translationLanguage?.toLowerCase()
+              if (languageCode) {
+                const byLanguage = detail.translations.filter(
+                  (translation) => translation.language?.toLowerCase() === languageCode,
+                )
+                if (byLanguage.length) {
+                  return byLanguage
+                }
+              }
+              return detail.translations
+            })()
+          : []
         const normalized: VerseRenderData = {
           arabic: detail.arabic,
-          translations: profile.showTranslation ? detail.translations : [],
+          translations: translationsForDisplay,
           transliteration: profile.showTransliteration ? detail.transliteration : undefined,
         }
         verseCacheRef.current.set(cacheKey, normalized)
@@ -543,6 +564,11 @@ export function QuranReaderContainer({
                 {profile.showTransliteration && detail?.transliteration ? (
                   <p className="text-base leading-relaxed text-emerald-700 dark:text-emerald-300" dir="ltr">
                     {detail.transliteration.text}
+                    {detail.transliteration.translator ? (
+                      <span className="ml-2 text-xs uppercase tracking-wide text-muted-foreground">
+                        {detail.transliteration.translator}
+                      </span>
+                    ) : null}
                   </p>
                 ) : null}
               </div>
