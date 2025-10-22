@@ -50,6 +50,7 @@ interface VerseDetail {
   numberInSurah: number
   arabicText: string
   translation: string
+  transliteration: string
 }
 
 interface MemorizationPlan {
@@ -393,7 +394,7 @@ export default function MemorizationPage() {
         setVerseError(null)
 
         const response = await fetch(
-          `https://api.alquran.cloud/v1/surah/${activePlan.surahNumber}/editions/quran-uthmani,en.asad`,
+          `https://api.alquran.cloud/v1/surah/${activePlan.surahNumber}/editions/quran-uthmani,en.asad,en.transliteration`,
         )
         const payload = await response.json()
 
@@ -403,6 +404,7 @@ export default function MemorizationPage() {
 
         const arabicEdition = payload.data[0]
         const translationEdition = payload.data[1]
+        const transliterationEdition = payload.data[2]
 
         const startIndex = activePlan.startAyah - 1
         const endIndex = activePlan.endAyah - 1
@@ -413,6 +415,7 @@ export default function MemorizationPage() {
             numberInSurah: ayah.numberInSurah,
             arabicText: ayah.text,
             translation: translationEdition?.ayahs?.[startIndex + index]?.text ?? "",
+            transliteration: transliterationEdition?.ayahs?.[startIndex + index]?.text ?? "",
           }))
 
         setVerses(selectedAyahs)
@@ -1139,6 +1142,11 @@ export default function MemorizationPage() {
         (verse) => `
         <div style="margin-bottom: 12px;">
           <div style="font-size:20px; font-weight:bold;">${verse.arabicText}</div>
+          ${
+            verse.transliteration
+              ? `<div style="font-size:15px; font-style:italic; color:#047857; margin-top:6px;">${verse.transliteration}</div>`
+              : ""
+          }
           <div style="font-size:14px; color:#334155; margin-top:4px;">${verse.translation}</div>
         </div>
       `,
@@ -1431,6 +1439,11 @@ export default function MemorizationPage() {
                       versesForActiveLevel.map((verse) => (
                         <div key={verse.numberInSurah} className="space-y-2">
                           <p className="text-3xl leading-relaxed text-slate-900 md:text-[2.25rem]">{verse.arabicText}</p>
+                          {verse.transliteration ? (
+                            <p className="text-base italic leading-relaxed text-emerald-700">
+                              {verse.transliteration}
+                            </p>
+                          ) : null}
                           <p className="text-sm leading-relaxed text-slate-600">{verse.translation}</p>
                         </div>
                       ))
