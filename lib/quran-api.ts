@@ -341,8 +341,10 @@ class QuranCloudAPI {
       const data = await response.json()
 
       if (data.code === 200) {
-        const audioSegments = data.data.ayahs.map((ayah: any) => ({
-          url: ayah.audio,
+        const audioSegments = data.data.ayahs.map((ayah: any, index: number) => ({
+          url: `/api/quran/audio?surah=${surahNumber}&ayah=${
+            ayah.numberInSurah ?? index + 1
+          }&reciter=${encodeURIComponent(reciterEdition)}`,
           duration: ayah.duration || undefined,
           segments: ayah.segments || undefined,
         }))
