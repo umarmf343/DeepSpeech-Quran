@@ -286,7 +286,7 @@ export function BottomNavigation() {
         aria-controls="alfawz-mobile-nav-content"
         aria-expanded={!isCollapsed}
       >
-        <span>{isCollapsed ? "Expand menu" : "Collapse menu"}</span>
+        {isCollapsed ? <span>Expand menu</span> : null}
         {isCollapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
       </button>
       <div
