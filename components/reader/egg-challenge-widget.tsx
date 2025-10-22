@@ -171,20 +171,37 @@ export function EggChallengeWidget({
             <p className="bg-gradient-to-r from-purple-600 via-pink-500 to-amber-400 bg-clip-text text-xs font-semibold uppercase tracking-[0.35em] text-transparent">
               Mystery Box
             </p>
-            <div className="flex items-center gap-3">
-              <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center" aria-hidden="true">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-400/60 via-pink-400/60 to-amber-300/60 blur-md" />
-                <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-white/90 shadow-inner ring-2 ring-purple-200">
-                  {typeof nextChallenge?.icon === "string" ? (
-                    <span className="text-2xl leading-none text-purple-500 drop-shadow-sm">
-                      {nextChallenge.icon}
-                    </span>
-                  ) : (
-                    <Gift className="h-6 w-6 text-purple-500 drop-shadow-sm" />
-                  )}
-                  <Sparkles className="pointer-events-none absolute -top-1 -right-1 h-4 w-4 text-amber-300" />
-                  <Sparkles className="pointer-events-none absolute -bottom-1 -left-1 h-3 w-3 text-pink-300" />
+            <div className="flex items-start gap-3">
+              <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center" aria-hidden="true">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-400/60 via-pink-400/60 to-amber-300/60 blur-md" />
+                  <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-white/90 shadow-inner ring-2 ring-purple-200">
+                    {typeof nextChallenge?.icon === "string" ? (
+                      <span className="text-2xl leading-none text-purple-500 drop-shadow-sm">
+                        {nextChallenge.icon}
+                      </span>
+                    ) : (
+                      <Gift className="h-6 w-6 text-purple-500 drop-shadow-sm" />
+                    )}
+                    <Sparkles className="pointer-events-none absolute -top-1 -right-1 h-4 w-4 text-amber-300" />
+                    <Sparkles className="pointer-events-none absolute -bottom-1 -left-1 h-3 w-3 text-pink-300" />
+                  </div>
                 </div>
+                {!showNextChallengeDetails ? (
+                  <span className="relative inline-flex items-center gap-1 font-semibold text-purple-600">
+                    <Sparkles
+                      className="h-3.5 w-3.5 animate-pulse text-amber-400"
+                      aria-hidden="true"
+                    />
+                    <span className="animate-floating rounded-full bg-white/70 px-3 py-1 text-[0.65rem] uppercase tracking-[0.35em] text-emerald-600 shadow-sm ring-1 ring-emerald-200/60">
+                      Unluck me!
+                    </span>
+                    <Sparkles
+                      className="h-4 w-4 animate-ping text-pink-400"
+                      aria-hidden="true"
+                    />
+                  </span>
+                ) : null}
               </div>
               <div className="space-y-1">
                 {showNextChallengeDetails && nextChallenge?.title ? (
@@ -198,24 +215,17 @@ export function EggChallengeWidget({
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-between text-xs text-slate-600">
+          <div
+            className={cn(
+              "flex text-xs text-slate-600",
+              showNextChallengeDetails && nextChallenge
+                ? "items-center justify-between"
+                : "items-center justify-end"
+            )}
+          >
             {showNextChallengeDetails && nextChallenge ? (
               <span>{`Stay steady to reach ${nextChallenge.title}.`}</span>
-            ) : (
-              <span className="relative inline-flex items-center gap-1 font-semibold text-purple-600">
-                <Sparkles
-                  className="h-3.5 w-3.5 animate-pulse text-amber-400"
-                  aria-hidden="true"
-                />
-                <span className="animate-floating rounded-full bg-white/70 px-3 py-1 text-[0.65rem] uppercase tracking-[0.35em] text-emerald-600 shadow-sm ring-1 ring-emerald-200/60">
-                  Unluck me!
-                </span>
-                <Sparkles
-                  className="h-4 w-4 animate-ping text-pink-400"
-                  aria-hidden="true"
-                />
-              </span>
-            )}
+            ) : null}
             <ArrowRight className="h-4 w-4 text-purple-500" aria-hidden="true" />
           </div>
         </div>
