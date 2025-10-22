@@ -528,8 +528,7 @@ export default function AlfawzReaderPage() {
               <Bookmark className="h-4 w-4" />
             </Button>
             <Button variant="outline" size="sm" className="bg-transparent">
-              <Share className="mr-2 h-4 w-4" />
-              Share
+              <Share className="h-4 w-4" />
             </Button>
             <Button variant="outline" size="sm" className="bg-transparent">
               <Settings className="h-4 w-4" />
