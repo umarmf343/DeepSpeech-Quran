@@ -118,7 +118,12 @@ export function QuranReader({
 
   const loadTranslations = useCallback(async (ayahList: Ayah[], surahNumber: number) => {
     const translationPromises = ayahList.map(async (ayah) => {
-      const ayahData = await quranAPI.getAyah(surahNumber, ayah.numberInSurah, ["en.sahih", "en.pickthall"])
+      const ayahData = await quranAPI.getAyah(
+        surahNumber,
+        ayah.numberInSurah,
+        ["en.sahih", "en.pickthall"],
+        { translationLanguage: "en" },
+      )
       return { ayahNumber: ayah.numberInSurah, translations: ayahData?.translations || [] }
     })
 

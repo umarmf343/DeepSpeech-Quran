@@ -172,12 +172,20 @@ export function QuranReaderContainer({
         surahNumber,
         ayahNumber,
         profile.translationEdition,
+        profile.translationLanguage,
         profile.transliterationEdition,
         profile.showTranslation,
         profile.showTransliteration,
       ].join(":")
     },
-    [profile.showTranslation, profile.showTransliteration, profile.translationEdition, profile.transliterationEdition, surahNumber],
+    [
+      profile.showTranslation,
+      profile.showTransliteration,
+      profile.translationEdition,
+      profile.translationLanguage,
+      profile.transliterationEdition,
+      surahNumber,
+    ],
   )
 
   const fetchVerseData = useCallback(
@@ -195,7 +203,9 @@ export function QuranReaderContainer({
         editions.add(profile.transliterationEdition)
       }
       try {
-        const detail = await quranAPI.getAyah(surahNumber, ayahNumber, Array.from(editions))
+        const detail = await quranAPI.getAyah(surahNumber, ayahNumber, Array.from(editions), {
+          translationLanguage: profile.translationLanguage,
+        })
         if (!detail) {
           return null
         }
@@ -211,7 +221,15 @@ export function QuranReaderContainer({
         return null
       }
     },
-    [buildCacheKey, profile.showTranslation, profile.showTransliteration, profile.translationEdition, profile.transliterationEdition, surahNumber],
+    [
+      buildCacheKey,
+      profile.showTranslation,
+      profile.showTransliteration,
+      profile.translationEdition,
+      profile.translationLanguage,
+      profile.transliterationEdition,
+      surahNumber,
+    ],
   )
 
   useEffect(() => {
