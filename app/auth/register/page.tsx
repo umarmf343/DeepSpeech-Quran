@@ -33,8 +33,14 @@ export default function RegisterPage() {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 2000))
 
-    // Redirect to onboarding or dashboard
-    window.location.href = "/onboarding"
+    // Redirect to onboarding or dashboard based on user role
+    const roleRoutes: Record<string, string> = {
+      student: "/dashboard",
+      teacher: "/teacher/dashboard",
+      "child-student": "/kid-class",
+    }
+
+    window.location.href = roleRoutes[formData.role] ?? "/onboarding"
 
     setIsLoading(false)
   }
@@ -114,8 +120,7 @@ export default function RegisterPage() {
                   <SelectContent>
                     <SelectItem value="student">Student</SelectItem>
                     <SelectItem value="teacher">Teacher</SelectItem>
-                    <SelectItem value="parent">Parent</SelectItem>
-                    <SelectItem value="admin">Administrator</SelectItem>
+                    <SelectItem value="child-student">Child Student</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
