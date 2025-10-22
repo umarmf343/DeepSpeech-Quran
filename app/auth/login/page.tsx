@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { BookOpen, Eye, EyeOff, ArrowLeft } from "lucide-react"
 import Link from "next/link"
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    role: "student",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,7 +29,13 @@ export default function LoginPage() {
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
     // Redirect to dashboard based on user role
-    window.location.href = "/dashboard"
+    const roleRoutes: Record<string, string> = {
+      student: "/dashboard",
+      teacher: "/teacher/dashboard",
+      "child-student": "/kid-class",
+    }
+
+    window.location.href = roleRoutes[formData.role] ?? "/dashboard"
 
     setIsLoading(false)
   }
@@ -55,6 +63,23 @@ export default function LoginPage() {
 
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="role">Sign in as</Label>
+                <Select
+                  value={formData.role}
+                  onValueChange={(value) => setFormData((prev) => ({ ...prev, role: value }))}
+                >
+                  <SelectTrigger id="role" className="h-12">
+                    <SelectValue placeholder="Select your role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="student">Student</SelectItem>
+                    <SelectItem value="teacher">Teacher</SelectItem>
+                    <SelectItem value="child-student">Child Student</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
                 <Input
