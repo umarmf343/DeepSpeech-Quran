@@ -77,7 +77,7 @@ export function EggChallengeWidget({
 
   const progressCaption = percent >= 100
     ? "Egg cracked! Preparing the next blessing."
-    : `Only ${remainingVerses} verse${remainingVerses === 1 ? "" : "s"} left to progress.`
+    : `${remainingVerses} Verse${remainingVerses === 1 ? "" : "s"} Left`
 
   const nextLabel = nextChallenge ? `${nextChallenge.icon} ${nextChallenge.title}` : "New surprises on the horizon"
 
