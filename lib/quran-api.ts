@@ -34,6 +34,10 @@ export interface Transliteration {
   translator: string
 }
 
+interface GetAyahOptions {
+  translationLanguage?: string
+}
+
 export interface Reciter {
   id: number
   name: string
@@ -61,6 +65,8 @@ class QuranCloudAPI {
   private baseUrl = "https://api.alquran.cloud/v1"
   private cache = new Map<string, any>()
   private cacheExpiry = 24 * 60 * 60 * 1000 // 24 hours
+  private quranComTranslationBaseUrl = "https://api.quran.com/api/v4/quran/translations"
+  private englishTranslationResourceId = 20
 
   /**
    * Get all surahs with metadata
@@ -146,12 +152,14 @@ class QuranCloudAPI {
     surahNumber: number,
     ayahNumber: number,
     editions: string[] = ["quran-uthmani", "en.sahih"],
+    options: GetAyahOptions = {},
   ): Promise<{
     arabic: Ayah
     translations: Translation[]
     transliteration?: Transliteration
   } | null> {
-    const cacheKey = `ayah_${surahNumber}_${ayahNumber}_${editions.join("_")}`
+    const translationLanguage = options.translationLanguage?.toLowerCase()
+    const cacheKey = `ayah_${surahNumber}_${ayahNumber}_${editions.join("_")}_${translationLanguage ?? "default"}`
     const cached = this.getFromCache(cacheKey)
     if (cached) return cached
 
@@ -166,6 +174,32 @@ class QuranCloudAPI {
         const translationAyahs = ayahs.filter((a: any) => a.edition.type === "translation")
         const transliterationAyah = ayahs.find((a: any) => a.edition.type === "transliteration")
 
+        let translations: Translation[] = translationAyahs.map((t: any) => ({
+          text: t.text,
+          language: t.edition.language,
+          translator: t.edition.name,
+        }))
+
+        if (translationLanguage === "en") {
+          const verseKey = `${surahNumber}:${ayahNumber}`
+          const englishTranslation = await this.getEnglishTranslationForVerse(verseKey)
+          if (englishTranslation) {
+            const existingIndex = translations.findIndex(
+              (t) => t.language === "en" && /sahih/i.test(t.translator ?? ""),
+            )
+            if (existingIndex >= 0) {
+              translations[existingIndex] = englishTranslation
+            } else {
+              const firstEnglishIndex = translations.findIndex((t) => t.language === "en")
+              if (firstEnglishIndex >= 0) {
+                translations[firstEnglishIndex] = englishTranslation
+              } else {
+                translations = [englishTranslation, ...translations]
+              }
+            }
+          }
+        }
+
         const result = {
           arabic: {
             number: arabicAyah.number,
@@ -178,11 +212,7 @@ class QuranCloudAPI {
             hizbQuarter: arabicAyah.hizbQuarter,
             sajda: arabicAyah.sajda,
           },
-          translations: translationAyahs.map((t: any) => ({
-            text: t.text,
-            language: t.edition.language,
-            translator: t.edition.name,
-          })),
+          translations,
           transliteration: transliterationAyah
             ? {
                 text: transliterationAyah.text,
@@ -198,6 +228,45 @@ class QuranCloudAPI {
       throw new Error("Failed to fetch ayah")
     } catch (error) {
       console.error("Error fetching ayah:", error)
+      return null
+    }
+  }
+
+  private sanitizeTranslationText(text: string): string {
+    if (!text) return ""
+    const withFootnotes = text.replace(/<sup[^>]*>(.*?)<\/sup>/gi, (_, content: string) => ` (${content})`)
+    const withoutHtml = withFootnotes.replace(/<[^>]+>/g, "")
+    return withoutHtml.replace(/&nbsp;/gi, " ").replace(/\s+/g, " ").trim()
+  }
+
+  private async getEnglishTranslationForVerse(verseKey: string): Promise<Translation | null> {
+    const cacheKey = `english_translation_${verseKey}`
+    const cached = this.getFromCache(cacheKey)
+    if (cached) return cached as Translation
+
+    try {
+      const response = await fetch(
+        `${this.quranComTranslationBaseUrl}/${this.englishTranslationResourceId}?verse_key=${verseKey}`,
+      )
+      if (!response.ok) {
+        throw new Error(`Failed with status ${response.status}`)
+      }
+      const data = await response.json()
+      const translationEntry = data?.translations?.[0]
+      if (!translationEntry?.text) {
+        return null
+      }
+
+      const sanitizedText = this.sanitizeTranslationText(translationEntry.text as string)
+      const translation: Translation = {
+        text: sanitizedText,
+        language: "en",
+        translator: data?.meta?.translation_name ?? "Saheeh International",
+      }
+      this.setCache(cacheKey, translation)
+      return translation
+    } catch (error) {
+      console.error("Error fetching english translation:", error)
       return null
     }
   }
