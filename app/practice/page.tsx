@@ -287,6 +287,10 @@ export default function PracticePage() {
               </span>
             </div>
             <Progress value={(practiceSession.completed / practiceSession.total) * 100} className="h-3" />
+            <span
+              className="mt-2 block text-sm text-gray-600"
+              dangerouslySetInnerHTML={{ __html: "2<!-- -->/<!-- -->10" }}
+            />
           </CardContent>
         </Card>
 
