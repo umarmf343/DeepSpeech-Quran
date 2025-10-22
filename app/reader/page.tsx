@@ -12,15 +12,18 @@ import { MushafView } from "@/components/reader/mushaf-view"
 import { NightModeToggle } from "@/components/reader/night-mode-toggle"
 import { QuranReaderContainer } from "@/components/reader/quran-reader-container"
 import { ReaderTogglePanel } from "@/components/reader/reader-toggle-panel"
+import { EggChallengeWidget } from "@/components/reader/egg-challenge-widget"
 import { MorphologyBreakdown } from "@/components/morphology-breakdown"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { useHasanatTracker } from "@/hooks/use-hasanat-tracker"
+import { useReaderChallenge } from "@/hooks/use-reader-challenge"
 import { useUser } from "@/hooks/use-user"
 import { quranAPI, type AudioSegment, type Ayah, type Surah } from "@/lib/quran-api"
 import { mushafVariants } from "@/lib/integration-data"
@@ -109,6 +112,44 @@ export default function AlfawzReaderPage() {
     ramadanState,
   } = useHasanatTracker({ initialDailyGoal: dailyGoal })
 
+  const {
+    snapshot: challengeSnapshot,
+    loading: challengeLoading,
+    updating: challengeUpdating,
+    error: challengeError,
+    celebration: challengeCelebration,
+    recordVerse: recordChallengeVerse,
+    reset: resetChallenge,
+    dismissCelebration: dismissChallengeCelebration,
+  } = useReaderChallenge()
+
+  const [challengeDialogOpen, setChallengeDialogOpen] = useState(false)
+
+  const challengeHudInfo = useMemo(() => {
+    if (!challengeSnapshot) return undefined
+    return {
+      title: challengeSnapshot.current.title,
+      icon: challengeSnapshot.current.icon,
+      goal: challengeSnapshot.state.goal,
+      current: challengeSnapshot.state.progress,
+      roundsCompleted: challengeSnapshot.state.roundsCompleted,
+      roundsTarget: challengeSnapshot.current.roundsToAdvance,
+      difficultyLevel: challengeSnapshot.state.difficultyLevel,
+      totalCompletions: challengeSnapshot.state.totalCompletions,
+    }
+  }, [challengeSnapshot])
+
+  const celebrationDuration = useMemo(() => {
+    if (!challengeCelebration) return null
+    const seconds = Math.max(0, Math.round(challengeCelebration.durationSeconds ?? 0))
+    const minutes = Math.floor(seconds / 60)
+    const remainder = seconds % 60
+    if (minutes <= 0) {
+      return `${remainder}s`
+    }
+    return `${minutes}m ${remainder.toString().padStart(2, "0")}s`
+  }, [challengeCelebration])
+
   useEffect(() => {
     if (typeof window === "undefined") return
     const media = window.matchMedia("(prefers-color-scheme: dark)")
@@ -119,6 +160,23 @@ export default function AlfawzReaderPage() {
     media.addEventListener("change", handleChange)
     return () => media.removeEventListener("change", handleChange)
   }, [])
+
+  useEffect(() => {
+    if (challengeCelebration) {
+      setChallengeDialogOpen(true)
+    }
+  }, [challengeCelebration])
+
+  const handleDismissChallengeCelebration = useCallback(() => {
+    setChallengeDialogOpen(false)
+    dismissChallengeCelebration()
+  }, [dismissChallengeCelebration])
+
+  const handleChallengeReset = useCallback(async () => {
+    await resetChallenge()
+    setChallengeDialogOpen(false)
+    dismissChallengeCelebration()
+  }, [resetChallenge, dismissChallengeCelebration])
 
   const updateReaderProfile = useCallback(
     (update: Partial<ReaderProfile>) => {
@@ -374,6 +432,8 @@ export default function AlfawzReaderPage() {
         markAyahCompleted()
       }
 
+      void recordChallengeVerse(1)
+
       if (nextAyah) {
         setSelectedAyahNumber(nextAyah.numberInSurah)
       }
@@ -383,6 +443,7 @@ export default function AlfawzReaderPage() {
     [
       dailyGoal,
       markAyahCompleted,
+      recordChallengeVerse,
       recordRecitation,
       selectedSurahNumber,
       surahMeta?.englishName,
@@ -407,6 +468,52 @@ export default function AlfawzReaderPage() {
         message="You have completed today’s recitation goal. Keep nurturing your Qur’anic journey."
         onClose={closeCelebration}
       />
+
+      <Dialog
+        open={challengeDialogOpen && Boolean(challengeCelebration)}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleDismissChallengeCelebration()
+          }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Sparkles className="h-5 w-5 text-emerald-500" aria-hidden="true" />
+              {challengeCelebration ? `Takbir! ${challengeCelebration.challengeTitle}` : "Takbir!"}
+            </DialogTitle>
+            <DialogDescription>
+              {challengeCelebration
+                ? `You recited ${challengeCelebration.versesCompleted} verses in ${celebrationDuration ?? "moments"}.`
+                : "Keep nurturing your recitation rhythm."}
+            </DialogDescription>
+          </DialogHeader>
+          {challengeCelebration ? (
+            <div className="space-y-3 text-sm text-slate-600">
+              <p>
+                Round {challengeCelebration.completedRound} of {challengeCelebration.roundsTarget}
+                {challengeCelebration.switchedChallenge
+                  ? " completed—get ready for a new quest!"
+                  : " warmed the egg even more."}
+              </p>
+              <p>
+                Total challenge completions: <strong>{challengeCelebration.totalCompletions}</strong>
+              </p>
+              <p>
+                Next up: <strong>{challengeCelebration.nextChallengeTitle}</strong> at difficulty level{' '}
+                <strong>{challengeCelebration.difficultyLevel}</strong>.
+              </p>
+            </div>
+          ) : null}
+          <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+            <Button variant="outline" onClick={() => void handleChallengeReset()}>
+              Reset challenge
+            </Button>
+            <Button onClick={handleDismissChallengeCelebration}>Continue reciting</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ReaderTogglePanel
         profile={profile}
@@ -459,7 +566,27 @@ export default function AlfawzReaderPage() {
         ramadanMultiplier={ramadanState.multiplier}
         isRamadan={ramadanState.isRamadan}
         announcement={hasanatAnnouncement}
+        challengeInfo={challengeHudInfo}
       />
+
+      <div className="mx-auto mt-6 flex w-full max-w-7xl flex-col gap-4 px-4 sm:px-6 lg:px-8">
+        <EggChallengeWidget
+          snapshot={challengeSnapshot}
+          celebration={challengeCelebration}
+          loading={challengeLoading}
+          updating={challengeUpdating}
+          onReset={() => {
+            void handleChallengeReset()
+          }}
+          onDismissCelebration={handleDismissChallengeCelebration}
+        />
+        {challengeError ? (
+          <Alert variant="destructive" role="alert">
+            <AlertTitle>Unable to update challenge</AlertTitle>
+            <AlertDescription>{challengeError}</AlertDescription>
+          </Alert>
+        ) : null}
+      </div>
 
       <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">

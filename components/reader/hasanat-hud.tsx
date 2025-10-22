@@ -5,6 +5,17 @@ import { useMemo } from "react"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 
+interface HasanatChallengeInfo {
+  title: string
+  icon?: string
+  goal: number
+  current: number
+  roundsCompleted: number
+  roundsTarget: number
+  difficultyLevel: number
+  totalCompletions: number
+}
+
 interface HasanatHudProps {
   totalHasanat: number
   dailyHasanat: number
@@ -17,6 +28,7 @@ interface HasanatHudProps {
   breakTheEggGoal?: number
   breakTheEggCurrent?: number
   breakTheEggStreak?: number
+  challengeInfo?: HasanatChallengeInfo
 }
 
 export function HasanatHud({
@@ -31,16 +43,26 @@ export function HasanatHud({
   breakTheEggGoal,
   breakTheEggCurrent,
   breakTheEggStreak,
+  challengeInfo,
 }: HasanatHudProps) {
   const goalProgress = useMemo(() => {
     if (!dailyGoal || dailyGoal <= 0 || !versesCompleted) return 0
     return Math.min(100, Math.round((versesCompleted / dailyGoal) * 100))
   }, [dailyGoal, versesCompleted])
 
-  const breakTheEggProgress = useMemo(() => {
-    if (!breakTheEggGoal || breakTheEggGoal <= 0 || !breakTheEggCurrent) return 0
-    return Math.min(100, Math.round((breakTheEggCurrent / breakTheEggGoal) * 100))
-  }, [breakTheEggCurrent, breakTheEggGoal])
+  const challengeGoal = challengeInfo?.goal ?? breakTheEggGoal ?? 0
+  const challengeCurrent = challengeInfo?.current ?? breakTheEggCurrent ?? 0
+  const challengeProgress = useMemo(() => {
+    if (!challengeGoal || challengeGoal <= 0) return 0
+    return Math.min(100, Math.round((challengeCurrent / challengeGoal) * 100))
+  }, [challengeCurrent, challengeGoal])
+
+  const challengeIcon = challengeInfo?.icon ?? "🥚"
+  const challengeTitle = challengeInfo?.title ?? "Break the Egg Challenge"
+  const challengeRoundsCompleted = challengeInfo?.roundsCompleted ?? breakTheEggStreak ?? 0
+  const challengeRoundsTarget = challengeInfo?.roundsTarget ?? (breakTheEggGoal ? 5 : 0)
+  const challengeLevelLabel = challengeInfo ? `Level ${challengeInfo.difficultyLevel}` : undefined
+  const challengeTotalCompletions = challengeInfo?.totalCompletions ?? null
 
   return (
     <section
@@ -104,26 +126,31 @@ export function HasanatHud({
 
         <div className="flex flex-col gap-2 rounded-xl border border-emerald-100/60 bg-white/70 p-3 text-sm text-slate-600 shadow-sm dark:border-emerald-800/40 dark:bg-slate-900/70 dark:text-slate-200">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-slate-900 dark:text-emerald-100">🥚 Break the Egg Challenge</p>
-            {breakTheEggStreak ? (
+            <p className="text-sm font-semibold text-slate-900 dark:text-emerald-100">
+              {challengeIcon} {challengeTitle}
+            </p>
+            {challengeInfo ? (
+              <span className="text-[11px] uppercase tracking-wide text-amber-700 dark:text-amber-300">
+                {challengeLevelLabel ?? "Levelled"}
+              </span>
+            ) : breakTheEggStreak ? (
               <span className="text-[11px] uppercase tracking-wide text-amber-700 dark:text-amber-300">
                 Streak: {breakTheEggStreak}
               </span>
             ) : null}
           </div>
-          {breakTheEggGoal ? (
+          {challengeGoal > 0 ? (
             <div className="space-y-1 text-xs">
               <p>
-                Progress: {Math.min(breakTheEggCurrent ?? 0, breakTheEggGoal).toLocaleString()} /
-                {breakTheEggGoal.toLocaleString()} focus actions
+                Progress: {Math.min(challengeCurrent, challengeGoal).toLocaleString()} /{challengeGoal.toLocaleString()} verses
               </p>
               <Progress
-                value={breakTheEggProgress}
+                value={challengeProgress}
                 className={cn(
                   "h-1.5 bg-emerald-100",
-                  breakTheEggProgress >= 100 ? "[&>div]:bg-emerald-500" : "[&>div]:bg-emerald-400",
+                  challengeProgress >= 100 ? "[&>div]:bg-emerald-500" : "[&>div]:bg-emerald-400",
                 )}
-                aria-label="Break the Egg challenge progress"
+                aria-label={`${challengeTitle} progress`}
               />
             </div>
           ) : (
@@ -131,8 +158,22 @@ export function HasanatHud({
               Activate the Break the Egg challenge to start building momentum.
             </p>
           )}
+          <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 dark:text-slate-300">
+            {challengeRoundsTarget > 0 ? (
+              <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-700">
+                Rounds {Math.min(challengeRoundsCompleted, challengeRoundsTarget)}/{challengeRoundsTarget}
+              </span>
+            ) : null}
+            {challengeTotalCompletions != null ? (
+              <span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-700">
+                {challengeTotalCompletions.toLocaleString()} completions
+              </span>
+            ) : null}
+          </div>
           <p className="text-xs text-slate-500 dark:text-slate-300">
-            Complete your focus actions to crack the egg and unlock bonus hasanat.
+            {challengeInfo
+              ? "Stay consistent to unlock the next surprise in your recitation journey."
+              : "Complete your focus actions to crack the egg and unlock bonus hasanat."}
           </p>
         </div>
       </div>
