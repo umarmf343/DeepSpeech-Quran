@@ -144,7 +144,7 @@ export function EggChallengeWidget({
               Rounds: {Math.min(roundsCompleted, roundsTarget)}/{roundsTarget}
             </span>
             <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-amber-700">
-              Total completions: {totalCompletions}
+              Total: {totalCompletions}
             </span>
           </div>
           <div className="flex items-center justify-between pt-1 text-xs text-slate-500">
