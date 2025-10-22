@@ -217,17 +217,17 @@ class QuranCloudAPI {
           translations.find((t) => t.edition === DEFAULT_ENGLISH_TRANSLATION_EDITION) ??
           translations.find((t) => t.language?.toLowerCase() === "en")
 
-        const transliteration: Transliteration | undefined = englishTranslationForTransliteration
-          ? {
-              text: this.sanitizeTranslationText(englishTranslationForTransliteration.text),
-              language: englishTranslationForTransliteration.language,
-              translator: englishTranslationForTransliteration.translator,
-            }
-          : transliterationAyah
+        const transliteration: Transliteration | undefined = transliterationAyah
           ? {
               text: transliterationAyah.text,
               language: transliterationAyah.edition.language,
               translator: transliterationAyah.edition.name,
+            }
+          : englishTranslationForTransliteration
+          ? {
+              text: this.sanitizeTranslationText(englishTranslationForTransliteration.text),
+              language: englishTranslationForTransliteration.language,
+              translator: englishTranslationForTransliteration.translator,
             }
           : undefined
 
