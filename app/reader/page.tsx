@@ -18,7 +18,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
@@ -123,19 +122,6 @@ export default function AlfawzReaderPage() {
     dismissCelebration: dismissChallengeCelebration,
   } = useReaderChallenge()
 
-  const [challengeDialogOpen, setChallengeDialogOpen] = useState(false)
-
-  const celebrationDuration = useMemo(() => {
-    if (!challengeCelebration) return null
-    const seconds = Math.max(0, Math.round(challengeCelebration.durationSeconds ?? 0))
-    const minutes = Math.floor(seconds / 60)
-    const remainder = seconds % 60
-    if (minutes <= 0) {
-      return `${remainder}s`
-    }
-    return `${minutes}m ${remainder.toString().padStart(2, "0")}s`
-  }, [challengeCelebration])
-
   useEffect(() => {
     if (typeof window === "undefined") return
     const media = window.matchMedia("(prefers-color-scheme: dark)")
@@ -147,20 +133,12 @@ export default function AlfawzReaderPage() {
     return () => media.removeEventListener("change", handleChange)
   }, [])
 
-  useEffect(() => {
-    if (challengeCelebration) {
-      setChallengeDialogOpen(true)
-    }
-  }, [challengeCelebration])
-
   const handleDismissChallengeCelebration = useCallback(() => {
-    setChallengeDialogOpen(false)
     dismissChallengeCelebration()
   }, [dismissChallengeCelebration])
 
   const handleChallengeReset = useCallback(async () => {
     await resetChallenge()
-    setChallengeDialogOpen(false)
     dismissChallengeCelebration()
   }, [resetChallenge, dismissChallengeCelebration])
 
@@ -454,52 +432,6 @@ export default function AlfawzReaderPage() {
         message="You have completed today’s recitation goal. Keep nurturing your Qur’anic journey."
         onClose={closeCelebration}
       />
-
-      <Dialog
-        open={challengeDialogOpen && Boolean(challengeCelebration)}
-        onOpenChange={(open) => {
-          if (!open) {
-            handleDismissChallengeCelebration()
-          }
-        }}
-      >
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <Sparkles className="h-5 w-5 text-emerald-500" aria-hidden="true" />
-              {challengeCelebration ? `Takbir! ${challengeCelebration.challengeTitle}` : "Takbir!"}
-            </DialogTitle>
-            <DialogDescription>
-              {challengeCelebration
-                ? `You recited ${challengeCelebration.versesCompleted} verses in ${celebrationDuration ?? "moments"}.`
-                : "Keep nurturing your recitation rhythm."}
-            </DialogDescription>
-          </DialogHeader>
-          {challengeCelebration ? (
-            <div className="space-y-3 text-sm text-slate-600">
-              <p>
-                Round {challengeCelebration.completedRound} of {challengeCelebration.roundsTarget}
-                {challengeCelebration.switchedChallenge
-                  ? " completed—get ready for a new quest!"
-                  : " warmed the egg even more."}
-              </p>
-              <p>
-                Total challenge completions: <strong>{challengeCelebration.totalCompletions}</strong>
-              </p>
-              <p>
-                Next up: <strong>{challengeCelebration.nextChallengeTitle}</strong> at difficulty level{' '}
-                <strong>{challengeCelebration.difficultyLevel}</strong>.
-              </p>
-            </div>
-          ) : null}
-          <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-            <Button variant="outline" onClick={() => void handleChallengeReset()}>
-              Reset challenge
-            </Button>
-            <Button onClick={handleDismissChallengeCelebration}>Continue reciting</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <ReaderTogglePanel
         profile={profile}
