@@ -145,9 +145,13 @@ export function EggChallengeWidget({
               {progress}/{goal}
             </span>
           </div>
-          <Progress value={percent} className="h-3 bg-amber-100" aria-hidden={false} aria-valuenow={percent} />
-          <p className="text-xs text-slate-600">{progressCaption}</p>
           <div className="grid grid-cols-3 gap-2 text-[11px] font-medium text-slate-500 md:flex md:flex-wrap md:items-center">
+            <Progress
+              value={percent}
+              className="col-span-3 h-3 bg-amber-100 md:flex-1"
+              aria-hidden={false}
+              aria-valuenow={percent}
+            />
             <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-700">
               Rounds: {Math.min(roundsCompleted, roundsTarget)}/{roundsTarget}
             </span>
@@ -161,6 +165,7 @@ export function EggChallengeWidget({
               </span>
             ) : null}
           </div>
+          <p className="text-xs text-slate-600">{progressCaption}</p>
           <div className="flex items-center justify-between pt-1 text-xs text-slate-500">
             <span>{definition?.description ?? "Recite with presence to unlock the surprise."}</span>
             <Button
