@@ -7,6 +7,8 @@ import {
   Bell,
   BookOpen,
   CheckCircle2,
+  Crown,
+  Lock,
   Palette,
   ShieldCheck,
   Sparkles,
@@ -64,7 +66,16 @@ const translationLanguageOptions = [
 const playbackSpeedOptions = ["0.75", "1", "1.25", "1.5"]
 
 export default function ProfileSettingsPage() {
-  const { profile, preferences, updatePreferences } = useUser()
+  const {
+    profile,
+    preferences,
+    updatePreferences,
+    perks,
+    lockedPerks,
+    isPremium,
+    upgradeToPremium,
+    downgradeToFree,
+  } = useUser()
   const [formState, setFormState] = useState<FormState>(() => ({
     reciter: preferences.reciter,
     translation: preferences.translation,
@@ -77,6 +88,7 @@ export default function ProfileSettingsPage() {
     heroAnimation: preferences.heroAnimation,
   }))
   const [isPending, startTransition] = useTransition()
+  const [isPlanPending, startPlanTransition] = useTransition()
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [statusTone, setStatusTone] = useState<"success" | "error">("success")
 
@@ -103,6 +115,29 @@ export default function ProfileSettingsPage() {
   }, [profile.name])
 
   const planBadge = profile.plan === "premium" ? "Premium" : "Free"
+
+  const joinDateLabel = useMemo(() => {
+    if (!profile.joinedAt) {
+      return "—"
+    }
+
+    const joinedDate = new Date(profile.joinedAt)
+    return Number.isNaN(joinedDate.getTime()) ? "—" : joinedDate.toLocaleDateString()
+  }, [profile.joinedAt])
+
+  const handlePlanChange = () => {
+    startPlanTransition(async () => {
+      try {
+        if (isPremium) {
+          await downgradeToFree()
+        } else {
+          await upgradeToPremium()
+        }
+      } catch (error) {
+        console.error("Failed to update plan", error)
+      }
+    })
+  }
 
   const handleSelectChange = (key: keyof FormState) => (value: string) => {
     setFormState((previous) => ({
@@ -413,6 +448,89 @@ export default function ProfileSettingsPage() {
                   </p>
                 </div>
                 <Switch checked={formState.seniorMode} onCheckedChange={handleToggle("seniorMode")} />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-none bg-white/80 shadow-lg backdrop-blur">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-maroon-900">
+                <Crown className="h-5 w-5 text-maroon-600" />
+                Plan & perks
+              </CardTitle>
+              <CardDescription>
+                Explore what your current membership unlocks and discover premium exclusives.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex flex-col gap-2 rounded-2xl border border-maroon-100 bg-maroon-50/60 px-4 py-3 text-maroon-900 shadow-sm">
+                <p className="text-sm font-medium uppercase tracking-[0.2em] text-maroon-500">Current plan</p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Badge variant="secondary" className="border-none bg-maroon-600 text-white">
+                    {planBadge} access
+                  </Badge>
+                  <span className="text-sm text-maroon-600">Joined {joinDateLabel}</span>
+                </div>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-3">
+                  <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-maroon-500">
+                    <Sparkles className="h-4 w-4" /> Included features
+                  </h3>
+                  <ul className="space-y-2 text-sm text-maroon-800">
+                    {perks.map((perk) => (
+                      <li
+                        key={perk}
+                        className="flex items-start gap-2 rounded-xl border border-maroon-100 bg-white/70 px-3 py-2 shadow-sm"
+                      >
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-500" />
+                        <span>{perk}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                {lockedPerks.length > 0 ? (
+                  <div className="space-y-3">
+                    <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      <Lock className="h-4 w-4" /> Premium exclusives
+                    </h3>
+                    <ul className="space-y-2 text-sm text-slate-600">
+                      {lockedPerks.map((perk) => (
+                        <li
+                          key={perk}
+                          className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2"
+                        >
+                          <Lock className="mt-0.5 h-4 w-4 text-slate-400" />
+                          <span>{perk}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-maroon-100 bg-white/70 px-4 py-3">
+                <div className="space-y-1">
+                  <p className="font-medium text-maroon-900">
+                    {isPremium ? "Keep nurturing your premium streak" : "Unlock premium journeys"}
+                  </p>
+                  <p className="text-sm text-maroon-600">
+                    {isPremium
+                      ? "Continue accessing advanced memorization journeys and early beta features."
+                      : "Gain access to guided memorization pathways, exclusive challenges, and premium support."}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  onClick={handlePlanChange}
+                  disabled={isPlanPending}
+                  className={`min-w-[10rem] ${
+                    isPremium ? "bg-slate-900 hover:bg-slate-800" : "bg-gradient-to-r from-amber-500 to-maroon-600"
+                  } text-white`}
+                >
+                  {isPlanPending ? "Updating..." : isPremium ? "Switch to Free" : "Upgrade to Premium"}
+                </Button>
               </div>
             </CardContent>
           </Card>
