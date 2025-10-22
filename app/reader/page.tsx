@@ -742,11 +742,14 @@ export default function AlfawzReaderPage() {
                   </span>
                 </div>
                 <Button
+                  asChild
                   variant="secondary"
                   size="sm"
                   className="w-full gap-2 sm:w-auto sm:justify-self-end"
                 >
-                  <Sparkles className="h-4 w-4" /> Launch AI Lab
+                  <Link href="/practice" className="inline-flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" /> Launch AI Lab
+                  </Link>
                 </Button>
               </div>
 
