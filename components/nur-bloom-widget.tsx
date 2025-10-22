@@ -349,6 +349,11 @@ interface CelebrationOverlayProps {
 
 function CelebrationOverlay({ message, gentle, soundEnabled }: CelebrationOverlayProps) {
   const [soundPlayed, setSoundPlayed] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   useEffect(() => {
     if (gentle || !soundEnabled) {
@@ -380,8 +385,15 @@ function CelebrationOverlay({ message, gentle, soundEnabled }: CelebrationOverla
       console.warn("Nur Bloom celebration sound could not play", error)
     }
   }, [gentle, soundEnabled, soundPlayed])
-
-  const confettiPieces = Array.from({ length: 24 })
+  const confettiPieces = useMemo(() => {
+    if (gentle || !isClient) return []
+    return Array.from({ length: 24 }, (_, index) => ({
+      id: index,
+      left: Math.random() * 100,
+      delay: Math.random() * 0.8,
+      duration: 1.6 + Math.random() * 0.6,
+    }))
+  }, [gentle, isClient])
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center">
@@ -393,14 +405,14 @@ function CelebrationOverlay({ message, gentle, soundEnabled }: CelebrationOverla
               100% { transform: translateY(120vh) rotate(360deg); opacity: 0; }
             }
           `}</style>
-          {confettiPieces.map((_, index) => (
+          {confettiPieces.map((piece) => (
             <span
-              key={index}
+              key={piece.id}
               className="absolute block h-2 w-2 rounded-full bg-gradient-to-br from-emerald-400 via-teal-400 to-sky-400 opacity-80"
               style={{
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 0.8}s`,
-                animationDuration: `${1.6 + Math.random() * 0.6}s`,
+                left: `${piece.left}%`,
+                animationDelay: `${piece.delay}s`,
+                animationDuration: `${piece.duration}s`,
                 animationName: "nurBloomConfetti",
                 animationTimingFunction: "ease-in",
                 animationFillMode: "forwards",

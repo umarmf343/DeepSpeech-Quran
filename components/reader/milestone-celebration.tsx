@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Sparkles } from "lucide-react"
@@ -14,10 +14,21 @@ interface MilestoneCelebrationProps {
 }
 
 export function MilestoneCelebration({ show, title, message, ctaLabel = "Keep going", onClose }: MilestoneCelebrationProps) {
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
   const confettiPieces = useMemo(() => {
-    if (!show) return []
-    return Array.from({ length: 24 }, (_, index) => index)
-  }, [show])
+    if (!show || !isClient) return []
+    return Array.from({ length: 24 }, (_, index) => ({
+      id: index,
+      left: Math.random() * 100,
+      delay: Math.random() * 0.7,
+      duration: 1.6 + Math.random() * 0.8,
+    }))
+  }, [isClient, show])
 
   if (!show) return null
 
@@ -30,15 +41,15 @@ export function MilestoneCelebration({ show, title, message, ctaLabel = "Keep go
             100% { transform: translateY(120vh) rotate(420deg); opacity: 0; }
           }
         `}</style>
-        {confettiPieces.map((index) => (
+        {confettiPieces.map((piece) => (
           <span
-            key={index}
+            key={piece.id}
             className="absolute block h-2 w-2 rounded-full bg-gradient-to-br from-emerald-300 via-teal-400 to-sky-400 opacity-80"
             style={{
-              left: `${Math.random() * 100}%`,
+              left: `${piece.left}%`,
               animationName: "nurBloomCelebrationConfetti",
-              animationDelay: `${Math.random() * 0.7}s`,
-              animationDuration: `${1.6 + Math.random() * 0.8}s`,
+              animationDelay: `${piece.delay}s`,
+              animationDuration: `${piece.duration}s`,
               animationTimingFunction: "ease-in",
               animationFillMode: "forwards",
             }}

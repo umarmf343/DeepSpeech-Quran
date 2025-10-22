@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 import { SparkleEvent } from "@/hooks/use-hasanat-tracker"
 import { cn } from "@/lib/utils"
@@ -44,10 +44,29 @@ interface SparkleProps {
 }
 
 function Sparkle({ event, reducedMotion, onComplete }: SparkleProps) {
+  const [sparkleStyle, setSparkleStyle] = useState({
+    right: "20%",
+    transform: "translate3d(0, 0, 0)",
+    durationMs: 1300,
+  })
+
   useEffect(() => {
     const timeout = window.setTimeout(() => onComplete(event.id), reducedMotion ? 900 : 1300)
     return () => window.clearTimeout(timeout)
   }, [event.id, onComplete, reducedMotion])
+
+  useEffect(() => {
+    if (reducedMotion) return
+
+    const horizontalDrift = (Math.random() - 0.5) * 60
+    const duration = 1100 + Math.random() * 500
+
+    setSparkleStyle({
+      right: `${Math.random() * 40}%`,
+      transform: `translate3d(${horizontalDrift}px, 0, 0)`,
+      durationMs: duration,
+    })
+  }, [event.id, reducedMotion])
 
   if (reducedMotion) {
     return (
@@ -59,9 +78,6 @@ function Sparkle({ event, reducedMotion, onComplete }: SparkleProps) {
     )
   }
 
-  const horizontalDrift = (Math.random() - 0.5) * 60
-  const duration = 1100 + Math.random() * 500
-
   return (
     <span
       className={cn(
@@ -69,10 +85,10 @@ function Sparkle({ event, reducedMotion, onComplete }: SparkleProps) {
         "animate-[hasanat-sparkle-float_var(--sparkle-duration)_ease-out_forwards]",
       )}
       style={{
-        right: `${Math.random() * 40}%`,
-        transform: `translate3d(${horizontalDrift}px, 0, 0)`,
+        right: sparkleStyle.right,
+        transform: sparkleStyle.transform,
         // @ts-expect-error -- CSS custom property
-        "--sparkle-duration": `${duration}ms`,
+        "--sparkle-duration": `${sparkleStyle.durationMs}ms`,
       }}
     >
       +{event.amount.toLocaleString()}
