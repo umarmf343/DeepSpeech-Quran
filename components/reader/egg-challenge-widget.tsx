@@ -146,8 +146,8 @@ export function EggChallengeWidget({
               Total completions: {totalCompletions}
             </span>
           </div>
-          <div className="grid gap-2 sm:grid-cols-3 sm:grid-rows-3 sm:items-center">
-            <div className="sm:col-span-3 sm:row-span-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:grid-rows-3 sm:items-center">
+            <div className="col-span-2 sm:col-span-3 sm:row-span-2">
               <Progress
                 value={percent}
                 className="h-3 bg-amber-100"
