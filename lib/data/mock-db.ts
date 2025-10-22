@@ -1,4 +1,17 @@
 import { getCached, invalidateCache, setCached } from "@/lib/data/cache"
+import {
+  buildSnapshot as buildReaderChallengeSnapshot,
+  calculateChallengeGoal,
+  createInitialReaderChallengeState,
+  getChallengeDefinition,
+  getNextChallengeId,
+  READER_CHALLENGE_SEQUENCE,
+  type ReaderChallengeCelebration,
+  type ReaderChallengeId,
+  type ReaderChallengeSnapshot,
+  type ReaderChallengeState,
+  type ReaderChallengeUpdateResult,
+} from "@/lib/reader/challenges"
 
 type Role = "visitor" | "student" | "teacher" | "admin"
 
@@ -199,6 +212,7 @@ export interface UserRecord {
   recommendations: Recommendation[]
   runtime: RuntimeData
   hasanatProgress: StoredHasanatProgress
+  readerChallenge: ReaderChallengeState
 }
 
 function cloneUser(user: UserRecord): UserRecord {
@@ -535,6 +549,7 @@ const userRecords: Record<string, UserRecord> = {
       onlineUsers: 128,
     },
     hasanatProgress: createEmptyHasanatProgress(baseStats.hasanat),
+    readerChallenge: createInitialReaderChallengeState(),
   },
   user_teacher: {
     id: "user_teacher",
@@ -580,6 +595,7 @@ const userRecords: Record<string, UserRecord> = {
       onlineUsers: 58,
     },
     hasanatProgress: createEmptyHasanatProgress(4120),
+    readerChallenge: createInitialReaderChallengeState(),
   },
   user_admin: {
     id: "user_admin",
@@ -625,6 +641,7 @@ const userRecords: Record<string, UserRecord> = {
       onlineUsers: 12,
     },
     hasanatProgress: createEmptyHasanatProgress(6020),
+    readerChallenge: createInitialReaderChallengeState(),
   },
 }
 
@@ -821,4 +838,117 @@ export function updateHasanatProgress(userId: string, progress: StoredHasanatPro
   user.stats.hasanat = user.hasanatProgress.totalHasanat
   invalidateCache(`user:${userId}`)
   return JSON.parse(JSON.stringify(user.hasanatProgress))
+}
+
+function ensureReaderChallenge(user: UserRecord): ReaderChallengeState {
+  if (!user.readerChallenge) {
+    user.readerChallenge = createInitialReaderChallengeState()
+  }
+  if (!user.readerChallenge.startedAt) {
+    user.readerChallenge.startedAt = new Date().toISOString()
+  }
+  return user.readerChallenge
+}
+
+export function getReaderChallenge(userId: string): ReaderChallengeSnapshot | null {
+  const user = userRecords[userId]
+  if (!user) return null
+  const state = ensureReaderChallenge(user)
+  return buildReaderChallengeSnapshot({ ...state, history: state.history.slice() })
+}
+
+function limitChallengeHistory(state: ReaderChallengeState) {
+  if (state.history.length > 50) {
+    state.history.splice(0, state.history.length - 50)
+  }
+}
+
+export function recordReaderChallengeProgress(
+  userId: string,
+  verses: number,
+): ReaderChallengeUpdateResult | null {
+  const user = userRecords[userId]
+  if (!user) return null
+
+  const state = ensureReaderChallenge(user)
+  const increment = Number.isFinite(verses) ? Math.max(1, Math.floor(verses)) : 1
+  let totalProgress = state.progress + increment
+  let celebration: ReaderChallengeCelebration | null = null
+  let safetyCounter = 0
+
+  while (totalProgress >= state.goal && safetyCounter < 6) {
+    safetyCounter += 1
+    const now = new Date()
+    const nowIso = now.toISOString()
+    const startedAt = state.startedAt ? new Date(state.startedAt) : now
+    const durationSeconds = Math.max(1, Math.round((now.getTime() - startedAt.getTime()) / 1000))
+    const previousGoal = state.goal
+    const previousChallengeId: ReaderChallengeId = state.currentChallengeId
+    const definition = getChallengeDefinition(previousChallengeId)
+    const roundsTarget = definition.roundsToAdvance
+    const completedRoundNumber = state.roundsCompleted + 1
+
+    state.totalCompletions += 1
+    state.roundsCompleted = completedRoundNumber
+    state.lastCompletedAt = nowIso
+    state.history.push({
+      challengeId: previousChallengeId,
+      completedAt: nowIso,
+      durationSeconds,
+      goal: previousGoal,
+      difficultyLevel: state.difficultyLevel,
+    })
+    limitChallengeHistory(state)
+
+    let switchedChallenge = false
+
+    if (previousChallengeId === "break-egg" && completedRoundNumber >= roundsTarget) {
+      state.difficultyLevel = Math.max(1, state.difficultyLevel + 1)
+    }
+
+    if (completedRoundNumber >= roundsTarget) {
+      const nextChallengeId = getNextChallengeId(state.currentChallengeIndex)
+      switchedChallenge = nextChallengeId !== previousChallengeId
+      state.currentChallengeIndex = (state.currentChallengeIndex + 1) % READER_CHALLENGE_SEQUENCE.length
+      state.currentChallengeId = nextChallengeId
+      state.roundsCompleted = 0
+    }
+
+    const upcomingDefinition = getChallengeDefinition(state.currentChallengeId)
+    state.goal = calculateChallengeGoal(upcomingDefinition, state.difficultyLevel)
+    state.startedAt = nowIso
+    state.progress = 0
+    totalProgress -= previousGoal
+
+    celebration = {
+      challengeId: previousChallengeId,
+      challengeTitle: definition.title,
+      completedRound: completedRoundNumber,
+      roundsTarget,
+      durationSeconds,
+      versesCompleted: previousGoal,
+      difficultyLevel: state.difficultyLevel,
+      totalCompletions: state.totalCompletions,
+      switchedChallenge,
+      nextChallengeId: state.currentChallengeId,
+      nextChallengeTitle: upcomingDefinition.title,
+      completedAt: nowIso,
+    }
+  }
+
+  if (totalProgress > 0) {
+    state.progress = Math.min(totalProgress, state.goal)
+  }
+
+  invalidateCache(`user:${userId}`)
+  const snapshot = buildReaderChallengeSnapshot(state)
+  return { snapshot, celebration }
+}
+
+export function resetReaderChallenge(userId: string): ReaderChallengeSnapshot | null {
+  const user = userRecords[userId]
+  if (!user) return null
+  user.readerChallenge = createInitialReaderChallengeState()
+  invalidateCache(`user:${userId}`)
+  return buildReaderChallengeSnapshot(user.readerChallenge)
 }
