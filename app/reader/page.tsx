@@ -125,20 +125,6 @@ export default function AlfawzReaderPage() {
 
   const [challengeDialogOpen, setChallengeDialogOpen] = useState(false)
 
-  const challengeHudInfo = useMemo(() => {
-    if (!challengeSnapshot) return undefined
-    return {
-      title: challengeSnapshot.current.title,
-      icon: challengeSnapshot.current.icon,
-      goal: challengeSnapshot.state.goal,
-      current: challengeSnapshot.state.progress,
-      roundsCompleted: challengeSnapshot.state.roundsCompleted,
-      roundsTarget: challengeSnapshot.current.roundsToAdvance,
-      difficultyLevel: challengeSnapshot.state.difficultyLevel,
-      totalCompletions: challengeSnapshot.state.totalCompletions,
-    }
-  }, [challengeSnapshot])
-
   const celebrationDuration = useMemo(() => {
     if (!challengeCelebration) return null
     const seconds = Math.max(0, Math.round(challengeCelebration.durationSeconds ?? 0))
@@ -566,7 +552,6 @@ export default function AlfawzReaderPage() {
         ramadanMultiplier={ramadanState.multiplier}
         isRamadan={ramadanState.isRamadan}
         announcement={hasanatAnnouncement}
-        challengeInfo={challengeHudInfo}
       />
 
       <div className="mx-auto mt-6 flex w-full max-w-7xl flex-col gap-4 px-4 sm:px-6 lg:px-8">
