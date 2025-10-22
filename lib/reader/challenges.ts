@@ -81,7 +81,7 @@ export const READER_CHALLENGE_DEFINITIONS: Record<ReaderChallengeId, ReaderChall
     id: "break-egg",
     title: "Break the Egg",
     tagline: "Warm up the egg with steady recitation",
-    description: "Recite verses using the Next button to fill the egg with nur and crack it open.",
+    description: "",
     baseGoal: 10,
     goalIncrement: 2,
     roundsToAdvance: 5,
