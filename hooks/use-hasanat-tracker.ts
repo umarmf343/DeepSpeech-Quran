@@ -6,6 +6,19 @@ import { countArabicLetters, hasanatFromLetters } from "@/lib/hasanat"
 
 const STORAGE_KEY = "alfawz::hasanat-tracker"
 const MAGHRIB_KEY = "alfawz::maghrib-reset"
+const TOKEN_STORAGE_KEY = "alfawz_token"
+
+function getStoredAuthToken(): string | null {
+  if (typeof window === "undefined") {
+    return null
+  }
+  try {
+    return window.localStorage.getItem(TOKEN_STORAGE_KEY)
+  } catch (error) {
+    console.warn("Unable to read auth token from storage", error)
+    return null
+  }
+}
 
 export const HASANAT_PROGRESS_EVENT = "alfawz:hasanat-progress"
 
@@ -227,9 +240,17 @@ export function useHasanatTracker({ initialDailyGoal }: UseHasanatTrackerOptions
       if (!navigator.onLine) {
         return
       }
+      const token = getStoredAuthToken()
+      if (!token) {
+        return
+      }
       void fetch("/api/user/hasanat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
         body: JSON.stringify({ progress: state }),
       }).catch((error) => {
         console.warn("Failed to sync hasanat progress", error)

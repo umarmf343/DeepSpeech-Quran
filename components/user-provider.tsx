@@ -81,6 +81,7 @@ interface UserContextValue {
   activeNav: string
   celebration: CelebrationState
   isLoading: boolean
+  authToken: string | null
   completeHabit: (habitId: string) => Promise<CompleteHabitResult>
   updatePreferences: (patch: Partial<UserPreferences>) => Promise<void>
   toggleSeniorMode: () => Promise<void>
@@ -330,7 +331,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         headers.set("Content-Type", "application/json")
       }
 
-      const response = await fetch(input, { ...init, headers })
+      const response = await fetch(input, {
+        ...init,
+        headers,
+        credentials: init.credentials ?? "include",
+      })
       if (!response.ok) {
         throw new Error(`Request failed with status ${response.status}`)
       }
@@ -351,8 +356,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       const loginResponse = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ role: "student" }),
       })
+      if (!loginResponse.ok) {
+        throw new Error(`Login failed with status ${loginResponse.status}`)
+      }
       const loginData = await loginResponse.json()
       setToken(loginData.token)
       if (typeof window !== "undefined") {
@@ -465,6 +474,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       persistPreferences(nextPreferences)
 
       try {
+        if (!token) {
+          return
+        }
         await authorizedFetch("/api/user/preferences", {
           method: "PUT",
           body: JSON.stringify(nextPreferences),
@@ -473,7 +485,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         console.error("Failed to persist preferences", error)
       }
     },
-    [authorizedFetch, persistPreferences, preferences],
+    [authorizedFetch, persistPreferences, preferences, token],
   )
 
   const toggleSeniorMode = useCallback(async () => {
@@ -484,6 +496,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     async (id: string) => {
       setNotifications((prev) => prev.map((notification) => (notification.id === id ? { ...notification, read: true } : notification)))
       try {
+        if (!token) {
+          return
+        }
         await authorizedFetch("/api/notifications", {
           method: "POST",
           body: JSON.stringify({ action: "mark-read", id }),
@@ -492,21 +507,27 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         console.error("Failed to mark notification as read", error)
       }
     },
-    [authorizedFetch],
+    [authorizedFetch, token],
   )
 
   const refreshRuntime = useCallback(async () => {
     try {
+      if (!token) {
+        return
+      }
       const { runtime: runtimeData } = await authorizedFetch("/api/runtime")
       setRuntime(runtimeData)
     } catch (error) {
       console.error("Failed to refresh runtime", error)
     }
-  }, [authorizedFetch])
+  }, [authorizedFetch, token])
 
   const updateGamification = useCallback(
     async (payload: { type: "habit" | "badge" | "notification"; habitId?: string; badgeId?: string }) => {
       try {
+        if (!token) {
+          return
+        }
         const response = await authorizedFetch("/api/gamification", {
           method: "POST",
           body: JSON.stringify(payload),
@@ -521,7 +542,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         console.error("Failed to update gamification", error)
       }
     },
-    [authorizedFetch],
+    [authorizedFetch, token],
   )
 
   const triggerCelebration = useCallback(
@@ -541,6 +562,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     async (habitId: string): Promise<CompleteHabitResult> => {
       if (!habitId) {
         return { success: false, message: "Habit not found." }
+      }
+      if (!token) {
+        return { success: false, message: "Please sign in to complete habits." }
       }
       try {
         const response = await authorizedFetch("/api/user", {
@@ -567,7 +591,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         return { success: false, message: "Unable to complete habit." }
       }
     },
-    [applyUser, authorizedFetch, stats.hasanat, triggerCelebration],
+    [applyUser, authorizedFetch, stats.hasanat, token, triggerCelebration],
   )
 
   const upgradeToPremium = useCallback(async () => {
@@ -602,6 +626,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       activeNav,
       celebration,
       isLoading,
+      authToken: token,
       completeHabit,
       updatePreferences,
       toggleSeniorMode,
@@ -644,6 +669,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       updateGamification,
       updatePreferences,
       upgradeToPremium,
+      token,
     ],
   )
 
