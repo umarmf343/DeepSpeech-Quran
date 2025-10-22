@@ -18,7 +18,7 @@ import {
   type ParentalControls,
   type SessionTime,
 } from "@/lib/child-class/parental-controls"
-import { getTotalDays } from "@/lib/child-class/lessons-data"
+import { getLessonsByDay, getTotalDays } from "@/lib/child-class/lessons-data"
 import { getUnlockedAchievements } from "@/lib/child-class/achievements-data"
 import { updateStreak } from "@/lib/child-class/streak-utils"
 import type { ChildLesson, ChildProgress } from "@/types/child-class"
@@ -134,11 +134,23 @@ export default function KidClassPage() {
         ? prev.completedLessons
         : [...prev.completedLessons, selectedLesson.id]
 
+      const nextDay = (() => {
+        for (let day = 1; day <= totalDays; day++) {
+          const lessonsForDay = getLessonsByDay(day)
+          if (lessonsForDay.length === 0) continue
+          const isDayComplete = lessonsForDay.every((lesson) => completedLessons.includes(lesson.id))
+          if (!isDayComplete) {
+            return day
+          }
+        }
+        return totalDays
+      })()
+
       return {
         ...prev,
         completedLessons,
         totalPoints: prev.totalPoints + points,
-        currentDay: Math.min(prev.currentDay + 1, totalDays),
+        currentDay: nextDay,
         perfectScores: points === 100 ? prev.perfectScores + 1 : prev.perfectScores,
         streak: updatedStreak.currentStreak,
       }
