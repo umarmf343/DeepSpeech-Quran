@@ -32,9 +32,9 @@ interface HasanatHudProps {
 }
 
 export function HasanatHud({
-  totalHasanat,
-  dailyHasanat,
-  sessionHasanat,
+  totalHasanat: _totalHasanat,
+  dailyHasanat: _dailyHasanat,
+  sessionHasanat: _sessionHasanat,
   dailyGoal,
   versesCompleted,
   ramadanMultiplier = 1,
@@ -70,26 +70,12 @@ export function HasanatHud({
       role="region"
       aria-label="Hasanat witness bar"
     >
+      {announcement ? (
+        <span className="sr-only" role="status" aria-live="polite">
+          {announcement}
+        </span>
+      ) : null}
       <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-3 px-4 py-3 sm:grid-cols-2 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-2 rounded-xl border border-emerald-100/60 bg-white/70 p-3 text-slate-700 shadow-sm dark:border-emerald-800/40 dark:bg-slate-900/70 dark:text-slate-200">
-          <div className="flex flex-col">
-            <span className="text-xs uppercase tracking-wide text-emerald-600 dark:text-emerald-300">
-              Witnessed letters for Allah
-            </span>
-            <p className="text-lg font-semibold text-slate-900 dark:text-emerald-100">
-              🕌 {totalHasanat.toLocaleString()} Hasanat
-              <span className="ml-2 text-sm font-normal text-slate-500 dark:text-slate-300">
-                Today: {dailyHasanat.toLocaleString()} • Session: {sessionHasanat.toLocaleString()}
-              </span>
-            </p>
-          </div>
-          {announcement ? (
-            <span className="sr-only" role="status" aria-live="polite">
-              {announcement}
-            </span>
-          ) : null}
-        </div>
-
         <div className="flex flex-col justify-between gap-2 rounded-xl border border-emerald-100/60 bg-white/70 p-3 text-xs text-slate-600 shadow-sm dark:border-emerald-800/40 dark:bg-slate-900/70 dark:text-slate-200">
           {dailyGoal ? (
             <div className="space-y-1">
@@ -155,11 +141,11 @@ export function HasanatHud({
               </span>
             ) : null}
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-300">
-            {challengeInfo
-              ? "Stay consistent to unlock the next surprise in your recitation journey."
-              : "Complete your focus actions to crack the egg and unlock bonus hasanat."}
-          </p>
+          {challengeInfo ? null : (
+            <p className="text-xs text-slate-500 dark:text-slate-300">
+              Complete your focus actions to crack the egg and unlock bonus hasanat.
+            </p>
+          )}
         </div>
       </div>
     </section>
