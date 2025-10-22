@@ -57,6 +57,8 @@ const iconForSlug = (slug: string) => {
       return Gamepad2
     case "billing":
       return Settings
+    case "settings":
+      return Settings
     case "profile":
     default:
       return User
