@@ -17,6 +17,7 @@ import {
   Gamepad2,
   Home,
   ScrollText,
+  Settings as SettingsIcon,
   Shield,
   Sparkles,
   Target,
@@ -39,6 +40,7 @@ type TabSlug =
   | "game"
   | "teacher-dashboard"
   | "admin-dashboard"
+  | "settings"
   | "profile"
 
 interface TabDefinition {
@@ -63,13 +65,14 @@ const TAB_REGISTRY: Record<TabSlug, TabDefinition> = {
     icon: "users",
   },
   "admin-dashboard": { slug: "admin-dashboard", label: "Admin", href: "/admin", icon: "shield" },
+  settings: { slug: "settings", label: "Settings", href: "/settings/profile", icon: "settings" },
   profile: { slug: "profile", label: "Profile", href: "/auth/profile", icon: "user" },
 }
 
 const ROLE_TAB_MAP: Record<UserRole, TabSlug[]> = {
   visitor: ["dashboard", "reader", "kid-class", "memorization", "qaidah", "profile"],
-  student: ["dashboard", "reader", "kid-class", "memorization", "qaidah", "profile"],
-  teacher: ["dashboard", "reader", "kid-class", "memorization", "qaidah", "teacher-dashboard", "profile"],
+  student: ["dashboard", "reader", "kid-class", "memorization", "qaidah", "settings", "profile"],
+  teacher: ["dashboard", "reader", "kid-class", "memorization", "qaidah", "teacher-dashboard", "settings", "profile"],
   admin: [
     "dashboard",
     "reader",
@@ -79,9 +82,10 @@ const ROLE_TAB_MAP: Record<UserRole, TabSlug[]> = {
     "leaderboard",
     "game",
     "admin-dashboard",
+    "settings",
     "profile",
   ],
-  parent: ["dashboard", "reader", "kid-class", "profile"],
+  parent: ["dashboard", "reader", "kid-class", "settings", "profile"],
 }
 
 const iconMap: Record<string, ComponentType<{ className?: string }>> = {
@@ -95,6 +99,7 @@ const iconMap: Record<string, ComponentType<{ className?: string }>> = {
   users: Users,
   clipboard: ClipboardList,
   shield: Shield,
+  settings: SettingsIcon,
   credit: CreditCard,
   user: User,
   practice: Gamepad2,
@@ -104,7 +109,7 @@ const iconMap: Record<string, ComponentType<{ className?: string }>> = {
   gamepad: Gamepad2,
 }
 
-const SENIOR_MODE_TABS = new Set<TabSlug>(["dashboard", "reader", "memorization", "qaidah", "profile"])
+const SENIOR_MODE_TABS = new Set<TabSlug>(["dashboard", "reader", "memorization", "qaidah", "settings", "profile"])
 
 export function alfawz_get_bottom_nav_url(slug: TabSlug): string {
   return TAB_REGISTRY[slug]?.href ?? "/"

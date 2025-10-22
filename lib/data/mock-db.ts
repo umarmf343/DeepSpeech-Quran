@@ -267,6 +267,7 @@ const navigationLinks: NavigationLink[] = [
   { slug: "practice", label: "Practice Lab", href: "/practice", icon: "sparkles", roles: ["student", "teacher", "admin"] },
   { slug: "progress", label: "Progress", href: "/progress", icon: "chart", roles: ["student", "teacher"] },
   { slug: "achievements", label: "Achievements", href: "/achievements", icon: "trophy", roles: ["student", "teacher", "admin"] },
+  { slug: "settings", label: "Settings", href: "/settings/profile", icon: "settings", roles: ["student", "teacher", "admin"] },
   { slug: "billing", label: "Billing", href: "/billing", icon: "credit", roles: ["student", "teacher", "admin"] },
   { slug: "profile", label: "Profile", href: "/auth/profile", icon: "user", roles: ["student", "teacher", "admin", "visitor"] },
 ]
