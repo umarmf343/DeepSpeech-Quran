@@ -76,10 +76,12 @@ export default function AlfawzReaderPage() {
   const [translationOptions, setTranslationOptions] = useState(DEFAULT_TRANSLATION_OPTIONS)
   const [transliterationOptions, setTransliterationOptions] = useState(DEFAULT_TRANSLITERATION_OPTIONS)
   const [systemPrefersDark, setSystemPrefersDark] = useState(false)
-  const [profile, setProfile] = useState<ReaderProfile>(() => ({
-    ...DEFAULT_PROFILE,
-    ...loadReaderProfile(),
-  }))
+  const [profile, setProfile] = useState<ReaderProfile>(DEFAULT_PROFILE)
+
+  useEffect(() => {
+    const storedProfile = loadReaderProfile()
+    setProfile(storedProfile)
+  }, [])
 
   const selectedMushaf = mushafVariants[0]
 
