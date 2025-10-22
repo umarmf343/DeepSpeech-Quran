@@ -2,7 +2,6 @@
 
 import { useMemo, type CSSProperties } from "react"
 
-import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import type {
   ReaderChallengeCelebration,
@@ -10,15 +9,13 @@ import type {
 } from "@/lib/reader/challenges"
 import { cn } from "@/lib/utils"
 
-import { ArrowRight, Gift, RotateCcw, Sparkles } from "lucide-react"
+import { ArrowRight, Gift, Sparkles } from "lucide-react"
 
 interface EggChallengeWidgetProps {
   snapshot: ReaderChallengeSnapshot | null
   celebration: ReaderChallengeCelebration | null
   loading?: boolean
   updating?: boolean
-  onReset: () => void
-  onDismissCelebration: () => void
 }
 
 const SPRINKLE_COLORS = [
@@ -35,8 +32,6 @@ export function EggChallengeWidget({
   celebration,
   loading = false,
   updating = false,
-  onReset,
-  onDismissCelebration,
 }: EggChallengeWidgetProps) {
   const state = snapshot?.state
   const definition = snapshot?.current
@@ -147,23 +142,9 @@ export function EggChallengeWidget({
               Total: {totalCompletions}
             </span>
           </div>
-          <div className="flex items-center justify-between pt-1 text-xs text-slate-500">
-            <span>{definition?.description ?? "Recite with presence to unlock the surprise."}</span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="gap-1 text-emerald-700 hover:text-emerald-800"
-              onClick={() => {
-                onReset()
-                onDismissCelebration()
-              }}
-              disabled={loading || updating}
-            >
-              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-              Reset
-            </Button>
-          </div>
+          <p className="pt-1 text-xs text-slate-500">
+            {definition?.description ?? "Recite with presence to unlock the surprise."}
+          </p>
         </div>
 
         <div className="flex min-w-0 flex-col justify-between gap-4 rounded-2xl bg-white/80 p-3 shadow-inner backdrop-blur-sm sm:p-4">
