@@ -525,8 +525,7 @@ export default function AlfawzReaderPage() {
           <div className="flex items-center gap-3">
             <NightModeToggle enabled={nightMode} onChange={handleNightModeToggle} />
             <Button variant="outline" size="sm" className="bg-transparent">
-              <Bookmark className="mr-2 h-4 w-4" />
-              Bookmark
+              <Bookmark className="h-4 w-4" />
             </Button>
             <Button variant="outline" size="sm" className="bg-transparent">
               <Share className="mr-2 h-4 w-4" />
