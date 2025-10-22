@@ -26,6 +26,7 @@ import { NurBloomWidget } from "@/components/nur-bloom-widget"
 import { useNurBloomChallenge } from "@/hooks/use-nur-bloom-challenge"
 import { quranAPI, type Surah, type Ayah, type Translation } from "@/lib/quran-api"
 import type { DailyGoalSnapshot } from "@/lib/daily-goal-store"
+import { SurahCompletionCelebration } from "./reader/surah-completion-celebration"
 
 interface QuranReaderProps {
   initialSurah?: number
@@ -58,6 +59,8 @@ export function QuranReader({
   const [challengeLevel, setChallengeLevel] = useState(1)
   const [challengeProgress, setChallengeProgress] = useState(0)
   const [showCelebration, setShowCelebration] = useState(false)
+  const [surahCelebrationVisible, setSurahCelebrationVisible] = useState(false)
+  const [hasCelebratedSurah, setHasCelebratedSurah] = useState(false)
 
   const challengeGoal = useMemo(() => 10 + (challengeLevel - 1) * 5, [challengeLevel])
   const celebrationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -141,6 +144,8 @@ export function QuranReader({
 
   const loadSurah = useCallback(
     async (surahNumber: number) => {
+      setHasCelebratedSurah(false)
+      setSurahCelebrationVisible(false)
       setIsLoading(true)
       try {
         const surahData = await quranAPI.getSurah(surahNumber)
@@ -241,6 +246,9 @@ export function QuranReader({
         const verseKey = `${currentSurah.number}:${nextAyahData?.numberInSurah ?? nextIndex + 1}`
         recordNurProgress({ verseKey, source: "next" })
       }
+    } else if (!hasCelebratedSurah) {
+      setHasCelebratedSurah(true)
+      setSurahCelebrationVisible(true)
     }
   }
 
@@ -272,15 +280,46 @@ export function QuranReader({
   const handleAudioEnded = () => {
     if (repeatMode === "ayah") {
       playAyah(currentAyahIndex)
-    } else if (repeatMode === "none" && currentAyahIndex < ayahs.length - 1) {
+      return
+    }
+
+    if (repeatMode === "none" && currentAyahIndex < ayahs.length - 1) {
       nextAyah()
-    } else if (repeatMode === "surah" && currentAyahIndex === ayahs.length - 1) {
+      return
+    }
+
+    if (repeatMode === "surah" && currentAyahIndex === ayahs.length - 1) {
       setCurrentAyahIndex(0)
       playAyah(0)
-    } else {
-      setIsPlaying(false)
+      return
+    }
+
+    setIsPlaying(false)
+
+    if (currentAyahIndex === ayahs.length - 1 && !hasCelebratedSurah) {
+      setHasCelebratedSurah(true)
+      setSurahCelebrationVisible(true)
     }
   }
+
+  const handleCloseSurahCelebration = useCallback(() => {
+    setSurahCelebrationVisible(false)
+  }, [])
+
+  const handleGoToNextSurah = useCallback(() => {
+    if (!currentSurah) {
+      return
+    }
+
+    const nextSurahNumber = currentSurah.number + 1
+    if (nextSurahNumber > surahs.length) {
+      setSurahCelebrationVisible(false)
+      return
+    }
+
+    setSurahCelebrationVisible(false)
+    void loadSurah(nextSurahNumber)
+  }, [currentSurah, loadSurah, surahs.length])
 
   // Load bookmarks from localStorage
   useEffect(() => {
@@ -316,6 +355,12 @@ export function QuranReader({
   }, [])
 
   const challengeProgressPercentage = Math.min((challengeProgress / challengeGoal) * 100, 100)
+  const hasNextSurah = useMemo(() => {
+    if (!currentSurah) {
+      return false
+    }
+    return currentSurah.number < surahs.length
+  }, [currentSurah, surahs.length])
 
   if (isLoading) {
     return (
@@ -329,7 +374,16 @@ export function QuranReader({
   }
 
   return (
-    <div className="relative mx-auto max-w-6xl space-y-6">
+    <>
+      <SurahCompletionCelebration
+        visible={surahCelebrationVisible}
+        surahName={currentSurah ? currentSurah.englishName || currentSurah.name : undefined}
+        surahNumber={currentSurah?.number}
+        onClose={handleCloseSurahCelebration}
+        onNextSurah={handleGoToNextSurah}
+        hasNextSurah={hasNextSurah}
+      />
+      <div className="relative mx-auto max-w-6xl space-y-6">
       <div className="absolute right-4 top-4 z-30 max-md:static max-md:mb-4 max-md:flex max-md:justify-end">
         <NurBloomWidget
           state={nurBloomState}
@@ -656,5 +710,6 @@ export function QuranReader({
       {/* Audio Element */}
       <audio ref={audioRef} onEnded={handleAudioEnded} className="hidden" />
     </div>
+    </>
   )
 }
