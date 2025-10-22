@@ -44,7 +44,6 @@ export function EggChallengeWidget({
 
   const goal = state?.goal ?? 10
   const progress = state?.progress ?? 0
-  const difficulty = state?.difficultyLevel ?? 1
   const roundsCompleted = state?.roundsCompleted ?? 0
   const totalCompletions = state?.totalCompletions ?? 0
   const roundsTarget = definition?.roundsToAdvance ?? 1
@@ -79,8 +78,6 @@ export function EggChallengeWidget({
     ? "Egg cracked! Preparing the next blessing."
     : `${remainingVerses} Verse${remainingVerses === 1 ? "" : "s"} Left`
 
-  const nextLabel = nextChallenge ? `${nextChallenge.icon} ${nextChallenge.title}` : "New surprises on the horizon"
-
   return (
     <section
       className={cn(
@@ -107,8 +104,8 @@ export function EggChallengeWidget({
         </div>
       ) : null}
 
-      <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-1 items-center gap-5">
+      <div className="relative grid gap-6 md:grid-cols-3">
+        <div className="flex flex-col items-center gap-4 rounded-2xl bg-white/70 p-6 text-center shadow-inner backdrop-blur-sm">
           <div className="relative h-24 w-20">
             <div
               className={cn(
@@ -124,46 +121,40 @@ export function EggChallengeWidget({
               )}
             />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.35em] text-amber-700">
               {definition?.icon ?? "🥚"} {definition?.title ?? "Break the Egg"}
             </p>
+            {definition?.tagline ? (
+              <p className="text-sm font-medium text-slate-600">{definition.tagline}</p>
+            ) : null}
           </div>
         </div>
 
-        <div className="flex w-full max-w-md flex-col gap-3 rounded-2xl bg-white/80 p-4 shadow-inner backdrop-blur-sm md:w-auto">
+        <div className="flex flex-col gap-3 rounded-2xl bg-white/80 p-4 shadow-inner backdrop-blur-sm">
           <div className="flex items-center justify-between text-xs font-medium uppercase tracking-wide text-maroon-600">
             <span>Progress</span>
             <span>
               {progress}/{goal}
             </span>
           </div>
+          <Progress
+            value={percent}
+            className="h-3 bg-amber-100"
+            aria-hidden={false}
+            aria-valuenow={percent}
+          />
+          <p className="text-xs font-semibold text-emerald-700">
+            {encouragement}
+          </p>
+          <p className="text-xs text-slate-600">{progressCaption}</p>
           <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-slate-500">
             <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-700">
               Rounds: {Math.min(roundsCompleted, roundsTarget)}/{roundsTarget}
             </span>
-            <span className="hidden md:inline-flex">
+            <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-amber-700">
               Total completions: {totalCompletions}
             </span>
-          </div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:grid-rows-3 sm:items-center">
-            <div className="col-span-2 sm:col-span-3 sm:row-span-2">
-              <Progress
-                value={percent}
-                className="h-3 bg-amber-100"
-                aria-hidden={false}
-                aria-valuenow={percent}
-              />
-            </div>
-            {nextChallenge ? (
-              <span className="flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-slate-600 shadow-sm sm:col-span-2 sm:row-start-3">
-                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                {nextLabel}
-              </span>
-            ) : (
-              <span aria-hidden="true" className="hidden sm:block sm:col-span-2 sm:row-start-3" />
-            )}
-            <p className="text-xs text-slate-600 sm:col-span-1 sm:row-start-3 sm:text-right">{progressCaption}</p>
           </div>
           <div className="flex items-center justify-between pt-1 text-xs text-slate-500">
             <span>{definition?.description ?? "Recite with presence to unlock the surprise."}</span>
@@ -181,6 +172,33 @@ export function EggChallengeWidget({
               <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
               Reset
             </Button>
+          </div>
+        </div>
+
+        <div className="flex flex-col justify-between gap-4 rounded-2xl bg-white/80 p-4 shadow-inner backdrop-blur-sm">
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-purple-700">Mystery Box</p>
+            <div className="flex items-center gap-3">
+              <span className="text-3xl" aria-hidden="true">
+                {nextChallenge?.icon ?? "🎁"}
+              </span>
+              <div className="space-y-1">
+                <p className="text-base font-semibold text-slate-800">
+                  {nextChallenge?.title ?? "Unlock the Mystery"}
+                </p>
+                <p className="text-sm text-slate-500">
+                  {nextChallenge?.tagline ?? "Gather your recitation keys to reveal the surprise inside."}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between text-xs text-slate-600">
+            <span>
+              {nextChallenge
+                ? `Stay steady to reach ${nextChallenge.title}.`
+                : "Complete this challenge to reveal the next blessing."}
+            </span>
+            <ArrowRight className="h-4 w-4 text-purple-500" aria-hidden="true" />
           </div>
         </div>
       </div>
