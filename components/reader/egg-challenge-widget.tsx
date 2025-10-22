@@ -46,7 +46,6 @@ export function EggChallengeWidget({
   const roundsTarget = definition?.roundsToAdvance ?? 1
 
   const percent = goal > 0 ? Math.min(100, Math.round((progress / goal) * 100)) : 0
-  const remainingVerses = Math.max(goal - progress, 0)
   const showCelebration = Boolean(celebration)
 
   const sprinkleOffsets = useMemo(() => {
@@ -62,10 +61,6 @@ export function EggChallengeWidget({
       return { x, y, color, delay }
     })
   }, [showCelebration])
-
-  const progressCaption = percent >= 100
-    ? "Egg cracked! Preparing the next blessing."
-    : `${remainingVerses} Verse${remainingVerses === 1 ? "" : "s"} Left`
 
   return (
     <section
@@ -138,7 +133,6 @@ export function EggChallengeWidget({
             aria-hidden={false}
             aria-valuenow={percent}
           />
-          <p className="text-xs text-slate-600">{progressCaption}</p>
           <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-slate-500">
             <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-700">
               Rounds: {Math.min(roundsCompleted, roundsTarget)}/{roundsTarget}
