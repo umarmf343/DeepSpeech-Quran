@@ -502,7 +502,7 @@ export function QuranReaderContainer({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-10 w-10 rounded-full bg-gradient-to-br from-emerald-400 via-teal-400 to-sky-500 text-white shadow-md shadow-emerald-500/40 opacity-0 transition-all duration-200 hover:from-emerald-300 hover:via-teal-300 hover:to-sky-400 hover:shadow-lg group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-emerald-200 dark:from-emerald-500 dark:via-teal-500 dark:to-sky-600"
+                    className="h-10 w-10 rounded-full bg-gradient-to-br from-emerald-400 via-teal-400 to-sky-500 text-white shadow-md shadow-emerald-500/40 opacity-100 transition-all duration-200 hover:from-emerald-300 hover:via-teal-300 hover:to-sky-400 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-emerald-200 dark:from-emerald-500 dark:via-teal-500 dark:to-sky-600"
                     onClick={() => handlePlay(ayah)}
                     aria-label={`Play verse ${ayah.numberInSurah} of ${surahMeta?.englishName ?? "selected surah"}`}
                   >
@@ -511,7 +511,7 @@ export function QuranReaderContainer({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-10 w-10 rounded-full bg-gradient-to-br from-sky-400 via-indigo-400 to-violet-500 text-white shadow-md shadow-sky-500/40 opacity-0 transition-all duration-200 hover:from-sky-300 hover:via-indigo-300 hover:to-violet-400 hover:shadow-lg group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-sky-200 dark:from-sky-500 dark:via-indigo-500 dark:to-violet-600"
+                    className="h-10 w-10 rounded-full bg-gradient-to-br from-sky-400 via-indigo-400 to-violet-500 text-white shadow-md shadow-sky-500/40 opacity-100 transition-all duration-200 hover:from-sky-300 hover:via-indigo-300 hover:to-violet-400 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-sky-200 dark:from-sky-500 dark:via-indigo-500 dark:to-violet-600"
                     onClick={() => speakVerse(ayah, detail)}
                     aria-label={`Speak verse ${ayah.numberInSurah}`}
                   >
