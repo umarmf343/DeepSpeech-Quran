@@ -138,8 +138,14 @@ export function EggChallengeWidget({
               {progress}/{goal}
             </span>
           </div>
-          <div className="grid grid-cols-3 gap-2 md:flex md:flex-wrap md:items-center">
-            <div className="col-span-3 md:basis-full md:w-full">
+          <div className="grid grid-cols-3 gap-2 md:items-center">
+            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
+              Rounds: {Math.min(roundsCompleted, roundsTarget)}/{roundsTarget}
+            </span>
+            <span className="hidden text-[11px] font-medium text-slate-500">
+              Total completions: {totalCompletions}
+            </span>
+            <div className="col-span-3 md:col-span-1 md:col-start-3 md:w-full">
               <Progress
                 value={percent}
                 className="h-3 bg-amber-100"
@@ -147,12 +153,6 @@ export function EggChallengeWidget({
                 aria-valuenow={percent}
               />
             </div>
-            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
-              Rounds: {Math.min(roundsCompleted, roundsTarget)}/{roundsTarget}
-            </span>
-            <span className="hidden text-[11px] font-medium text-slate-500">
-              Total completions: {totalCompletions}
-            </span>
             {nextChallenge ? (
               <span className="flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-slate-600 shadow-sm md:col-auto">
                 <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
