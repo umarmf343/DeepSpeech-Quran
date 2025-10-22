@@ -41,6 +41,8 @@ export function EggChallengeWidget({
   const state = snapshot?.state
   const definition = snapshot?.current
   const nextChallenge = snapshot?.next
+  const showNextChallengeDetails =
+    nextChallenge != null && nextChallenge.id !== "mystery-box"
 
   const goal = state?.goal ?? 10
   const progress = state?.progress ?? 0
@@ -172,18 +174,20 @@ export function EggChallengeWidget({
                 {nextChallenge?.icon ?? "🎁"}
               </span>
               <div className="space-y-1">
-                <p className="text-base font-semibold text-slate-800">
-                  {nextChallenge?.title ?? "Unlock the Mystery"}
-                </p>
-                <p className="text-sm text-slate-500">
-                  {nextChallenge?.tagline ?? "Gather your recitation keys to reveal the surprise inside."}
-                </p>
+                {showNextChallengeDetails && nextChallenge?.title ? (
+                  <p className="text-base font-semibold text-slate-800">
+                    {nextChallenge.title}
+                  </p>
+                ) : null}
+                {showNextChallengeDetails && nextChallenge?.tagline ? (
+                  <p className="text-sm text-slate-500">{nextChallenge.tagline}</p>
+                ) : null}
               </div>
             </div>
           </div>
           <div className="flex items-center justify-between text-xs text-slate-600">
             <span>
-              {nextChallenge
+              {showNextChallengeDetails && nextChallenge
                 ? `Stay steady to reach ${nextChallenge.title}.`
                 : "Complete this challenge to reveal the next blessing."}
             </span>
