@@ -449,20 +449,25 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const hydrateFromSession = useCallback(async () => {
     if (!token || !isProtectedRoute) return
     try {
-      const session = await authorizedFetch("/api/auth/session")
+      const session = await authorizedFetch("/api/auth/session", undefined, { retryOn401: false })
       applyUser(session.user, session.navigation)
     } catch (error) {
-      console.error("Failed to load session", error)
-      if (!sessionRetryAttempted.current) {
-        sessionRetryAttempted.current = true
-        if (typeof window !== "undefined") {
-          window.localStorage.removeItem(STORAGE_KEYS.token)
+      if (isUnauthorizedError(error)) {
+        if (!sessionRetryAttempted.current) {
+          sessionRetryAttempted.current = true
+          if (typeof window !== "undefined") {
+            window.localStorage.removeItem(STORAGE_KEYS.token)
+          }
+          setToken(null)
+          await initializeSession(true)
+        } else {
+          setIsLoading(false)
         }
-        setToken(null)
-        await initializeSession(true)
-      } else {
-        setIsLoading(false)
+        return
       }
+
+      console.error("Failed to load session", error)
+      setIsLoading(false)
     }
   }, [applyUser, authorizedFetch, initializeSession, isProtectedRoute, token])
 
