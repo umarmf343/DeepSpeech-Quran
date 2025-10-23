@@ -26,10 +26,17 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
   const [tracingComplete, setTracingComplete] = useState<boolean>(false)
   const [tracingResetKey, setTracingResetKey] = useState<number>(0)
   const [showTracingFailure, setShowTracingFailure] = useState<boolean>(false)
+  const [selectedPracticeOption, setSelectedPracticeOption] = useState<string | null>(null)
+  const [selectedPracticeCorrect, setSelectedPracticeCorrect] = useState<boolean | null>(null)
 
   useEffect(() => {
     setSettings(loadSettings())
   }, [])
+
+  useEffect(() => {
+    setSelectedPracticeOption(null)
+    setSelectedPracticeCorrect(null)
+  }, [currentStep, lesson.id])
 
   const practiceCardGradients = [
     "kid-gradient-bubblegum",
@@ -78,7 +85,9 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     }
   }
 
-  const handlePracticeAnswer = (isCorrect: boolean) => {
+  const handlePracticeAnswer = (isCorrect: boolean, optionKey: string) => {
+    setSelectedPracticeOption(optionKey)
+    setSelectedPracticeCorrect(isCorrect)
     if (isCorrect) {
       setScore((prev) => prev + 25)
       setFeedbackMessage("Excellent! 🎉")
@@ -263,15 +272,25 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
               <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[2].title}</h2>
               <p className="text-lg text-maroon/70 mb-10">Which one is {lesson.title}?</p>
               <div className="grid grid-cols-2 gap-6 mb-8">
-                {[lesson.arabic, "ب", "ت", "ث"].map((letter, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handlePracticeAnswer(letter === lesson.arabic)}
-                    className={`kid-card ${practiceCardGradients[idx % practiceCardGradients.length]} p-8 text-black text-[7.5rem] font-black transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03]`}
-                  >
-                    {letter}
-                  </button>
-                ))}
+                {[lesson.arabic, "ب", "ت", "ث"].map((letter, idx) => {
+                  const optionKey = `practice-${currentStep}-${idx}`
+                  const isSelected = selectedPracticeOption === optionKey
+                  const selectionClass = isSelected
+                    ? selectedPracticeCorrect
+                      ? "kid-card-blink-success"
+                      : "kid-card-blink-error"
+                    : ""
+
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => handlePracticeAnswer(letter === lesson.arabic, optionKey)}
+                      className={`kid-card ${practiceCardGradients[idx % practiceCardGradients.length]} p-8 text-black text-[7.5rem] font-black transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] ${selectionClass}`.trim()}
+                    >
+                      {letter}
+                    </button>
+                  )
+                })}
               </div>
               {showFeedback && (
                 <div
@@ -337,15 +356,25 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                   {renderTextWithArabicCard(`What is the transliteration of ${lesson.arabic}?`)}
                 </p>
                 <div className="grid grid-cols-2 gap-4">
-                  {[lesson.translit, "Ba", "Ta", "Tha"].map((option, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handlePracticeAnswer(option === lesson.translit)}
-                      className={`kid-card ${practiceCardGradients[idx % practiceCardGradients.length]} p-6 text-lg font-extrabold transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03]`}
-                    >
-                      {option}
-                    </button>
-                  ))}
+                  {[lesson.translit, "Ba", "Ta", "Tha"].map((option, idx) => {
+                    const optionKey = `practice-${currentStep}-${idx}`
+                    const isSelected = selectedPracticeOption === optionKey
+                    const selectionClass = isSelected
+                      ? selectedPracticeCorrect
+                        ? "kid-card-blink-success"
+                        : "kid-card-blink-error"
+                      : ""
+
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => handlePracticeAnswer(option === lesson.translit, optionKey)}
+                        className={`kid-card ${practiceCardGradients[idx % practiceCardGradients.length]} p-6 text-lg font-extrabold transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] ${selectionClass}`.trim()}
+                      >
+                        {option}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
               {showFeedback && (

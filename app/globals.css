@@ -469,6 +469,44 @@
     left: -60px;
   }
 
+  .kid-card-blink-success {
+    animation: kid-card-blink-success 1s ease-in-out 3;
+    --kid-card-border: 4px solid rgba(19, 98, 7, 0.7);
+  }
+
+  .kid-card-blink-error {
+    animation: kid-card-blink-error 1s ease-in-out 3;
+    --kid-card-border: 4px solid rgba(220, 38, 38, 0.7);
+  }
+
+  @keyframes kid-card-blink-success {
+    0%,
+    100% {
+      background: var(--kid-card-gradient);
+      color: var(--kid-card-foreground, inherit);
+      box-shadow: var(--kid-card-shadow);
+    }
+    50% {
+      background: linear-gradient(135deg, rgba(19, 98, 7, 0.95) 0%, rgba(34, 197, 94, 0.9) 100%);
+      color: #ffffff;
+      box-shadow: 0 0 0 6px rgba(19, 98, 7, 0.45), 0 14px 35px rgba(19, 98, 7, 0.35);
+    }
+  }
+
+  @keyframes kid-card-blink-error {
+    0%,
+    100% {
+      background: var(--kid-card-gradient);
+      color: var(--kid-card-foreground, inherit);
+      box-shadow: var(--kid-card-shadow);
+    }
+    50% {
+      background: linear-gradient(135deg, rgba(220, 38, 38, 0.95) 0%, rgba(248, 113, 113, 0.9) 100%);
+      color: #ffffff;
+      box-shadow: 0 0 0 6px rgba(220, 38, 38, 0.5), 0 14px 35px rgba(220, 38, 38, 0.35);
+    }
+  }
+
   .kid-pill {
     background: var(
       --kid-pill-gradient,
