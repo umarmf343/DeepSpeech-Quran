@@ -182,19 +182,24 @@ export default function KidClassPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-milk via-milk to-milk/95">
+    <main className="relative min-h-screen overflow-hidden bg-kid-sky font-kid text-maroon">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-24 left-10 h-56 w-56 rounded-full bg-white/40 blur-3xl animate-float-slow"></div>
+        <div className="absolute bottom-10 right-16 h-44 w-44 rounded-full bg-gradient-to-br from-maroon/20 to-gold/30 blur-3xl animate-bounce-soft"></div>
+        <div className="absolute top-1/3 right-1/4 h-32 w-32 rounded-full bg-gradient-to-br from-amber-200/60 via-pink-100/50 to-transparent blur-2xl"></div>
+      </div>
       {showSessionWarning && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="card-premium rounded-3xl p-8 max-w-md text-center animate-scale-in border-2 border-gold/30">
+          <div className="kid-card p-8 max-w-md text-center animate-scale-in">
             <div className="text-5xl mb-4">⏰</div>
-            <h2 className="text-2xl font-bold text-maroon mb-4">Session Time Limit</h2>
+            <h2 className="text-3xl font-bold text-maroon mb-2">Session Time Limit</h2>
             <p className="text-maroon/70 mb-6">You've reached your daily learning time limit. Great job!</p>
             <button
               onClick={() => {
                 setShowSessionWarning(false)
                 setCurrentPage("dashboard")
               }}
-              className="btn-primary hover:shadow-lg transition-all w-full"
+              className="kid-pill w-full py-3 font-bold text-maroon transition-transform duration-300 hover:scale-[1.02]"
             >
               Back to Dashboard
             </button>
@@ -202,7 +207,9 @@ export default function KidClassPage() {
         </div>
       )}
 
-      <div className={`transition-opacity duration-300 ${isTransitioning ? "opacity-50" : "opacity-100"}`}>
+      <div
+        className={`relative transition-opacity duration-300 ${isTransitioning ? "opacity-50" : "opacity-100"}`}
+      >
         {currentPage === "landing" && <LandingPage onStart={handleStartLearning} />}
         {currentPage === "dashboard" && (
           <Dashboard

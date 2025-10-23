@@ -98,70 +98,78 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-milk via-milk to-milk/95 px-4 py-8 md:px-8">
+    <div className="relative min-h-screen px-4 py-10 md:px-8">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-10 left-8 h-40 w-40 rounded-full bg-white/50 blur-3xl"></div>
+        <div className="absolute bottom-0 right-12 h-48 w-48 rounded-full bg-gradient-to-br from-maroon/20 via-pink-100/60 to-transparent blur-3xl"></div>
+      </div>
+
       {/* Completion Modal */}
       {showCompletion && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-3xl p-12 text-center max-w-md animate-scale-in shadow-2xl border-2 border-gold/30">
+          <div className="kid-card max-w-md p-12 text-center animate-scale-in">
             <div className="text-7xl mb-6 animate-bounce">🎉</div>
-            <h2 className="text-4xl font-bold text-maroon mb-3">Lesson Complete!</h2>
-            <p className="text-3xl font-bold text-gold mb-6">{score} Points</p>
+            <h2 className="text-4xl font-extrabold text-maroon mb-3">Lesson Complete!</h2>
+            <p className="text-3xl font-black text-maroon mb-6">{score} Points</p>
             <p className="text-maroon/70 text-lg">Fantastic work! Keep learning!</p>
           </div>
         </div>
       )}
 
       {/* Premium Header */}
-      <div className="flex justify-between items-center mb-8 animate-slide-down">
-        <button
-          onClick={onBack}
-          className="bg-white hover:bg-maroon/10 text-maroon font-bold py-2 px-4 rounded-lg transition-all duration-300 border-2 border-maroon/20"
-        >
-          ← Back
-        </button>
-        <h1 className="text-3xl md:text-4xl font-bold text-maroon text-center flex-1">{lesson.title}</h1>
-        <div className="text-2xl font-bold text-gold bg-white px-4 py-2 rounded-lg border-2 border-gold/30">
-          {score} pts
+      <div className="relative z-10 mb-8 animate-slide-down">
+        <div className="kid-card flex flex-col gap-4 rounded-3xl p-6 sm:flex-row sm:items-center sm:justify-between">
+          <button
+            onClick={onBack}
+            className="kid-pill flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-105"
+          >
+            ← Back
+          </button>
+          <div className="text-center">
+            <p className="text-xs uppercase tracking-[0.4em] text-maroon/60">Lesson Spotlight</p>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-maroon">{lesson.title}</h1>
+          </div>
+          <div className="rounded-full bg-white/80 px-5 py-2 text-2xl font-black text-maroon shadow-inner">
+            {score} pts
+          </div>
         </div>
       </div>
 
-      <div className="w-full bg-maroon/10 rounded-full h-3 mb-8 overflow-hidden">
+      <div className="relative z-10 mb-8 h-4 w-full overflow-hidden rounded-full bg-maroon/10">
         <div
-          className="bg-gradient-to-r from-maroon via-gold to-maroon h-full transition-all duration-500 ease-out"
+          className="h-full rounded-full bg-gradient-to-r from-maroon via-amber-300 to-pink-400 transition-all duration-500 ease-out"
           style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
         ></div>
       </div>
 
       {/* Step Indicator */}
-      <div className="flex justify-center gap-2 mb-8">
+      <div className="relative z-10 mb-10 flex justify-center gap-2">
         {steps.map((_, idx) => (
           <div
             key={idx}
             className={`h-2 rounded-full transition-all duration-300 ${
-              idx <= currentStep ? "bg-maroon w-8" : "bg-maroon/20 w-2"
+              idx <= currentStep ? "bg-gradient-to-r from-maroon via-pink-400 to-amber-300 w-10" : "bg-white/60 w-3"
             }`}
           ></div>
         ))}
       </div>
 
       {/* Main Content */}
-      <div className="max-w-3xl mx-auto">
-        <div className="card-premium p-8 md:p-12 animate-slide-up">
+      <div className="relative z-10 mx-auto max-w-3xl">
+        <div className="kid-card p-8 md:p-12 animate-slide-up">
           {currentStep === 0 && (
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-maroon mb-8">{steps[0].title}</h2>
+              <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[0].title}</h2>
               <div className="text-9xl mb-8 animate-float">{lesson.arabic}</div>
-              <p className="text-xl text-maroon/70 mb-8">{lesson.description}</p>
-              <div className="bg-gradient-to-br from-maroon/5 to-gold/5 rounded-2xl p-8 mb-8 border-2 border-maroon/10">
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-sm text-maroon/60 mb-2">Transliteration</p>
-                    <p className="text-2xl font-bold text-maroon">{lesson.translit}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-maroon/60 mb-2">Rule</p>
-                    <p className="text-2xl font-bold text-gold">{lesson.rule}</p>
-                  </div>
+              <p className="text-lg text-maroon/70 mb-8">{lesson.description}</p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="kid-pill rounded-3xl p-6 text-left shadow-lg">
+                  <p className="text-xs uppercase tracking-widest text-maroon/60">Transliteration</p>
+                  <p className="mt-2 text-2xl font-black text-maroon">{lesson.translit}</p>
+                </div>
+                <div className="kid-pill rounded-3xl p-6 text-left shadow-lg">
+                  <p className="text-xs uppercase tracking-widest text-maroon/60">Rule</p>
+                  <p className="mt-2 text-2xl font-black text-maroon">{lesson.rule}</p>
                 </div>
               </div>
             </div>
@@ -169,28 +177,28 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
 
           {currentStep === 1 && (
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-maroon mb-8">{steps[1].title}</h2>
+              <h2 className="text-3xl font-extrabold text-maroon mb-8">{steps[1].title}</h2>
               <div className="text-9xl mb-12 animate-float">{lesson.arabic}</div>
               <button
                 onClick={handlePronounce}
-                className="btn-primary hover:shadow-lg transition-all py-8 px-12 text-2xl mb-8 transform hover:scale-105 inline-block"
+                className="inline-block rounded-3xl bg-gradient-to-r from-maroon via-maroon/90 to-maroon/80 px-12 py-6 text-2xl font-extrabold text-[var(--color-milk)] shadow-[0_12px_30px_rgba(123,51,96,0.25)] transition-transform duration-300 hover:scale-[1.04]"
               >
                 🔊 Listen to Pronunciation
               </button>
-              <p className="text-maroon/70 text-lg">Click the button to hear the correct pronunciation</p>
+              <p className="text-lg text-maroon/70">Click the button to hear the correct pronunciation</p>
             </div>
           )}
 
           {currentStep === 2 && (
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-maroon mb-8">{steps[2].title}</h2>
-              <p className="text-xl text-maroon/70 mb-10">Which one is {lesson.title}?</p>
+              <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[2].title}</h2>
+              <p className="text-lg text-maroon/70 mb-10">Which one is {lesson.title}?</p>
               <div className="grid grid-cols-2 gap-6 mb-8">
                 {[lesson.arabic, "ب", "ت", "ث"].map((letter, idx) => (
                   <button
                     key={idx}
                     onClick={() => handlePracticeAnswer(letter === lesson.arabic)}
-                    className="card-premium p-8 text-6xl font-bold hover:shadow-lg transition-all transform hover:scale-105 border-2 border-maroon/10 hover:border-gold/50"
+                    className="kid-card p-8 text-6xl font-black transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03]"
                   >
                     {letter}
                   </button>
@@ -210,9 +218,9 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
 
           {currentStep === 3 && (
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-maroon mb-8">{steps[3].title}</h2>
-              <p className="text-lg text-maroon/70 mb-10">Trace the letter below</p>
-              <div className="card-premium p-12 mb-8 border-2 border-gold/30">
+              <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[3].title}</h2>
+              <p className="text-lg text-maroon/70 mb-8">Trace the letter below</p>
+              <div className="kid-card p-12 mb-8 text-center">
                 <div className="text-9xl mb-8 opacity-20">{lesson.arabic}</div>
                 <p className="text-maroon/70 mb-8">Try to write the letter in the space above</p>
                 <button
@@ -223,7 +231,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                     setShowFeedback(true)
                     setTimeout(() => setShowFeedback(false), 1500)
                   }}
-                  className="btn-secondary hover:shadow-lg transition-all py-4 px-8"
+                  className="kid-pill rounded-full px-8 py-3 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-[1.05]"
                 >
                   ✓ I've traced it
                 </button>
@@ -242,15 +250,15 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
 
           {currentStep === 4 && (
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-maroon mb-8">{steps[4].title}</h2>
-              <div className="card-premium p-8 mb-8 border-2 border-gold/30">
-                <p className="text-xl text-maroon mb-8">What is the transliteration of {lesson.arabic}?</p>
+              <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[4].title}</h2>
+              <div className="kid-card p-8 mb-8">
+                <p className="text-lg text-maroon mb-6">What is the transliteration of {lesson.arabic}?</p>
                 <div className="grid grid-cols-2 gap-4">
                   {[lesson.translit, "Ba", "Ta", "Tha"].map((option, idx) => (
                     <button
                       key={idx}
                       onClick={() => handlePracticeAnswer(option === lesson.translit)}
-                      className="card-premium p-6 text-lg font-bold hover:shadow-lg transition-all transform hover:scale-105 border-2 border-maroon/10 hover:border-gold/50"
+                      className="kid-card p-6 text-lg font-extrabold transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03]"
                     >
                       {option}
                     </button>
@@ -270,14 +278,17 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex gap-4 mt-12">
+          <div className="mt-12 flex flex-col gap-4 sm:flex-row">
             <button
               onClick={onBack}
-              className="flex-1 bg-white hover:bg-maroon/10 text-maroon font-bold py-4 px-6 rounded-xl transition-all duration-300 border-2 border-maroon/20"
+              className="flex-1 kid-pill rounded-full px-6 py-4 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-[1.02]"
             >
               Cancel
             </button>
-            <button onClick={handleNextStep} className="flex-1 btn-primary hover:shadow-lg transition-all py-4 text-lg">
+            <button
+              onClick={handleNextStep}
+              className="flex-1 rounded-3xl bg-gradient-to-r from-maroon via-maroon/90 to-maroon/80 py-4 text-lg font-extrabold text-[var(--color-milk)] shadow-[0_15px_35px_rgba(123,51,96,0.25)] transition-transform duration-300 hover:scale-[1.03]"
+            >
               {currentStep === steps.length - 1 ? "Complete Lesson" : "Next"}
             </button>
           </div>

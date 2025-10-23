@@ -6,63 +6,61 @@ interface LandingPageProps {
 
 export default function LandingPage({ onStart }: LandingPageProps) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-gradient-to-br from-milk via-amber-50 to-orange-50">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-10 left-10 w-32 h-32 bg-maroon/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-40 h-40 bg-gold/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+    <div className="relative min-h-screen overflow-hidden bg-kid-candy px-4 py-10 text-maroon">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-8 top-12 h-36 w-36 rounded-3xl bg-white/40 blur-3xl animate-float-slow"></div>
+        <div className="absolute bottom-16 right-10 h-40 w-40 rounded-full bg-gradient-to-br from-maroon/25 via-amber-200/50 to-transparent blur-3xl animate-bounce-soft"></div>
+        <div className="absolute inset-x-0 top-1/2 h-72 bg-gradient-to-r from-transparent via-white/30 to-transparent blur-2xl"></div>
       </div>
 
-      <div className="relative z-10 max-w-2xl text-center">
-        {/* Logo/Title */}
-        <div className="mb-8 animate-fade-in">
-          <h1 className="text-6xl md:text-7xl font-bold text-maroon mb-2">Q-KID</h1>
-          <p className="text-xl md:text-2xl text-maroon/70 font-semibold">Learn Quranic Arabic</p>
+      <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center text-center font-kid">
+        <div className="mb-10 animate-fade-in">
+          <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-white/70 shadow-lg ring-4 ring-white/60">
+            <span className="text-5xl">🌙</span>
+          </div>
+          <h1 className="mt-6 text-6xl md:text-7xl font-extrabold tracking-tight text-maroon">Q-KID</h1>
+          <p className="mt-3 text-xl md:text-2xl text-maroon/70">Where Quranic Learning Feels Like Playtime!</p>
         </div>
 
-        {/* Main Content */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl p-8 md:p-12 mb-8 animate-slide-up">
-          <div className="mb-8">
-            <div className="text-5xl mb-4">📚</div>
-            <h2 className="text-3xl md:text-4xl font-bold text-maroon mb-4">Start Your Quranic Journey Today!</h2>
-            <p className="text-lg text-gray-700 leading-relaxed mb-6">
-              Join thousands of kids learning Arabic letters, Harakat, and Quranic words through fun, interactive
-              lessons. Master 60 days of curriculum designed just for you!
+        <div className="kid-card w-full p-8 md:p-12 animate-slide-up">
+          <div className="mb-10 space-y-4">
+            <div className="text-6xl">📚✨</div>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-maroon">Adventure Awaits in Every Lesson!</h2>
+            <p className="text-lg text-maroon/70">
+              Dive into colorful stories, joyful recitations, and playful challenges that make Arabic letters and Quranic
+              words unforgettable. Learn step-by-step over 60 delightful days crafted especially for young hearts.
             </p>
           </div>
 
-          {/* Features */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-gradient-to-br from-maroon/10 to-gold/10 rounded-2xl p-4">
-              <div className="text-3xl mb-2">✨</div>
-              <h3 className="font-bold text-maroon mb-2">Interactive Lessons</h3>
-              <p className="text-sm text-gray-600">Learn through games and flashcards</p>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="kid-pill rounded-2xl p-5 text-left shadow-lg">
+              <div className="text-4xl">🎮</div>
+              <h3 className="mt-2 text-xl font-bold text-maroon">Interactive Fun</h3>
+              <p className="text-sm text-maroon/70">Mini games, friendly mascots, and songs keep every lesson exciting.</p>
             </div>
-            <div className="bg-gradient-to-br from-maroon/10 to-gold/10 rounded-2xl p-4">
-              <div className="text-3xl mb-2">🏆</div>
-              <h3 className="font-bold text-maroon mb-2">Earn Badges</h3>
-              <p className="text-sm text-gray-600">Unlock achievements as you progress</p>
+            <div className="kid-pill rounded-2xl p-5 text-left shadow-lg">
+              <div className="text-4xl">🏆</div>
+              <h3 className="mt-2 text-xl font-bold text-maroon">Sparkly Rewards</h3>
+              <p className="text-sm text-maroon/70">Collect stars, stickers, and badges as you master new sounds.</p>
             </div>
-            <div className="bg-gradient-to-br from-maroon/10 to-gold/10 rounded-2xl p-4">
-              <div className="text-3xl mb-2">📊</div>
-              <h3 className="font-bold text-maroon mb-2">Track Progress</h3>
-              <p className="text-sm text-gray-600">See your learning journey unfold</p>
+            <div className="kid-pill rounded-2xl p-5 text-left shadow-lg">
+              <div className="text-4xl">🌈</div>
+              <h3 className="mt-2 text-xl font-bold text-maroon">Happy Progress</h3>
+              <p className="text-sm text-maroon/70">Watch your rainbow progress meter glow brighter every day.</p>
             </div>
           </div>
 
-          {/* CTA Button */}
           <button
             onClick={() => {
               onStart()
             }}
-            className="w-full bg-gradient-to-r from-maroon to-maroon/80 hover:from-maroon/90 hover:to-maroon/70 text-white font-bold py-4 px-8 rounded-2xl text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-2xl active:scale-95"
+            className="mt-10 w-full rounded-3xl bg-gradient-to-r from-maroon via-maroon/90 to-maroon/80 py-4 text-xl font-extrabold text-[var(--color-milk)] shadow-[0_15px_40px_rgba(123,51,96,0.25)] transition-transform duration-300 hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-maroon/30"
           >
-            Start Learning Now
+            Let&apos;s Start the Journey!
           </button>
         </div>
 
-        {/* Footer Info */}
-        <p className="text-maroon/60 text-sm">No login required • Start immediately • Learn at your own pace</p>
+        <p className="mt-8 text-sm text-maroon/60">No login needed • Friendly for beginners • Parents can track every smile</p>
       </div>
     </div>
   )

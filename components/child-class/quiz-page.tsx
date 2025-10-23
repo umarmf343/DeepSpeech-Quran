@@ -84,50 +84,57 @@ export default function QuizPage({ onComplete, onBack }: QuizPageProps) {
   const progressPercentage = ((currentQuestion + 1) / QUIZ_QUESTIONS.length) * 100
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-milk via-milk to-milk/95 px-4 py-8 md:px-8">
+    <div className="relative min-h-screen px-4 py-10 md:px-8">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-12 left-8 h-40 w-40 rounded-full bg-white/50 blur-3xl"></div>
+        <div className="absolute bottom-0 right-12 h-48 w-48 rounded-full bg-gradient-to-br from-maroon/20 via-amber-200/50 to-transparent blur-3xl"></div>
+      </div>
+
       {/* Premium Header */}
-      <div className="flex justify-between items-center mb-8 animate-slide-down">
-        <button
-          onClick={onBack}
-          className="bg-white hover:bg-maroon/10 text-maroon font-bold py-2 px-4 rounded-lg transition-all duration-300 border-2 border-maroon/20"
-        >
-          ← Back
-        </button>
-        <h1 className="text-4xl font-bold text-maroon">Daily Quiz</h1>
-        <div className="flex gap-4">
-          <div className="text-center bg-white px-4 py-2 rounded-lg border-2 border-gold/30">
-            <div className="text-2xl font-bold text-gold">{score}</div>
-            <div className="text-xs text-maroon/60">Current</div>
-          </div>
-          <div className="text-center bg-white px-4 py-2 rounded-lg border-2 border-maroon/20">
-            <div className="text-2xl font-bold text-maroon">{bestScore}</div>
-            <div className="text-xs text-maroon/60">Best</div>
+      <div className="relative z-10 mb-8 animate-slide-down">
+        <div className="kid-card flex flex-col gap-4 rounded-3xl p-6 sm:flex-row sm:items-center sm:justify-between">
+          <button
+            onClick={onBack}
+            className="kid-pill flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-105"
+          >
+            ← Back
+          </button>
+          <h1 className="text-3xl font-extrabold text-maroon">Daily Quiz</h1>
+          <div className="flex gap-3">
+            <div className="kid-pill rounded-3xl px-4 py-3 text-center">
+              <div className="text-2xl font-black text-maroon">{score}</div>
+              <div className="text-xs font-semibold uppercase tracking-widest text-maroon/60">Current</div>
+            </div>
+            <div className="kid-pill rounded-3xl px-4 py-3 text-center">
+              <div className="text-2xl font-black text-maroon">{bestScore}</div>
+              <div className="text-xs font-semibold uppercase tracking-widest text-maroon/60">Best</div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Progress Section */}
-      <div className="max-w-3xl mx-auto mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <span className="text-sm font-bold text-maroon">
+      <div className="relative z-10 mx-auto mb-8 max-w-3xl">
+        <div className="kid-card flex flex-col gap-4 rounded-3xl p-6 sm:flex-row sm:items-center sm:justify-between">
+          <span className="text-sm font-semibold uppercase tracking-widest text-maroon">
             Question {currentQuestion + 1} of {QUIZ_QUESTIONS.length}
           </span>
-          <span className="text-sm font-bold text-gold">{Math.round(progressPercentage)}%</span>
+          <span className="rounded-full bg-white/80 px-4 py-2 text-lg font-black text-maroon shadow-inner">
+            {Math.round(progressPercentage)}%
+          </span>
         </div>
-        <div className="w-full bg-maroon/10 rounded-full h-3 overflow-hidden">
+        <div className="mt-4 h-4 w-full overflow-hidden rounded-full bg-maroon/10">
           <div
-            className="bg-gradient-to-r from-maroon via-gold to-maroon h-full transition-all duration-500 ease-out"
-            style={{
-              width: `${progressPercentage}%`,
-            }}
+            className="h-full rounded-full bg-gradient-to-r from-maroon via-amber-300 to-pink-400 transition-all duration-500 ease-out"
+            style={{ width: `${progressPercentage}%` }}
           ></div>
         </div>
       </div>
 
       {/* Question Card */}
-      <div className="max-w-3xl mx-auto">
-        <div className="card-premium p-8 md:p-12 animate-slide-up">
-          <h2 className="text-2xl md:text-3xl font-bold text-maroon mb-10 text-center">{question.question}</h2>
+      <div className="relative z-10 mx-auto max-w-3xl">
+        <div className="kid-card p-8 md:p-12 animate-slide-up">
+          <h2 className="mb-10 text-center text-2xl md:text-3xl font-extrabold text-maroon">{question.question}</h2>
 
           {question.type === "multiple-choice" && (
             <div className="grid grid-cols-1 gap-4 mb-8">
@@ -136,15 +143,15 @@ export default function QuizPage({ onComplete, onBack }: QuizPageProps) {
                   key={idx}
                   onClick={() => handleAnswer(option)}
                   disabled={answered}
-                  className={`text-lg font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 border-2 ${
+                  className={`rounded-2xl border py-4 px-6 text-lg font-extrabold transition-all duration-300 ${
                     answered
                       ? option === question.correct
-                        ? "bg-green-100 border-green-400 text-green-700"
+                        ? "bg-green-200 border-green-300 text-green-800 shadow-inner"
                         : option === selectedAnswer
-                          ? "bg-red-100 border-red-400 text-red-700"
-                          : "bg-maroon/5 border-maroon/10 text-maroon/50"
-                      : "bg-white border-maroon/20 text-maroon hover:border-maroon hover:bg-maroon/5"
-                  }`}
+                          ? "bg-red-200 border-red-300 text-red-800 shadow-inner"
+                          : "bg-white/60 border-white text-maroon/50"
+                      : "bg-white/90 border-white/80 text-maroon shadow-lg hover:-translate-y-1 hover:scale-105"
+                  } disabled:cursor-not-allowed`}
                 >
                   {option}
                 </button>
@@ -159,15 +166,15 @@ export default function QuizPage({ onComplete, onBack }: QuizPageProps) {
                   key={idx}
                   onClick={() => handleAnswer(option)}
                   disabled={answered}
-                  className={`text-lg font-bold py-6 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 border-2 ${
+                  className={`rounded-2xl border py-6 px-4 text-lg font-extrabold transition-all duration-300 ${
                     answered
                       ? option === question.correct
-                        ? "bg-green-100 border-green-400 text-green-700"
+                        ? "bg-green-200 border-green-300 text-green-800 shadow-inner"
                         : option === selectedAnswer
-                          ? "bg-red-100 border-red-400 text-red-700"
-                          : "bg-maroon/5 border-maroon/10 text-maroon/50"
-                      : "bg-white border-maroon/20 text-maroon hover:border-maroon hover:bg-maroon/5"
-                  }`}
+                          ? "bg-red-200 border-red-300 text-red-800 shadow-inner"
+                          : "bg-white/60 border-white text-maroon/50"
+                      : "bg-white/90 border-white/80 text-maroon shadow-lg hover:-translate-y-1 hover:scale-105"
+                  } disabled:cursor-not-allowed`}
                 >
                   {option}
                 </button>

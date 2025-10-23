@@ -41,19 +41,19 @@ export function InteractiveActivity({ title, description, items, onComplete }: I
 
   return (
     <div className="w-full">
-      <h3 className="text-2xl font-bold text-maroon mb-2">{title}</h3>
-      <p className="text-gray-600 mb-6">{description}</p>
+      <h3 className="mb-2 text-2xl font-extrabold text-maroon">{title}</h3>
+      <p className="mb-6 text-maroon/70">{description}</p>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="mb-6 grid grid-cols-2 gap-4">
         {items.map((item) => (
           <button
             key={item.id}
             onClick={() => handleItemClick(item.id)}
             disabled={completed.includes(item.id)}
-            className={`p-4 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 ${
+            className={`rounded-2xl p-4 font-extrabold transition-all duration-300 ${
               completed.includes(item.id)
-                ? "bg-green-100 border-2 border-green-400 text-green-700"
-                : "bg-gradient-to-br from-maroon/10 to-gold/10 border-2 border-maroon/20 hover:border-maroon text-maroon"
+                ? "bg-green-200 text-green-800 shadow-inner"
+                : "bg-white/90 text-maroon shadow-lg hover:-translate-y-1 hover:scale-105"
             }`}
           >
             {item.label}
@@ -61,7 +61,7 @@ export function InteractiveActivity({ title, description, items, onComplete }: I
         ))}
       </div>
 
-      {feedback && <div className="text-center text-lg font-bold text-maroon animate-bounce">{feedback}</div>}
+      {feedback && <div className="text-center text-lg font-extrabold text-maroon animate-bounce-soft">{feedback}</div>}
     </div>
   )
 }

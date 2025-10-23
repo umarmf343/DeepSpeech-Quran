@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
+import { Baloo_2 } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import "./globals.css"
@@ -16,6 +17,12 @@ export const metadata: Metadata = {
   generator: "AlFawz Qur'an Institute",
   keywords: ["Quran", "Islamic Education", "Memorization", "Recitation", "Tajweed", "Hifz"],
 }
+
+const kidFont = Baloo_2({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-kid",
+})
 
 export default function RootLayout({
   children,
@@ -38,7 +45,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} antialiased`}>
+      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} ${kidFont.variable} antialiased`}>
         <UserProvider>
           <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
           <Toaster />

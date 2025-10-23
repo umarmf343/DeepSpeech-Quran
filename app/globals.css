@@ -113,6 +113,12 @@
   --color-milk: oklch(0.98 0.01 45);
   --color-gold: oklch(0.65 0.12 35);
   --color-light-gold: oklch(0.75 0.1 45);
+  --kid-sky: #dff5ff;
+  --kid-cloud: #fff6f0;
+  --kid-sunrise: #ffe4f3;
+  --kid-lilac: #f0e6ff;
+  --kid-sunset: #ffd6aa;
+  --kid-mint: #d8ffed;
 }
 
 @layer base {
@@ -125,6 +131,10 @@
 
   body.has-bottom-nav {
     padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  }
+
+  .font-kid {
+    font-family: var(--font-kid), "Baloo 2", "Fredoka", "Comic Neue", cursive;
   }
 
   @media (min-width: 1024px) {
@@ -389,6 +399,101 @@
     background-size: 100% 0.3em;
     background-repeat: no-repeat;
     background-position: 0 85%;
+  }
+
+  .bg-kid-sky {
+    background-image: radial-gradient(circle at 10% 20%, rgba(255, 214, 240, 0.65) 0%, transparent 55%),
+      radial-gradient(circle at 85% 15%, rgba(209, 248, 255, 0.7) 0%, transparent 48%),
+      radial-gradient(circle at 20% 80%, rgba(255, 232, 189, 0.6) 0%, transparent 45%),
+      linear-gradient(135deg, var(--kid-cloud) 0%, var(--kid-sky) 35%, var(--kid-lilac) 70%, var(--kid-sunrise) 100%);
+  }
+
+  .bg-kid-sunset {
+    background-image: radial-gradient(circle at 15% 30%, rgba(255, 215, 180, 0.7) 0%, transparent 45%),
+      radial-gradient(circle at 85% 70%, rgba(255, 200, 230, 0.65) 0%, transparent 50%),
+      linear-gradient(135deg, var(--kid-sunrise) 0%, var(--kid-cloud) 40%, var(--kid-sunset) 100%);
+  }
+
+  .bg-kid-candy {
+    background-image: radial-gradient(circle at 20% 20%, rgba(255, 230, 245, 0.8) 0%, transparent 50%),
+      radial-gradient(circle at 75% 35%, rgba(222, 252, 255, 0.7) 0%, transparent 40%),
+      radial-gradient(circle at 50% 80%, rgba(255, 244, 199, 0.65) 0%, transparent 42%),
+      linear-gradient(140deg, var(--kid-lilac) 0%, var(--kid-cloud) 30%, var(--kid-mint) 65%, var(--kid-sunrise) 100%);
+  }
+
+  .kid-card {
+    position: relative;
+    border-radius: 28px;
+    border: 3px solid rgba(255, 255, 255, 0.45);
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 244, 240, 0.85) 35%, rgba(255, 228, 244, 0.8) 100%);
+    box-shadow: 0 22px 55px rgba(124, 52, 92, 0.18);
+    overflow: hidden;
+  }
+
+  .kid-card::before,
+  .kid-card::after {
+    content: "";
+    position: absolute;
+    border-radius: 9999px;
+    opacity: 0.45;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+
+  .kid-card::before {
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, rgba(255, 214, 240, 0.7) 0%, rgba(255, 214, 240, 0) 65%);
+    top: -70px;
+    right: -40px;
+  }
+
+  .kid-card::after {
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(209, 248, 255, 0.7) 0%, rgba(209, 248, 255, 0) 65%);
+    bottom: -90px;
+    left: -40px;
+  }
+
+  .kid-pill {
+    background: linear-gradient(135deg, rgba(255, 228, 243, 0.8) 0%, rgba(209, 248, 255, 0.8) 100%);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 12px 30px rgba(124, 52, 92, 0.15);
+  }
+
+  .kid-shadow {
+    box-shadow: 0 15px 45px rgba(123, 51, 96, 0.12);
+  }
+
+  .animate-float-slow {
+    animation: floaty 8s ease-in-out infinite;
+  }
+
+  .animate-bounce-soft {
+    animation: bounce-soft 2.8s ease-in-out infinite;
+  }
+}
+
+@keyframes floaty {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(2deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+@keyframes bounce-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
   }
 }
 

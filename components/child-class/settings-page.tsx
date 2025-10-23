@@ -53,34 +53,39 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
   }
 
   return (
-    <div className="min-h-screen px-4 py-8 md:px-8">
+    <div className="relative min-h-screen px-4 py-10 md:px-8">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-12 left-10 h-44 w-44 rounded-full bg-white/45 blur-3xl"></div>
+        <div className="absolute bottom-0 right-12 h-52 w-52 rounded-full bg-gradient-to-br from-maroon/20 via-amber-200/50 to-transparent blur-3xl"></div>
+      </div>
+
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl md:text-5xl font-bold text-maroon">Settings</h1>
+      <div className="relative z-10 mb-8 flex items-center justify-between">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-maroon">Settings</h1>
         <button
           onClick={onBack}
-          className="bg-maroon hover:bg-maroon/90 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300"
+          className="rounded-full bg-gradient-to-r from-maroon via-maroon/90 to-maroon/80 px-5 py-2 text-sm font-extrabold text-[var(--color-milk)] shadow-[0_10px_25px_rgba(123,51,96,0.25)] transition-transform duration-300 hover:scale-105"
         >
           Back
         </button>
       </div>
 
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="relative z-10 mx-auto max-w-2xl space-y-6">
         {/* Display Settings */}
-        <div className="bg-white rounded-3xl shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-maroon mb-6">Display Settings</h2>
+        <div className="kid-card p-8">
+          <h2 className="mb-6 text-2xl font-extrabold text-maroon">Display Settings</h2>
 
           <div className="space-y-6">
             {/* Theme */}
             <div className="flex justify-between items-center pb-6 border-b border-gray-200">
               <div>
-                <p className="font-bold text-maroon">Theme</p>
-                <p className="text-sm text-gray-600">Choose your preferred theme</p>
+                <p className="font-extrabold text-maroon">Theme</p>
+                <p className="text-sm text-maroon/70">Choose your preferred theme</p>
               </div>
               <select
                 value={settings.theme}
                 onChange={(e) => handleSettingChange("theme", e.target.value)}
-                className="px-4 py-2 border-2 border-maroon/20 rounded-lg focus:outline-none focus:border-maroon"
+                className="rounded-xl border border-white/70 bg-white/90 px-4 py-2 text-maroon shadow-sm focus:outline-none focus:border-maroon"
               >
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
@@ -90,13 +95,13 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
             {/* Font Size */}
             <div className="flex justify-between items-center pb-6 border-b border-gray-200">
               <div>
-                <p className="font-bold text-maroon">Font Size</p>
-                <p className="text-sm text-gray-600">Adjust text size for readability</p>
+                <p className="font-extrabold text-maroon">Font Size</p>
+                <p className="text-sm text-maroon/70">Adjust text size for readability</p>
               </div>
               <select
                 value={settings.fontSize}
                 onChange={(e) => handleSettingChange("fontSize", e.target.value)}
-                className="px-4 py-2 border-2 border-maroon/20 rounded-lg focus:outline-none focus:border-maroon"
+                className="rounded-xl border border-white/70 bg-white/90 px-4 py-2 text-maroon shadow-sm focus:outline-none focus:border-maroon"
               >
                 <option value="small">Small</option>
                 <option value="medium">Medium</option>
@@ -107,13 +112,13 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
             {/* Language */}
             <div className="flex justify-between items-center">
               <div>
-                <p className="font-bold text-maroon">Language</p>
-                <p className="text-sm text-gray-600">Select your preferred language</p>
+                <p className="font-extrabold text-maroon">Language</p>
+                <p className="text-sm text-maroon/70">Select your preferred language</p>
               </div>
               <select
                 value={settings.language}
                 onChange={(e) => handleSettingChange("language", e.target.value)}
-                className="px-4 py-2 border-2 border-maroon/20 rounded-lg focus:outline-none focus:border-maroon"
+                className="rounded-xl border border-white/70 bg-white/90 px-4 py-2 text-maroon shadow-sm focus:outline-none focus:border-maroon"
               >
                 <option value="en">English</option>
                 <option value="ar">العربية</option>
@@ -123,7 +128,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
         </div>
 
         {/* Audio Settings */}
-        <div className="bg-white rounded-3xl shadow-lg p-8">
+        <div className="kid-card p-8">
           <h2 className="text-2xl font-bold text-maroon mb-6">Audio Settings</h2>
 
           <div className="space-y-6">
@@ -131,7 +136,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
             <div className="flex justify-between items-center pb-6 border-b border-gray-200">
               <div>
                 <p className="font-bold text-maroon">Sound Effects</p>
-                <p className="text-sm text-gray-600">Enable/disable sound effects</p>
+                <p className="text-sm text-maroon/70">Enable/disable sound effects</p>
               </div>
               <button
                 onClick={() => handleSettingChange("soundEnabled", !settings.soundEnabled)}
@@ -151,7 +156,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
             <div className="flex justify-between items-center">
               <div>
                 <p className="font-bold text-maroon">Auto-play Pronunciation</p>
-                <p className="text-sm text-gray-600">Automatically play letter pronunciation</p>
+                <p className="text-sm text-maroon/70">Automatically play letter pronunciation</p>
               </div>
               <button
                 onClick={() => handleSettingChange("autoPlayPronunciation", !settings.autoPlayPronunciation)}
@@ -171,7 +176,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
 
         {/* Parental Controls */}
         {parentalControls && (
-          <div className="bg-white rounded-3xl shadow-lg p-8">
+          <div className="kid-card p-8">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-maroon">Parental Controls</h2>
               <button onClick={() => setShowParentalSection(!showParentalSection)} className="text-maroon font-bold">
@@ -184,7 +189,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                 <div className="flex justify-between items-center pb-6 border-b border-gray-200">
                   <div>
                     <p className="font-bold text-maroon">Enable Parental Controls</p>
-                    <p className="text-sm text-gray-600">Restrict learning time and content</p>
+                    <p className="text-sm text-maroon/70">Restrict learning time and content</p>
                   </div>
                   <button
                     onClick={() => handleParentalChange("enabled", !parentalControls.enabled)}
@@ -205,7 +210,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                     <div className="flex justify-between items-center pb-6 border-b border-gray-200">
                       <div>
                         <p className="font-bold text-maroon">Daily Time Limit (minutes)</p>
-                        <p className="text-sm text-gray-600">Maximum learning time per day</p>
+                        <p className="text-sm text-maroon/70">Maximum learning time per day</p>
                       </div>
                       <input
                         type="number"
@@ -218,7 +223,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                     <div className="flex justify-between items-center pb-6 border-b border-gray-200">
                       <div>
                         <p className="font-bold text-maroon">Session Time Limit (minutes)</p>
-                        <p className="text-sm text-gray-600">Maximum continuous learning time</p>
+                        <p className="text-sm text-maroon/70">Maximum continuous learning time</p>
                       </div>
                       <input
                         type="number"
@@ -231,7 +236,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                     <div className="flex justify-between items-center pb-6 border-b border-gray-200">
                       <div>
                         <p className="font-bold text-maroon">Content Filter</p>
-                        <p className="text-sm text-gray-600">Restrict to beginner content</p>
+                        <p className="text-sm text-maroon/70">Restrict to beginner content</p>
                       </div>
                       <select
                         value={parentalControls.contentFilter}
@@ -247,7 +252,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="font-bold text-maroon">Break Reminder</p>
-                        <p className="text-sm text-gray-600">Remind to take breaks</p>
+                        <p className="text-sm text-maroon/70">Remind to take breaks</p>
                       </div>
                       <button
                         onClick={() => handleParentalChange("breakReminder", !parentalControls.breakReminder)}
@@ -270,7 +275,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
         )}
 
         {/* Notification Settings */}
-        <div className="bg-white rounded-3xl shadow-lg p-8">
+        <div className="kid-card p-8">
           <h2 className="text-2xl font-bold text-maroon mb-6">Notifications</h2>
 
           <div className="space-y-6">
@@ -278,7 +283,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
             <div className="flex justify-between items-center pb-6 border-b border-gray-200">
               <div>
                 <p className="font-bold text-maroon">Enable Notifications</p>
-                <p className="text-sm text-gray-600">Receive app notifications</p>
+                <p className="text-sm text-maroon/70">Receive app notifications</p>
               </div>
               <button
                 onClick={() => handleSettingChange("notificationsEnabled", !settings.notificationsEnabled)}
@@ -298,7 +303,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
             <div className="flex justify-between items-center pb-6 border-b border-gray-200">
               <div>
                 <p className="font-bold text-maroon">Daily Reminder</p>
-                <p className="text-sm text-gray-600">Get reminded to practice daily</p>
+                <p className="text-sm text-maroon/70">Get reminded to practice daily</p>
               </div>
               <button
                 onClick={() => handleSettingChange("dailyReminder", !settings.dailyReminder)}
@@ -319,7 +324,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
               <div className="flex justify-between items-center">
                 <div>
                   <p className="font-bold text-maroon">Reminder Time</p>
-                  <p className="text-sm text-gray-600">Set your daily reminder time</p>
+                  <p className="text-sm text-maroon/70">Set your daily reminder time</p>
                 </div>
                 <input
                   type="time"
@@ -333,7 +338,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
         </div>
 
         {/* Data Management */}
-        <div className="bg-white rounded-3xl shadow-lg p-8">
+        <div className="kid-card p-8">
           <h2 className="text-2xl font-bold text-maroon mb-6">Data Management</h2>
 
           <div className="space-y-4">
@@ -410,7 +415,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
             QKid is an interactive learning platform designed to help you master Arabic reading and Quranic
             pronunciation through engaging lessons, games, and progress tracking.
           </p>
-          <div className="space-y-2 text-sm text-gray-600">
+          <div className="space-y-2 text-sm text-maroon/70">
             <p>Version: 1.0.0</p>
             <p>Last Updated: October 2025</p>
             <p>© 2025 QKid. All rights reserved.</p>
