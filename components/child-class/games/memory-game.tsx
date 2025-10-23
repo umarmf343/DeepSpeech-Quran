@@ -119,19 +119,22 @@ export function MemoryGame({ onComplete, onBack }: MemoryGameProps) {
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-3xl shadow-2xl p-8">
           <div className="grid grid-cols-3 gap-4">
-            {cards.map((card, index) => (
-              <button
-                key={index}
-                onClick={() => toggleFlip(index)}
-                className={`aspect-square rounded-2xl font-bold text-3xl transition-all duration-300 transform hover:scale-105 ${
-                  flipped.includes(index) || matched.includes(card.id)
-                    ? "bg-gradient-to-br from-maroon/10 to-gold/10 border-2 border-maroon/20"
-                    : "bg-gradient-to-br from-maroon to-maroon/80 border-2 border-maroon"
-                }`}
-              >
-                {flipped.includes(index) || matched.includes(card.id) ? card.arabic : "?"}
-              </button>
-            ))}
+            {cards.map((card, index) => {
+              const isRevealed = flipped.includes(index) || matched.includes(card.id)
+              return (
+                <button
+                  key={index}
+                  onClick={() => toggleFlip(index)}
+                  className={`aspect-square rounded-2xl font-bold text-[3.75rem] transition-all duration-300 transform hover:scale-105 ${
+                    isRevealed
+                      ? "bg-gradient-to-br from-maroon/10 to-gold/10 border-2 border-maroon/20 text-black"
+                      : "bg-gradient-to-br from-maroon to-maroon/80 border-2 border-maroon text-white"
+                  }`}
+                >
+                  {isRevealed ? card.arabic : "?"}
+                </button>
+              )
+            })}
           </div>
         </div>
       </div>

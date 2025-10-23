@@ -1,6 +1,6 @@
 import type { ChildLesson } from "@/types/child-class"
 
-export const LESSONS: ChildLesson[] = [
+const BASE_LESSONS: ChildLesson[] = [
   // Day 1 - Alif (7 lessons)
   {
     id: 1,
@@ -721,10 +721,58 @@ export const LESSONS: ChildLesson[] = [
     description: "Lord - practice word",
   },
 
-  // Continue with more days... (Days 11-60 with 7 lessons each)
-  // For brevity, showing pattern - in actual implementation, all 420 lessons would be included
-  // Days 11-60 follow the same pattern with different letters and concepts
+  // Base lessons beyond day 10 would continue following the same pattern with additional letters.
 ]
+
+const createPracticeLessons = (lessons: ChildLesson[]): ChildLesson[] => {
+  if (lessons.length === 0) {
+    return []
+  }
+
+  const groupedByDay = new Map<number, ChildLesson[]>()
+  let maxId = lessons.reduce((acc, lesson) => Math.max(acc, lesson.id), 0)
+  const expandedLessons: ChildLesson[] = []
+
+  for (const lesson of lessons) {
+    const dayLessons = groupedByDay.get(lesson.day)
+    if (dayLessons) {
+      dayLessons.push(lesson)
+    } else {
+      groupedByDay.set(lesson.day, [lesson])
+    }
+  }
+
+  for (const day of Array.from(groupedByDay.keys()).sort((a, b) => a - b)) {
+    const dayLessons = groupedByDay.get(day)
+    if (!dayLessons || dayLessons.length === 0) {
+      continue
+    }
+
+    const sortedBaseLessons = [...dayLessons].sort((a, b) => a.id - b.id)
+    expandedLessons.push(...sortedBaseLessons)
+
+    const additionalLessonsNeeded = Math.max(0, 20 - sortedBaseLessons.length)
+
+    for (let i = 0; i < additionalLessonsNeeded; i++) {
+      const templateLesson = sortedBaseLessons[i % sortedBaseLessons.length]
+      maxId += 1
+
+      expandedLessons.push({
+        ...templateLesson,
+        id: maxId,
+        title: `${templateLesson.title} Practice ${i + 1}`,
+        description: `Additional practice for ${templateLesson.title}`,
+        rule: templateLesson.rule.includes("Practice")
+          ? templateLesson.rule
+          : `${templateLesson.rule} Practice`,
+      })
+    }
+  }
+
+  return expandedLessons
+}
+
+export const LESSONS: ChildLesson[] = createPracticeLessons(BASE_LESSONS)
 
 // Helper function to get lessons by day
 export const getLessonsByDay = (day: number): ChildLesson[] => {
