@@ -19,6 +19,16 @@ const tajweedCache = new Map<string, TajweedRenderResult>()
 let warnedMissingModule = false
 
 const loadTajweedModule = async () => {
+  if (typeof window !== "undefined") {
+    if (!warnedMissingModule) {
+      warnedMissingModule = true
+      console.warn(
+        "DeepSpeech tajweed overlays are only available in the server environment. Skipping optional module load in the browser.",
+      )
+    }
+    return null
+  }
+
   try {
     return (await import(/* webpackIgnore: true */ "deepspeech-quran/tajweed")) as
       | {
