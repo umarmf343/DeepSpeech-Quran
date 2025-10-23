@@ -39,6 +39,28 @@ export default function Dashboard({
     "kid-gradient-tropical",
   ]
 
+  const heartPalette = useMemo(() => {
+    const palette = [
+      "#f472b6",
+      "#60a5fa",
+      "#facc15",
+      "#fb923c",
+      "#86efac",
+      "#c084fc",
+      "#f472b6",
+      "#8b5cf6",
+      "#2dd4bf",
+      "#facc15",
+    ]
+
+    for (let i = palette.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[palette[i], palette[j]] = [palette[j], palette[i]]
+    }
+
+    return palette
+  }, [])
+
   useEffect(() => {
     setGameStats(loadGameStats())
     setStreakData(loadStreakData())
@@ -185,7 +207,6 @@ export default function Dashboard({
               "ring-2 ring-white/80 after:absolute after:bottom-[-25%] after:left-1/2 after:h-12 after:w-12 after:-translate-x-1/2 after:rounded-full after:bg-white/30 after:blur-2xl after:content-['']"
             const upcomingClasses = "opacity-80"
 
-            const heartPalette = ["#ff5c8d", "#ff7aa8", "#ff99c2", "#ff6f91", "#ff8fb8", "#ff4f7b"]
             const heartColor = heartPalette[(day - 1) % heartPalette.length]
 
             return (
