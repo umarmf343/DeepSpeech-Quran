@@ -840,9 +840,9 @@ export function QuranReaderContainer({
               <div className="mt-4 space-y-3">
                 <div
                   className={cn(
-                    "font-arabic text-right text-2xl leading-relaxed md:text-[2.25rem]",
+                    "font-arabic text-right text-2xl md:text-[2.25rem] tracking-[0.015em] md:tracking-[0.02em]",
                     profile.fontSizeClass,
-                    profile.lineHeightClass,
+                    profile.lineHeightClass ?? "leading-loose",
                   )}
                   dir="rtl"
                 >
