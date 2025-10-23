@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useMemo, type CSSProperties } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -77,6 +78,16 @@ export function EggChallengeWidget({
     >
       {showCelebration ? (
         <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Image
+              src="/break-egg-celebration.gif"
+              alt="Confetti celebration for breaking the egg"
+              width={320}
+              height={320}
+              className="h-48 w-48 max-w-full object-contain sm:h-56 sm:w-56"
+              priority
+            />
+          </div>
           {sprinkleOffsets.map((item, index) => (
             <span
               key={`sprinkle-${index}`}
