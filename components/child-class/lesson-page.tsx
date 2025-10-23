@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, type ReactNode } from "react"
+import { useState, useEffect, useMemo, useRef, type ReactNode } from "react"
 import { renderTextWithArabicCard } from "./arabic-letter-card"
 import { playSound } from "@/lib/child-class/sound-effects"
 import { loadSettings, type UserSettings } from "@/lib/child-class/settings-utils"
@@ -49,11 +49,23 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
   const [tracingComplete, setTracingComplete] = useState<boolean>(false)
   const [tracingResetKey, setTracingResetKey] = useState<number>(0)
   const [showTracingFailure, setShowTracingFailure] = useState<boolean>(false)
+  const [showTracingCelebration, setShowTracingCelebration] = useState<boolean>(false)
+  const [celebrationWave, setCelebrationWave] = useState<number>(0)
   const [selectedPracticeOption, setSelectedPracticeOption] = useState<string | null>(null)
   const [selectedPracticeCorrect, setSelectedPracticeCorrect] = useState<boolean | null>(null)
+  const celebrationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     setSettings(loadSettings())
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (celebrationTimeoutRef.current) {
+        clearTimeout(celebrationTimeoutRef.current)
+        celebrationTimeoutRef.current = null
+      }
+    }
   }, [])
 
   useEffect(() => {
@@ -144,9 +156,14 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
   }
 
   const handleTracingSuccess = () => {
-    if (tracingComplete) return
+    if (tracingComplete || showTracingCelebration) return
 
-    setTracingComplete(true)
+    if (celebrationTimeoutRef.current) {
+      clearTimeout(celebrationTimeoutRef.current)
+    }
+
+    setShowTracingCelebration(true)
+    setCelebrationWave((prev) => prev + 1)
     setScore((prev) => prev + 25)
     setFeedbackMessage("Perfect tracing! 🎉")
     setFeedbackType("success")
@@ -156,6 +173,12 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
       playSound("correct")
     }
     window.setTimeout(() => setShowFeedback(false), 1500)
+
+    celebrationTimeoutRef.current = setTimeout(() => {
+      setShowTracingCelebration(false)
+      setTracingComplete(true)
+      celebrationTimeoutRef.current = null
+    }, 2000)
   }
 
   const handleTracingFailure = () => {
@@ -172,6 +195,11 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     setTracingComplete(false)
     setTracingResetKey((prev) => prev + 1)
     setShowTracingFailure(false)
+    setShowTracingCelebration(false)
+    if (celebrationTimeoutRef.current) {
+      clearTimeout(celebrationTimeoutRef.current)
+      celebrationTimeoutRef.current = null
+    }
   }
 
   useEffect(() => {
@@ -180,9 +208,36 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     setTracingComplete(false)
     setTracingResetKey((prev) => prev + 1)
     setShowTracingFailure(false)
+    setShowTracingCelebration(false)
+    if (celebrationTimeoutRef.current) {
+      clearTimeout(celebrationTimeoutRef.current)
+      celebrationTimeoutRef.current = null
+    }
   }, [lesson.id])
 
-  const isNextDisabled = currentStep === 3 && !tracingComplete
+  const tracingCelebrationPieces = useMemo(() => {
+    if (!showTracingCelebration) return []
+    return Array.from({ length: 24 }, (_, index) => ({
+      id: `${celebrationWave}-confetti-${index}`,
+      left: Math.random() * 100,
+      delay: (index % 6) * 90,
+      duration: 1400 + Math.random() * 700,
+      colorVariant: index % 4,
+    }))
+  }, [showTracingCelebration, celebrationWave])
+
+  const tracingSparkles = useMemo(() => {
+    if (!showTracingCelebration) return []
+    return Array.from({ length: 8 }, (_, index) => ({
+      id: `${celebrationWave}-sparkle-${index}`,
+      top: 10 + Math.random() * 70,
+      left: 10 + Math.random() * 80,
+      size: 12 + Math.random() * 10,
+      delay: index * 120,
+    }))
+  }, [showTracingCelebration, celebrationWave])
+
+  const isNextDisabled = currentStep === 3 && (!tracingComplete || showTracingCelebration)
 
   return (
     <div className="relative min-h-screen px-4 py-10 md:px-8">
@@ -215,6 +270,63 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
             >
               Try Again
             </button>
+          </div>
+        </div>
+      )}
+
+      {showTracingCelebration && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-200/40 via-transparent to-pink-200/40 blur-3xl" />
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            {tracingCelebrationPieces.map((piece) => (
+              <span
+                key={piece.id}
+                aria-hidden="true"
+                className={`confetti-piece ${
+                  piece.colorVariant === 0
+                    ? "bg-emerald-400"
+                    : piece.colorVariant === 1
+                      ? "bg-amber-400"
+                      : piece.colorVariant === 2
+                        ? "bg-pink-400"
+                        : "bg-maroon-400"
+                }`}
+                style={{
+                  left: `${piece.left}%`,
+                  animationDelay: `${piece.delay}ms`,
+                  animationDuration: `${piece.duration}ms`,
+                }}
+              />
+            ))}
+            {tracingSparkles.map((sparkle) => (
+              <span
+                key={sparkle.id}
+                aria-hidden="true"
+                className="absolute rounded-full bg-white/80 shadow-lg animate-ping"
+                style={{
+                  top: `${sparkle.top}%`,
+                  left: `${sparkle.left}%`,
+                  width: `${sparkle.size}px`,
+                  height: `${sparkle.size}px`,
+                  animationDelay: `${sparkle.delay}ms`,
+                }}
+              />
+            ))}
+          </div>
+          <div className="pointer-events-none relative z-10 flex flex-col items-center gap-3 rounded-3xl bg-white/80 px-10 py-8 text-center shadow-xl animate-scale-in">
+            <div className="flex items-center gap-3 text-5xl">
+              <span role="img" aria-hidden="true">
+                ✨
+              </span>
+              <span role="img" aria-hidden="true">
+                🌟
+              </span>
+              <span role="img" aria-hidden="true">
+                ✨
+              </span>
+            </div>
+            <p className="text-3xl font-extrabold text-maroon drop-shadow-sm">Amazing tracing!</p>
+            <p className="text-sm font-semibold text-maroon/70">Sprinkles of success are celebrating your win!</p>
           </div>
         </div>
       )}
