@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+process.env.NEXT_FONT_GOOGLE_FETCH_TIMEOUT ||= "60000";
+
 const WINDOWS_SYSTEM_PATHS = [
   "C:/DumpStack.log.tmp",
   "C:/System Volume Information",
