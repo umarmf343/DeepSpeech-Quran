@@ -229,7 +229,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
           {currentStep === 0 && (
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[0].title}</h2>
-              <div className="text-black text-[16rem] mb-4 animate-float">{lesson.arabic}</div>
+              <div className="text-black text-[11.43rem] animate-float">{lesson.arabic}</div>
               <p className="text-lg text-maroon/70 mb-8">{lesson.description}</p>
               <div className="grid grid-cols-2 gap-4">
                 <div className="kid-pill kid-pill-bubblegum rounded-3xl p-6 text-left shadow-lg">
@@ -247,7 +247,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
           {currentStep === 1 && (
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-maroon mb-8">{steps[1].title}</h2>
-              <div className="text-black text-[16rem] mb-6 animate-float">{lesson.arabic}</div>
+              <div className="text-black text-[11.43rem] animate-float">{lesson.arabic}</div>
               <button
                 onClick={handlePronounce}
                 className="kid-button kid-button-sunset inline-flex px-12 py-6 text-2xl font-extrabold"
