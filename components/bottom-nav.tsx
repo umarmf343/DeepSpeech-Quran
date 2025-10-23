@@ -302,7 +302,7 @@ export function BottomNavigation() {
           <button
             type="button"
             className={cn(
-              "pointer-events-auto hidden rounded-full border border-transparent bg-white/90 p-1 text-maroon-600 shadow-sm transition hover:text-maroon-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maroon-400 sm:flex",
+              "pointer-events-auto flex rounded-full border border-transparent bg-white/90 p-1 text-maroon-600 shadow-sm transition hover:text-maroon-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maroon-400",
               shadow.left ? "opacity-100" : "opacity-0",
             )}
             aria-label="Scroll navigation left"
@@ -378,7 +378,7 @@ export function BottomNavigation() {
           <button
             type="button"
             className={cn(
-              "pointer-events-auto hidden rounded-full border border-transparent bg-white/90 p-1 text-maroon-600 shadow-sm transition hover:text-maroon-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maroon-400 sm:flex",
+              "pointer-events-auto flex rounded-full border border-transparent bg-white/90 p-1 text-maroon-600 shadow-sm transition hover:text-maroon-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maroon-400",
               shadow.right ? "opacity-100" : "opacity-0",
             )}
             aria-label="Scroll navigation right"
