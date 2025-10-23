@@ -464,6 +464,130 @@ const LETTER_DEFINITIONS: LetterDefinition[] = [
   },
 ]
 
+type LessonEnrichment = Omit<ChildLesson, "id">
+
+const DAY_ENRICHMENTS: Record<number, LessonEnrichment[]> = {
+  1: [
+    {
+      day: 1,
+      title: "Tanwin Introduction",
+      level: "Beginner",
+      arabic: "ًٌٍ",
+      translit: "tanwin signs",
+      rule: "Tanwin",
+      description: "Discover the double vowel endings called tanwin.",
+    },
+    {
+      day: 1,
+      title: "Tanwin Fathatan",
+      level: "Beginner",
+      arabic: "بً",
+      translit: "ban",
+      rule: "Tanwin Fatha",
+      description: "Practice the -an sound using fathatan.",
+    },
+    {
+      day: 1,
+      title: "Tanwin Kasratan",
+      level: "Beginner",
+      arabic: "بٍ",
+      translit: "bin",
+      rule: "Tanwin Kasrah",
+      description: "Practice the -in sound using kasratan.",
+    },
+    {
+      day: 1,
+      title: "Tanwin Dammatan",
+      level: "Beginner",
+      arabic: "بٌ",
+      translit: "bun",
+      rule: "Tanwin Dhamma",
+      description: "Practice the -un sound using dammatan.",
+    },
+    {
+      day: 1,
+      title: "Syllable Blend: أَبَ",
+      level: "Beginner",
+      arabic: "أَبَ",
+      translit: "aba",
+      rule: "Blend Practice",
+      description: "Blend Alif with Ba for a smooth syllable.",
+    },
+    {
+      day: 1,
+      title: "Syllable Blend: أَتَ",
+      level: "Beginner",
+      arabic: "أَتَ",
+      translit: "ata",
+      rule: "Blend Practice",
+      description: "Blend Alif with Ta to form a light syllable.",
+    },
+    {
+      day: 1,
+      title: "Ending Practice: أَنْ",
+      level: "Beginner",
+      arabic: "أَنْ",
+      translit: "an",
+      rule: "Ending Practice",
+      description: "Combine Alif with Nun Sukoon for a nasal ending.",
+    },
+    {
+      day: 1,
+      title: "Vowel Mix Drill",
+      level: "Beginner",
+      arabic: "أَ • أِ • أُ",
+      translit: "a • i • u",
+      rule: "Vowel Review",
+      description: "Compare all short vowels on Alif in one go.",
+    },
+    {
+      day: 1,
+      title: "Word Practice: أَمَان",
+      level: "Beginner+",
+      arabic: "أَمَان",
+      translit: "amaan",
+      rule: "Word Practice",
+      description: "Meaning: Safety – read this gentle word.",
+    },
+    {
+      day: 1,
+      title: "Word Practice: إِيمَان",
+      level: "Beginner+",
+      arabic: "إِيمَان",
+      translit: "imaan",
+      rule: "Word Practice",
+      description: "Meaning: Faith – practise a slightly longer word.",
+    },
+    {
+      day: 1,
+      title: "Stretch Sound: آ",
+      level: "Beginner+",
+      arabic: "آ",
+      translit: "aa",
+      rule: "Madd Practice",
+      description: "Stretch the Alif sound for two counts.",
+    },
+    {
+      day: 1,
+      title: "Reading Challenge: أُنْس",
+      level: "Beginner+",
+      arabic: "أُنْس",
+      translit: "uns",
+      rule: "Challenge",
+      description: "Meaning: Warm companionship – read slowly and clearly.",
+    },
+    {
+      day: 1,
+      title: "Mini Quiz: Vowels",
+      level: "Beginner",
+      arabic: "؟",
+      translit: "quiz",
+      rule: "Check-Up",
+      description: "Point to the matching vowel sound for Alif.",
+    },
+  ],
+}
+
 
 const TWO_LETTER_WORDS: StageDefinition[] = [
   {
@@ -1175,7 +1299,17 @@ const createPracticeLessons = (lessons: ChildLesson[]): ChildLesson[] => {
     const sortedBaseLessons = [...dayLessons].sort((a, b) => a.id - b.id)
     expandedLessons.push(...sortedBaseLessons)
 
-    const additionalLessonsNeeded = Math.max(0, 20 - sortedBaseLessons.length)
+    const enrichments = DAY_ENRICHMENTS[day] ?? []
+    for (const enrichment of enrichments) {
+      maxId += 1
+      expandedLessons.push({
+        ...enrichment,
+        id: maxId,
+      })
+    }
+
+    const totalForDay = sortedBaseLessons.length + enrichments.length
+    const additionalLessonsNeeded = Math.max(0, 20 - totalForDay)
 
     for (let i = 0; i < additionalLessonsNeeded; i++) {
       const templateLesson = sortedBaseLessons[i % sortedBaseLessons.length]
