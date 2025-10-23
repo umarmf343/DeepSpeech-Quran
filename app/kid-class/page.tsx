@@ -190,7 +190,7 @@ export default function KidClassPage() {
       </div>
       {showSessionWarning && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="kid-card p-8 max-w-md text-center animate-scale-in">
+          <div className="kid-card kid-gradient-sunset p-8 max-w-md text-center animate-scale-in">
             <div className="text-5xl mb-4">⏰</div>
             <h2 className="text-3xl font-bold text-maroon mb-2">Session Time Limit</h2>
             <p className="text-maroon/70 mb-6">You've reached your daily learning time limit. Great job!</p>
@@ -199,7 +199,7 @@ export default function KidClassPage() {
                 setShowSessionWarning(false)
                 setCurrentPage("dashboard")
               }}
-              className="kid-pill w-full py-3 font-bold text-maroon transition-transform duration-300 hover:scale-[1.02]"
+              className="kid-button kid-button-bubblegum kid-button-contrast w-full py-3 text-base"
             >
               Back to Dashboard
             </button>

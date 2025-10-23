@@ -30,6 +30,14 @@ export default function Dashboard({
   const [gameStats, setGameStats] = useState<GameStats | null>(null)
   const [streakData, setStreakData] = useState<StreakData | null>(null)
 
+  const lessonGradients = [
+    "kid-gradient-bubblegum",
+    "kid-gradient-sunny",
+    "kid-gradient-mint",
+    "kid-gradient-sunset",
+    "kid-gradient-tropical",
+  ]
+
   useEffect(() => {
     setGameStats(loadGameStats())
     setStreakData(loadStreakData())
@@ -49,7 +57,7 @@ export default function Dashboard({
 
       {/* Premium Header */}
       <div className="relative z-10 mb-10 animate-slide-down">
-        <div className="kid-card flex flex-col gap-6 rounded-3xl p-8 text-left md:flex-row md:items-center md:justify-between">
+        <div className="kid-card kid-gradient-bubblegum flex flex-col gap-6 rounded-3xl p-8 text-left md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-maroon/60">Today&apos;s Adventure</p>
             <h1 className="mt-2 text-4xl md:text-5xl font-extrabold text-maroon">Welcome back, Q-KID!</h1>
@@ -60,19 +68,19 @@ export default function Dashboard({
           <div className="flex flex-wrap items-center justify-end gap-3">
             <button
               onClick={onViewGames}
-              className="kid-pill flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-105"
+              className="kid-pill kid-pill-tropical flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-105"
             >
               <span className="text-lg">🎮</span> Games
             </button>
             <button
               onClick={onViewProfile}
-              className="kid-pill flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-105"
+              className="kid-pill kid-pill-bubblegum flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-105"
             >
               <span className="text-lg">🧒</span> Profile
             </button>
             <button
               onClick={onViewSettings}
-              className="rounded-full bg-gradient-to-r from-maroon to-maroon/85 px-5 py-2 text-sm font-semibold text-[var(--color-milk)] shadow-[0_10px_25px_rgba(123,51,96,0.25)] transition-transform duration-300 hover:scale-105"
+              className="kid-button kid-button-sunset px-5 py-2 text-sm font-semibold"
             >
               ⚙️ Settings
             </button>
@@ -83,7 +91,7 @@ export default function Dashboard({
       {/* Daily Challenge - Premium Card */}
       {dailyChallenge && !dailyChallenge.completed && (
         <div className="relative z-10 mb-8 animate-scale-in">
-          <div className="kid-card flex flex-col gap-4 rounded-3xl p-8 md:flex-row md:items-center md:justify-between">
+          <div className="kid-card kid-gradient-sunny flex flex-col gap-4 rounded-3xl p-8 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-2xl font-extrabold text-maroon">Glitter Challenge</h2>
               <p className="mt-1 text-maroon/70">
@@ -100,7 +108,7 @@ export default function Dashboard({
 
       {/* Progress Section - Premium Design */}
       <div className="relative z-10 mb-8 animate-slide-up">
-        <div className="kid-card p-8">
+        <div className="kid-card kid-gradient-mint p-8">
           <div className="flex justify-between items-center mb-6">
             <div>
               <p className="text-sm uppercase tracking-[0.25em] text-maroon/60">Progress Overview</p>
@@ -121,19 +129,19 @@ export default function Dashboard({
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <div className="kid-pill rounded-3xl p-5 text-center shadow-lg">
+            <div className="kid-pill kid-pill-bubblegum rounded-3xl p-5 text-center shadow-lg">
               <p className="text-3xl font-black text-maroon">{userProgress.totalPoints}</p>
               <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-maroon/60">Points</p>
             </div>
-            <div className="kid-pill rounded-3xl p-5 text-center shadow-lg">
+            <div className="kid-pill kid-pill-sunny rounded-3xl p-5 text-center shadow-lg">
               <p className="text-3xl font-black text-maroon">{streakData?.currentStreak || 0}</p>
               <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-maroon/60">Streak</p>
             </div>
-            <div className="kid-pill rounded-3xl p-5 text-center shadow-lg">
+            <div className="kid-pill kid-pill-mint rounded-3xl p-5 text-center shadow-lg">
               <p className="text-3xl font-black text-maroon">{userProgress.completedLessons.length}</p>
               <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-maroon/60">Lessons</p>
             </div>
-            <div className="kid-pill rounded-3xl p-5 text-center shadow-lg">
+            <div className="kid-pill kid-pill-sunset rounded-3xl p-5 text-center shadow-lg">
               <p className="text-3xl font-black text-maroon">{gameStats?.gamesCompleted || 0}</p>
               <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-maroon/60">Games</p>
             </div>
@@ -178,9 +186,9 @@ export default function Dashboard({
             <div
               key={lesson.id}
               onClick={() => onSelectLesson(lesson)}
-              className={`kid-card cursor-pointer p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] ${
+              className={`kid-card ${lessonGradients[index % lessonGradients.length]} cursor-pointer p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] ${
                 userProgress.completedLessons.includes(lesson.id)
-                  ? "border-2 border-green-400 bg-gradient-to-br from-green-50 to-green-100/50"
+                  ? "kid-card-completed"
                   : ""
               }`}
               style={{ animationDelay: `${index * 50}ms` }}
@@ -204,7 +212,7 @@ export default function Dashboard({
 
       {/* Quiz Section */}
       <div className="relative z-10 mb-8 flex flex-col">
-        <div className="kid-card flex flex-col gap-6 rounded-3xl p-8 sm:flex-row sm:items-center sm:justify-between">
+        <div className="kid-card kid-gradient-sunset flex flex-col gap-6 rounded-3xl p-8 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-2xl font-extrabold text-maroon">Daily Quiz</h2>
             <p className="mt-1 text-maroon/70">Test your knowledge on today&apos;s lessons</p>
@@ -213,7 +221,7 @@ export default function Dashboard({
         </div>
         <button
           onClick={onStartQuiz}
-          className="mt-4 self-end rounded-3xl bg-gradient-to-r from-amber-400 via-rose-500 to-indigo-500 px-6 py-2 text-sm font-extrabold text-white shadow-[0_12px_28px_rgba(244,114,182,0.35)] transition-transform duration-300 hover:scale-105"
+          className="kid-button kid-button-tropical mt-4 self-end px-6 py-2 text-sm font-extrabold"
         >
           Start Quiz
         </button>

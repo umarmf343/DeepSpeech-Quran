@@ -93,20 +93,20 @@ export default function QuizPage({ onComplete, onBack }: QuizPageProps) {
 
       {/* Premium Header */}
       <div className="relative z-10 mb-8 animate-slide-down">
-        <div className="kid-card flex flex-col gap-4 rounded-3xl p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="kid-card kid-gradient-bubblegum flex flex-col gap-4 rounded-3xl p-6 sm:flex-row sm:items-center sm:justify-between">
           <button
             onClick={onBack}
-            className="kid-pill flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-105"
+            className="kid-pill kid-pill-mint flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-105"
           >
             ← Back
           </button>
           <h1 className="text-3xl font-extrabold text-maroon">Daily Quiz</h1>
           <div className="flex gap-3">
-            <div className="kid-pill rounded-3xl px-4 py-3 text-center">
+            <div className="kid-pill kid-pill-sunny rounded-3xl px-4 py-3 text-center">
               <div className="text-2xl font-black text-maroon">{score}</div>
               <div className="text-xs font-semibold uppercase tracking-widest text-maroon/60">Current</div>
             </div>
-            <div className="kid-pill rounded-3xl px-4 py-3 text-center">
+            <div className="kid-pill kid-pill-mint rounded-3xl px-4 py-3 text-center">
               <div className="text-2xl font-black text-maroon">{bestScore}</div>
               <div className="text-xs font-semibold uppercase tracking-widest text-maroon/60">Best</div>
             </div>
@@ -116,7 +116,7 @@ export default function QuizPage({ onComplete, onBack }: QuizPageProps) {
 
       {/* Progress Section */}
       <div className="relative z-10 mx-auto mb-8 max-w-3xl">
-        <div className="kid-card flex flex-col gap-4 rounded-3xl p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="kid-card kid-gradient-mint flex flex-col gap-4 rounded-3xl p-6 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-sm font-semibold uppercase tracking-widest text-maroon">
             Question {currentQuestion + 1} of {QUIZ_QUESTIONS.length}
           </span>
@@ -134,7 +134,7 @@ export default function QuizPage({ onComplete, onBack }: QuizPageProps) {
 
       {/* Question Card */}
       <div className="relative z-10 mx-auto max-w-3xl">
-        <div className="kid-card p-8 md:p-12 animate-slide-up">
+        <div className="kid-card kid-gradient-sunset p-8 md:p-12 animate-slide-up">
           <h2 className="mb-10 text-center text-2xl md:text-3xl font-extrabold text-maroon">
             {renderTextWithArabicCard(question.question)}
           </h2>
@@ -146,14 +146,18 @@ export default function QuizPage({ onComplete, onBack }: QuizPageProps) {
                   key={idx}
                   onClick={() => handleAnswer(option)}
                   disabled={answered}
-                  className={`rounded-2xl border py-4 px-6 text-lg font-extrabold transition-all duration-300 ${
+                  className={`rounded-3xl py-4 px-6 text-lg font-extrabold transition-all duration-300 ${
                     answered
                       ? option === question.correct
-                        ? "bg-green-200 border-green-300 text-green-800 shadow-inner"
+                        ? "bg-green-200 border border-green-300 text-green-800 shadow-inner"
                         : option === selectedAnswer
-                          ? "bg-red-200 border-red-300 text-red-800 shadow-inner"
-                          : "bg-white/60 border-white text-maroon/50"
-                      : "bg-white/90 border-white/80 text-maroon shadow-lg hover:-translate-y-1 hover:scale-105"
+                          ? "bg-red-200 border border-red-300 text-red-800 shadow-inner"
+                          : "bg-white/60 border border-white text-maroon/50"
+                      : `kid-card ${
+                          ["kid-gradient-bubblegum", "kid-gradient-sunny", "kid-gradient-mint", "kid-gradient-tropical"][
+                            idx % 4
+                          ]
+                        } text-maroon shadow-lg hover:-translate-y-1 hover:scale-105`
                   } disabled:cursor-not-allowed`}
                 >
                   {option}
@@ -169,14 +173,18 @@ export default function QuizPage({ onComplete, onBack }: QuizPageProps) {
                   key={idx}
                   onClick={() => handleAnswer(option)}
                   disabled={answered}
-                  className={`rounded-2xl border py-6 px-4 text-lg font-extrabold transition-all duration-300 ${
+                  className={`rounded-3xl py-6 px-4 text-lg font-extrabold transition-all duration-300 ${
                     answered
                       ? option === question.correct
-                        ? "bg-green-200 border-green-300 text-green-800 shadow-inner"
+                        ? "bg-green-200 border border-green-300 text-green-800 shadow-inner"
                         : option === selectedAnswer
-                          ? "bg-red-200 border-red-300 text-red-800 shadow-inner"
-                          : "bg-white/60 border-white text-maroon/50"
-                      : "bg-white/90 border-white/80 text-maroon shadow-lg hover:-translate-y-1 hover:scale-105"
+                          ? "bg-red-200 border border-red-300 text-red-800 shadow-inner"
+                          : "bg-white/60 border border-white text-maroon/50"
+                      : `kid-card ${
+                          ["kid-gradient-bubblegum", "kid-gradient-sunny", "kid-gradient-mint", "kid-gradient-tropical"][
+                            idx % 4
+                          ]
+                        } text-maroon shadow-lg hover:-translate-y-1 hover:scale-105`
                   } disabled:cursor-not-allowed`}
                 >
                   {option}

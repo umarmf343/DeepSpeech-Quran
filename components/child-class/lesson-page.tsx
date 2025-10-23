@@ -31,6 +31,13 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     setSettings(loadSettings())
   }, [])
 
+  const practiceCardGradients = [
+    "kid-gradient-bubblegum",
+    "kid-gradient-sunny",
+    "kid-gradient-mint",
+    "kid-gradient-sunset",
+  ]
+
   const steps = [
     {
       type: "intro",
@@ -153,7 +160,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
       {/* Completion Modal */}
       {showCompletion && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="kid-card max-w-md p-12 text-center animate-scale-in">
+          <div className="kid-card kid-gradient-bubblegum max-w-md p-12 text-center animate-scale-in">
             <div className="text-7xl mb-6 animate-bounce">🎉</div>
             <h2 className="text-4xl font-extrabold text-maroon mb-3">Lesson Complete!</h2>
             <p className="text-3xl font-black text-maroon mb-6">{score} Points</p>
@@ -164,13 +171,13 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
 
       {showTracingFailure && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="kid-card max-w-md p-10 text-center animate-scale-in">
+          <div className="kid-card kid-gradient-sunny max-w-md p-10 text-center animate-scale-in">
             <div className="text-6xl mb-4">😅</div>
             <h2 className="text-3xl font-extrabold text-maroon mb-2">Oops! Try Again</h2>
             <p className="text-maroon/70 mb-6">Stay inside the letter guide. Give it another go!</p>
             <button
               onClick={handleResetTracing}
-              className="rounded-full bg-gradient-to-r from-maroon via-maroon/90 to-maroon/80 px-8 py-3 text-sm font-semibold text-[var(--color-milk)] shadow-[0_10px_25px_rgba(123,51,96,0.25)] transition-transform duration-300 hover:scale-[1.04]"
+              className="kid-button kid-button-bubblegum px-8 py-3 text-sm font-semibold"
             >
               Try Again
             </button>
@@ -180,10 +187,10 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
 
       {/* Premium Header */}
       <div className="relative z-10 mb-8 animate-slide-down">
-        <div className="kid-card flex flex-col gap-4 rounded-3xl p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="kid-card kid-gradient-tropical flex flex-col gap-4 rounded-3xl p-6 sm:flex-row sm:items-center sm:justify-between">
           <button
             onClick={onBack}
-            className="kid-pill flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-105"
+            className="kid-pill kid-pill-mint flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-105"
           >
             ← Back
           </button>
@@ -218,18 +225,18 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
 
       {/* Main Content */}
       <div className="relative z-10 mx-auto max-w-3xl">
-        <div className="kid-card p-8 md:p-12 animate-slide-up">
+        <div className="kid-card kid-gradient-mint p-8 md:p-12 animate-slide-up">
           {currentStep === 0 && (
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[0].title}</h2>
               <div className="text-black text-[16rem] mb-4 animate-float">{lesson.arabic}</div>
               <p className="text-lg text-maroon/70 mb-8">{lesson.description}</p>
               <div className="grid grid-cols-2 gap-4">
-                <div className="kid-pill rounded-3xl p-6 text-left shadow-lg">
+                <div className="kid-pill kid-pill-bubblegum rounded-3xl p-6 text-left shadow-lg">
                   <p className="text-xs uppercase tracking-widest text-maroon/60">Transliteration</p>
                   <p className="mt-2 text-2xl font-black text-maroon">{lesson.translit}</p>
                 </div>
-                <div className="kid-pill rounded-3xl p-6 text-left shadow-lg">
+                <div className="kid-pill kid-pill-sunny rounded-3xl p-6 text-left shadow-lg">
                   <p className="text-xs uppercase tracking-widest text-maroon/60">Rule</p>
                   <p className="mt-2 text-2xl font-black text-maroon">{lesson.rule}</p>
                 </div>
@@ -243,7 +250,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
               <div className="text-black text-[16rem] mb-6 animate-float">{lesson.arabic}</div>
               <button
                 onClick={handlePronounce}
-                className="inline-block rounded-3xl bg-gradient-to-r from-maroon via-maroon/90 to-maroon/80 px-12 py-6 text-2xl font-extrabold text-[var(--color-milk)] shadow-[0_12px_30px_rgba(123,51,96,0.25)] transition-transform duration-300 hover:scale-[1.04]"
+                className="kid-button kid-button-sunset inline-flex px-12 py-6 text-2xl font-extrabold"
               >
                 🔊 Listen to Pronunciation
               </button>
@@ -260,7 +267,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                   <button
                     key={idx}
                     onClick={() => handlePracticeAnswer(letter === lesson.arabic)}
-                    className="kid-card p-8 text-black text-[7.5rem] font-black transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03]"
+                    className={`kid-card ${practiceCardGradients[idx % practiceCardGradients.length]} p-8 text-black text-[7.5rem] font-black transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03]`}
                   >
                     {letter}
                   </button>
@@ -282,7 +289,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[3].title}</h2>
               <p className="text-lg text-maroon/70 mb-8">Trace the letter below and stay inside the guide.</p>
-              <div className="kid-card p-6 md:p-10 mb-8 text-center">
+              <div className="kid-card kid-gradient-tropical p-6 md:p-10 mb-8 text-center">
                 <TracingCanvas
                   key={`${lesson.id}-${tracingResetKey}`}
                   letter={lesson.arabic}
@@ -300,7 +307,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                   {!tracingComplete && (
                     <button
                       onClick={handleResetTracing}
-                      className="kid-pill rounded-full px-6 py-2 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-[1.05]"
+                      className="kid-button kid-button-bubblegum px-6 py-2 text-sm font-semibold"
                     >
                       Start Over
                     </button>
@@ -325,7 +332,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
           {currentStep === 4 && (
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[4].title}</h2>
-              <div className="kid-card p-8 mb-8">
+              <div className="kid-card kid-gradient-sunset p-8 mb-8">
                 <p className="text-lg text-maroon mb-6 flex flex-wrap items-center justify-center gap-2 text-center">
                   {renderTextWithArabicCard(`What is the transliteration of ${lesson.arabic}?`)}
                 </p>
@@ -334,7 +341,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                     <button
                       key={idx}
                       onClick={() => handlePracticeAnswer(option === lesson.translit)}
-                      className="kid-card p-6 text-lg font-extrabold transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03]"
+                      className={`kid-card ${practiceCardGradients[idx % practiceCardGradients.length]} p-6 text-lg font-extrabold transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03]`}
                     >
                       {option}
                     </button>
@@ -357,14 +364,14 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
           <div className="mt-12 grid grid-cols-2 gap-4">
             <button
               onClick={onBack}
-              className="flex-1 kid-pill rounded-full px-6 py-4 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-[1.02]"
+              className="kid-button kid-button-sunny kid-button-contrast flex-1 px-6 py-4 text-sm font-semibold"
             >
               Cancel
             </button>
             <button
               onClick={handleNextStep}
               disabled={isNextDisabled}
-              className={`flex-1 rounded-3xl bg-gradient-to-r from-maroon via-maroon/90 to-maroon/80 py-4 text-lg font-extrabold text-[var(--color-milk)] shadow-[0_15px_35px_rgba(123,51,96,0.25)] transition-transform duration-300 ${
+              className={`kid-button kid-button-sunset flex-1 py-4 text-lg font-extrabold ${
                 isNextDisabled ? "cursor-not-allowed opacity-50" : "hover:scale-[1.03]"
               }`}
             >

@@ -30,7 +30,7 @@ export default function GamesHub({ userProgress, onBack }: GamesHubProps) {
       description: "Match Arabic letters with their transliterations",
       icon: "🎯",
       difficulty: "Easy",
-      color: "from-blue-100 to-blue-50",
+      color: "from-pink-200 via-pink-100 to-blue-200",
     },
     {
       id: "spelling",
@@ -38,7 +38,7 @@ export default function GamesHub({ userProgress, onBack }: GamesHubProps) {
       description: "Spell Arabic words correctly",
       icon: "✍️",
       difficulty: "Medium",
-      color: "from-purple-100 to-purple-50",
+      color: "from-yellow-200 via-orange-100 to-orange-200",
     },
     {
       id: "memory",
@@ -46,9 +46,19 @@ export default function GamesHub({ userProgress, onBack }: GamesHubProps) {
       description: "Remember and match letter pairs",
       icon: "🧠",
       difficulty: "Hard",
-      color: "from-pink-100 to-pink-50",
+      color: "from-teal-200 via-cyan-100 to-yellow-200",
     },
   ]
+
+  const gameCardGradients = [
+    "kid-gradient-bubblegum",
+    "kid-gradient-sunny",
+    "kid-gradient-mint",
+    "kid-gradient-sunset",
+    "kid-gradient-tropical",
+  ]
+
+  const statPillGradients = ["kid-pill-bubblegum", "kid-pill-sunny", "kid-pill-mint"]
 
   const handleGameComplete = (score: number) => {
     if (!selectedGame) return
@@ -79,10 +89,10 @@ export default function GamesHub({ userProgress, onBack }: GamesHubProps) {
 
       {/* Premium Header */}
       <div className="relative z-10 mb-12 animate-slide-down">
-        <div className="kid-card flex flex-col gap-6 rounded-3xl p-8 sm:flex-row sm:items-center sm:justify-between">
+        <div className="kid-card kid-gradient-tropical flex flex-col gap-6 rounded-3xl p-8 sm:flex-row sm:items-center sm:justify-between">
           <button
             onClick={onBack}
-            className="kid-pill flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-105"
+            className="kid-pill kid-pill-mint flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-105"
           >
             ← Back
           </button>
@@ -91,7 +101,7 @@ export default function GamesHub({ userProgress, onBack }: GamesHubProps) {
             <h1 className="text-4xl sm:text-5xl font-extrabold text-maroon">Games Hub</h1>
             <p className="mt-2 text-maroon/70">Learn while having fun!</p>
           </div>
-          <div className="kid-pill rounded-3xl px-6 py-3 text-center">
+          <div className="kid-pill kid-pill-sunny rounded-3xl px-6 py-3 text-center">
             <div className="text-2xl font-black text-maroon">{userProgress.totalPoints}</div>
             <div className="text-xs font-semibold uppercase tracking-widest text-maroon/60">Total Points</div>
           </div>
@@ -104,7 +114,7 @@ export default function GamesHub({ userProgress, onBack }: GamesHubProps) {
           <div
             key={game.id}
             onClick={() => setSelectedGame(game.id)}
-            className="kid-card cursor-pointer p-8 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] animate-slide-up"
+            className={`kid-card ${gameCardGradients[idx % gameCardGradients.length]} cursor-pointer p-8 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] animate-slide-up`}
             style={{ animationDelay: `${idx * 100}ms` }}
           >
             <div className={`mb-6 rounded-2xl bg-gradient-to-br ${game.color} p-6 text-center text-6xl`}>
@@ -124,33 +134,33 @@ export default function GamesHub({ userProgress, onBack }: GamesHubProps) {
 
       {/* Game Stats */}
       <div className="relative z-10 mx-auto max-w-6xl">
-        <div className="kid-card p-8">
+        <div className="kid-card kid-gradient-mint p-8">
           <h2 className="mb-8 text-2xl font-extrabold text-maroon">Your Game Stats</h2>
           <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
-            <div className="kid-pill rounded-3xl p-6 text-center shadow-lg">
+            <div className={`kid-pill ${statPillGradients[0]} rounded-3xl p-6 text-center shadow-lg`}>
               <p className="text-4xl font-black text-maroon">3</p>
               <p className="mt-2 text-sm text-maroon/70">Games Available</p>
             </div>
-            <div className="kid-pill rounded-3xl p-6 text-center shadow-lg">
+            <div className={`kid-pill ${statPillGradients[1]} rounded-3xl p-6 text-center shadow-lg`}>
               <p className="text-4xl font-black text-maroon">{gameStats?.gamesCompleted || 0}</p>
               <p className="mt-2 text-sm text-maroon/70">Games Completed</p>
             </div>
-            <div className="kid-pill rounded-3xl p-6 text-center shadow-lg">
+            <div className={`kid-pill ${statPillGradients[2]} rounded-3xl p-6 text-center shadow-lg`}>
               <p className="text-4xl font-black text-maroon">{gameScore}</p>
               <p className="mt-2 text-sm text-maroon/70">Last Score</p>
             </div>
           </div>
           {gameStats && (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-              <div className="rounded-3xl bg-gradient-to-br from-blue-100 to-blue-50 p-6 text-center shadow-lg">
+              <div className="kid-card kid-gradient-bubblegum p-6 text-center">
                 <p className="mb-2 text-sm font-semibold text-blue-700">Best Matching</p>
                 <p className="text-3xl font-black text-blue-600">{gameStats.bestScores.matching}</p>
               </div>
-              <div className="rounded-3xl bg-gradient-to-br from-purple-100 to-purple-50 p-6 text-center shadow-lg">
+              <div className="kid-card kid-gradient-sunset p-6 text-center">
                 <p className="mb-2 text-sm font-semibold text-purple-700">Best Spelling</p>
                 <p className="text-3xl font-black text-purple-600">{gameStats.bestScores.spelling}</p>
               </div>
-              <div className="rounded-3xl bg-gradient-to-br from-pink-100 to-pink-50 p-6 text-center shadow-lg">
+              <div className="kid-card kid-gradient-tropical p-6 text-center">
                 <p className="mb-2 text-sm font-semibold text-pink-700">Best Memory</p>
                 <p className="text-3xl font-black text-pink-600">{gameStats.bestScores.memory}</p>
               </div>
