@@ -38,7 +38,7 @@ export function SurahCompletionCelebration({
     if (!visible) return []
 
     const colors = ["#34d399", "#fcd34d", "#38bdf8", "#a78bfa", "#f472b6", "#fb7185"]
-    return Array.from({ length: 32 }, (_, index) => {
+    return Array.from({ length: 56 }, (_, index) => {
       const horizontal = ((index * 41) % 100) + (index % 2 === 0 ? 6 : -4)
       const delay = (index % 10) * -0.18
       const duration = 2.4 + ((index * 13) % 12) / 10
@@ -63,6 +63,33 @@ export function SurahCompletionCelebration({
     })
   }, [visible])
 
+  const popSparks = useMemo(() => {
+    if (!visible) return []
+
+    const colors = ["#34d399", "#22c55e", "#0ea5e9", "#fbbf24", "#f472b6", "#10b981"]
+    return Array.from({ length: 48 }, (_, index) => {
+      const top = 12 + ((index * 11) % 78)
+      const left = 6 + ((index * 19) % 88)
+      const delay = (index % 14) * -0.12
+      const duration = 1.8 + ((index * 7) % 10) / 10
+      const size = 0.35 + (((index * 5) % 7) / 10)
+      const drift = ((index % 5) - 2) * 0.9
+
+      return {
+        key: `surah-celebration-pop-${index}`,
+        style: {
+          top: `${Math.min(94, Math.max(6, top))}%`,
+          left: `${Math.min(94, Math.max(6, left))}%`,
+          "--spark-delay": `${delay}s`,
+          "--spark-duration": `${duration}s`,
+          "--spark-size": `${size}rem`,
+          "--spark-color": colors[index % colors.length],
+          "--spark-drift": `${drift}rem`,
+        } as CSSProperties,
+      }
+    })
+  }, [visible])
+
   if (!visible) {
     return null
   }
@@ -75,6 +102,9 @@ export function SurahCompletionCelebration({
       aria-modal="true"
     >
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {popSparks.map((spark) => (
+          <span key={spark.key} className="celebration-pop-spark" style={spark.style} aria-hidden="true" />
+        ))}
         {confettiPieces.map((piece) => (
           <span key={piece.key} className="confetti-piece" style={piece.style} aria-hidden="true" />
         ))}
@@ -106,12 +136,28 @@ export function SurahCompletionCelebration({
           <div className="flex w-full flex-col items-center gap-3">
             <Button
               type="button"
-              onClick={hasNextSurah ? onNextSurah : onClose}
+              onClick={
+                hasNextSurah
+                  ? () => {
+                      onNextSurah()
+                    }
+                  : undefined
+              }
               disabled={!hasNextSurah}
               className="w-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/40 transition-transform hover:-translate-y-0.5 hover:bg-emerald-600"
+              title={
+                hasNextSurah
+                  ? "Continue your journey with the next Surah"
+                  : "MashaAllah! You've completed the final Surah"
+              }
             >
-              {hasNextSurah ? "Next Surah" : "Alhamdulillah!"}
+              Next Surah
             </Button>
+            {!hasNextSurah ? (
+              <p className="text-xs font-medium text-emerald-600/80">
+                You've reached the end of the Mushaf—take a moment to soak it in! 🎉
+              </p>
+            ) : null}
             <Button
               type="button"
               variant="ghost"

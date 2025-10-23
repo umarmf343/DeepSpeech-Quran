@@ -754,6 +754,26 @@
     animation: celebration-shimmer 2.6s linear infinite;
     pointer-events: none;
   }
+
+  .celebration-pop-spark {
+    position: absolute;
+    pointer-events: none;
+    width: var(--spark-size, 0.45rem);
+    height: var(--spark-size, 0.45rem);
+    border-radius: 9999px;
+    background: radial-gradient(
+      circle at center,
+      var(--spark-color, rgba(16, 185, 129, 0.95)) 0%,
+      rgba(255, 255, 255, 0.15) 45%,
+      transparent 75%
+    );
+    box-shadow: 0 0 0.75rem rgba(16, 185, 129, 0.25);
+    opacity: 0;
+    transform: translate3d(0, 35%, 0) scale(0.35);
+    animation: celebration-tiny-pop var(--spark-duration, 1.8s) ease-in-out infinite;
+    animation-delay: var(--spark-delay, 0s);
+    mix-blend-mode: screen;
+  }
 }
 
 @keyframes celebration-pop {
@@ -806,6 +826,23 @@
   50% {
     opacity: 0.35;
     transform: translateX(30%);
+  }
+}
+
+@keyframes celebration-tiny-pop {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 40%, 0) scale(0.3);
+  }
+  25% {
+    opacity: 0.85;
+  }
+  55% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--spark-drift, 0rem), -60%, 0) scale(1.05);
   }
 }
 
