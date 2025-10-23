@@ -679,7 +679,7 @@ export default function AlfawzReaderPage() {
                     htmlFor="mushaf-view-toggle"
                     className="text-sm font-medium text-muted-foreground"
                   >
-                    Mushaf view
+                    View
                   </Label>
                   <span className="text-xs uppercase tracking-wide text-muted-foreground">
                     {showMushafView ? "On" : "Off"}
