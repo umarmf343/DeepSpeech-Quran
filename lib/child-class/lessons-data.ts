@@ -719,7 +719,7 @@ const STATIC_DAY_ENRICHMENTS: Partial<Record<number, LessonEnrichment[]>> = {
       day: 1,
       title: "Mini Quiz: Vowels",
       level: "Beginner",
-      arabic: "؟",
+      arabic: "أَ • أِ • أُ",
       translit: "quiz",
       rule: "Check-Up",
       description: "Point to the matching vowel sound for Alif.",
