@@ -121,7 +121,7 @@ export function AudioPlayButton({
 
   const baseClasses =
     variant === "primary"
-      ? "kid-button kid-button-sunset inline-flex items-center gap-3 px-10 py-6 text-2xl font-extrabold"
+      ? "kid-button kid-button-sunset inline-flex items-center gap-2 px-7 py-4 text-xl font-extrabold"
       : "inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/70 bg-white/90 text-maroon shadow-lg transition-transform duration-300 hover:-translate-y-0.5 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-maroon/40"
 
   const content = children ? (
