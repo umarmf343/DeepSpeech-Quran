@@ -32,7 +32,7 @@ export default function LandingPage({ onStart }: LandingPageProps) {
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="kid-pill kid-pill-bubblegum rounded-2xl p-5 text-left shadow-lg">
               <div className="text-4xl">🎮</div>
               <h3 className="mt-2 text-xl font-bold text-maroon">Interactive Fun</h3>
