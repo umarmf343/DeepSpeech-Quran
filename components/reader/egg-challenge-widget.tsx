@@ -78,16 +78,6 @@ export function EggChallengeWidget({
     >
       {showCelebration ? (
         <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Image
-              src="/break-egg-celebration.gif"
-              alt="Confetti celebration for breaking the egg"
-              width={320}
-              height={320}
-              className="h-48 w-48 max-w-full object-contain sm:h-56 sm:w-56"
-              priority
-            />
-          </div>
           {sprinkleOffsets.map((item, index) => (
             <span
               key={`sprinkle-${index}`}
@@ -210,7 +200,17 @@ export function EggChallengeWidget({
       {showCelebration ? (
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-4 text-center">
           <div className="pointer-events-auto w-full max-w-md rounded-3xl bg-white/85 p-6 shadow-2xl ring-1 ring-amber-200/70 backdrop-blur-xl">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-amber-100 via-rose-100 to-emerald-100 shadow-lg ring-4 ring-white/80">
+            <div className="mx-auto mb-4 h-36 w-36">
+              <Image
+                src="/break-egg-celebration.gif"
+                alt="Animated egg cracking celebration"
+                width={256}
+                height={256}
+                className="h-full w-full object-contain"
+                priority
+              />
+            </div>
+            <div className="mx-auto mt-2 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-amber-100 via-rose-100 to-emerald-100 shadow-lg ring-4 ring-white/80">
               <EggOff className="h-9 w-9 text-amber-600" aria-hidden="true" />
             </div>
             <div className="mt-4 flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.35em] text-amber-600">
