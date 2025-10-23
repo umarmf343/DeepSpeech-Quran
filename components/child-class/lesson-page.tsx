@@ -372,23 +372,25 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                   {tracingReady && !tracingComplete && (
                     <p className="text-sm font-semibold text-emerald-600">Looking good! Press Go to check your tracing.</p>
                   )}
-                  <button
-                    onClick={handleCheckTracing}
-                    disabled={tracingComplete}
-                    className={`inline-flex items-center justify-center rounded-full bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 px-10 py-3 text-lg font-extrabold text-white shadow-lg transition-transform duration-300 ${
-                      tracingComplete ? "cursor-not-allowed opacity-60" : "hover:scale-105"
-                    }`}
-                  >
-                    Go
-                  </button>
-                  {!tracingComplete && (
+                  <div className="mt-2 flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <button
-                      onClick={handleResetTracing}
-                      className="kid-button kid-button-bubblegum px-6 py-2 text-sm font-semibold"
+                      onClick={handleCheckTracing}
+                      disabled={tracingComplete}
+                      className={`inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 px-10 py-3 text-lg font-extrabold text-white shadow-lg transition-transform duration-300 sm:w-auto ${
+                        tracingComplete ? "cursor-not-allowed opacity-60" : "hover:scale-105"
+                      }`}
                     >
-                      Start Over
+                      Go
                     </button>
-                  )}
+                    {!tracingComplete && (
+                      <button
+                        onClick={handleResetTracing}
+                        className="kid-button kid-button-bubblegum w-full px-6 py-2 text-sm font-semibold sm:w-auto"
+                      >
+                        Start Over
+                      </button>
+                    )}
+                  </div>
                   {tracingComplete && (
                     <p className="text-base font-semibold text-green-600">Great tracing! You can continue.</p>
                   )}
