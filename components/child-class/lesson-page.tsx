@@ -217,6 +217,18 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     },
   ]
 
+  const lessonCharacterDisplay = (
+    <div className="mx-auto mb-6 flex h-48 w-full max-w-[18rem] items-center justify-center">
+      <AutoFitText
+        maxFontSize={192}
+        minFontSize={72}
+        className="animate-float text-black font-black leading-none text-center"
+      >
+        {lesson.arabic}
+      </AutoFitText>
+    </div>
+  )
+
   const handlePronounce = () => {
     if (typeof window === "undefined") return
 
@@ -484,7 +496,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
           {currentStep === 0 && (
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[0].title}</h2>
-              <div className="text-black text-[11.43rem] animate-float">{lesson.arabic}</div>
+              {lessonCharacterDisplay}
               <p className="text-lg text-maroon/70 mb-8">{lesson.description}</p>
               <div className="grid grid-cols-2 gap-4">
                 <div className="kid-pill kid-pill-bubblegum rounded-3xl p-6 text-left shadow-lg">
@@ -502,7 +514,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
           {currentStep === 1 && (
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-maroon mb-8">{steps[1].title}</h2>
-              <div className="text-black text-[11.43rem] animate-float">{lesson.arabic}</div>
+              {lessonCharacterDisplay}
               <button
                 onClick={handlePronounce}
                 className="kid-button kid-button-sunset inline-flex px-12 py-6 text-2xl font-extrabold"
@@ -533,9 +545,15 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                     <button
                       key={idx}
                       onClick={() => handlePracticeAnswer(letter === lesson.arabic, optionKey)}
-                      className={`kid-card ${practiceCardGradients[idx % practiceCardGradients.length]} flex items-center justify-center p-8 text-center text-black font-black transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] ${selectionClass}`.trim()}
+                      className={`kid-card ${practiceCardGradients[idx % practiceCardGradients.length]} flex min-h-[11rem] items-center justify-center p-8 text-center transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] ${selectionClass}`.trim()}
                     >
-                      <AutoFitText maxFontSize={120} minFontSize={48}>{letter}</AutoFitText>
+                      <AutoFitText
+                        maxFontSize={120}
+                        minFontSize={48}
+                        className="font-black text-black leading-none"
+                      >
+                        {letter}
+                      </AutoFitText>
                     </button>
                   )
                 })}
@@ -622,9 +640,15 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                       <button
                         key={idx}
                         onClick={() => handlePracticeAnswer(option === lesson.translit, optionKey)}
-                        className={`kid-card ${practiceCardGradients[idx % practiceCardGradients.length]} p-6 text-lg font-extrabold transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] ${selectionClass}`.trim()}
+                        className={`kid-card ${practiceCardGradients[idx % practiceCardGradients.length]} flex min-h-[7.5rem] items-center justify-center p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] ${selectionClass}`.trim()}
                       >
-                        {option}
+                        <AutoFitText
+                          maxFontSize={48}
+                          minFontSize={20}
+                          className="font-extrabold leading-snug text-black"
+                        >
+                          {option}
+                        </AutoFitText>
                       </button>
                     )
                   })}
