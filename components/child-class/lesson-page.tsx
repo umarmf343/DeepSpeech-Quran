@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef, type ReactNode } from "react"
 import { renderTextWithArabicCard } from "./arabic-letter-card"
+import { AutoFitText } from "@/components/common/AutoFitText"
 import { playSound } from "@/lib/child-class/sound-effects"
 import { loadSettings, type UserSettings } from "@/lib/child-class/settings-utils"
 import { LESSONS } from "@/lib/child-class/lessons-data"
@@ -532,9 +533,9 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                     <button
                       key={idx}
                       onClick={() => handlePracticeAnswer(letter === lesson.arabic, optionKey)}
-                      className={`kid-card ${practiceCardGradients[idx % practiceCardGradients.length]} p-8 text-black text-[7.5rem] font-black transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] ${selectionClass}`.trim()}
+                      className={`kid-card ${practiceCardGradients[idx % practiceCardGradients.length]} flex items-center justify-center p-8 text-center text-black font-black transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] ${selectionClass}`.trim()}
                     >
-                      {letter}
+                      <AutoFitText maxFontSize={120} minFontSize={48}>{letter}</AutoFitText>
                     </button>
                   )
                 })}
