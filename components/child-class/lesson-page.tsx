@@ -162,7 +162,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
               <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[0].title}</h2>
               <div className="text-black text-[16rem] mb-4 animate-float">{lesson.arabic}</div>
               <p className="text-lg text-maroon/70 mb-8">{lesson.description}</p>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="kid-pill rounded-3xl p-6 text-left shadow-lg">
                   <p className="text-xs uppercase tracking-widest text-maroon/60">Transliteration</p>
                   <p className="mt-2 text-2xl font-black text-maroon">{lesson.translit}</p>
@@ -278,16 +278,16 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
           )}
 
           {/* Navigation Buttons */}
-          <div className="mt-12 flex flex-col gap-4 sm:flex-row">
+          <div className="mt-12 grid grid-cols-2 gap-4">
             <button
               onClick={onBack}
-              className="flex-1 kid-pill rounded-full px-6 py-4 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-[1.02]"
+              className="kid-pill w-full rounded-full px-6 py-4 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-[1.02]"
             >
               Cancel
             </button>
             <button
               onClick={handleNextStep}
-              className="flex-1 rounded-3xl bg-gradient-to-r from-maroon via-maroon/90 to-maroon/80 py-4 text-lg font-extrabold text-[var(--color-milk)] shadow-[0_15px_35px_rgba(123,51,96,0.25)] transition-transform duration-300 hover:scale-[1.03]"
+              className="w-full rounded-3xl bg-gradient-to-r from-maroon via-maroon/90 to-maroon/80 py-4 text-lg font-extrabold text-[var(--color-milk)] shadow-[0_15px_35px_rgba(123,51,96,0.25)] transition-transform duration-300 hover:scale-[1.03]"
             >
               {currentStep === steps.length - 1 ? "Complete Lesson" : "Next"}
             </button>
