@@ -1,7 +1,8 @@
 "use client"
 
 import Image from "next/image"
-import { useMemo, type CSSProperties } from "react"
+import { createPortal } from "react-dom"
+import { useEffect, useMemo, useState, type CSSProperties } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -39,6 +40,8 @@ export function EggChallengeWidget({
   onContinue,
   onReset,
 }: EggChallengeWidgetProps) {
+  const [mounted, setMounted] = useState(false)
+
   const state = snapshot?.state
   const definition = snapshot?.current
   const nextChallenge = snapshot?.next
@@ -67,6 +70,53 @@ export function EggChallengeWidget({
       return { x, y, color, delay }
     })
   }, [showCelebration])
+
+  useEffect(() => {
+    setMounted(true)
+    return () => setMounted(false)
+  }, [])
+
+  const celebrationCard = (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Celebration"
+      className="pointer-events-auto w-full max-w-md rounded-3xl p-6 shadow-2xl ring-1 ring-amber-200/70 backdrop-blur-xl"
+    >
+      <div className="mx-auto mb-4 h-36 w-36">
+        <Image
+          src="/break-egg-celebration.gif"
+          alt="Animated egg cracking celebration"
+          width={256}
+          height={256}
+          className="h-full w-full object-contain"
+          priority
+        />
+      </div>
+      <div className="mt-4 flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.35em] text-amber-600">
+        <Sparkles className="h-4 w-4 text-emerald-500" aria-hidden="true" />
+        Egg is Broken
+        <PartyPopper className="h-4 w-4 text-rose-500" aria-hidden="true" />
+      </div>
+      <h3 className="mt-3 text-2xl font-semibold text-maroon-700">Brakllahu Feek!</h3>
+      <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
+        <Button
+          variant="outline"
+          onClick={() => onContinue?.()}
+          className="border-amber-200 bg-white/90 text-amber-700 hover:bg-amber-50"
+        >
+          Continue
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={() => onReset?.()}
+          className="bg-emerald-500/90 text-white shadow-lg transition hover:bg-emerald-600"
+        >
+          Reset
+        </Button>
+      </div>
+    </div>
+  )
 
   return (
     <section
@@ -197,45 +247,14 @@ export function EggChallengeWidget({
         ) : null}
       </div>
 
-      {showCelebration ? (
-        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-4 text-center">
-          <div className="pointer-events-auto w-full max-w-md rounded-3xl bg-white/85 p-6 shadow-2xl ring-1 ring-amber-200/70 backdrop-blur-xl">
-            <div className="mx-auto mb-4 h-36 w-36">
-              <Image
-                src="/break-egg-celebration.gif"
-                alt="Animated egg cracking celebration"
-                width={256}
-                height={256}
-                className="h-full w-full object-contain"
-                priority
-              />
-            </div>
-            <div className="mt-4 flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.35em] text-amber-600">
-              <Sparkles className="h-4 w-4 text-emerald-500" aria-hidden="true" />
-              Egg is Broken
-              <PartyPopper className="h-4 w-4 text-rose-500" aria-hidden="true" />
-            </div>
-            <h3 className="mt-3 text-2xl font-semibold text-maroon-700">Brakllahu Feek!</h3>
-            {/* Celebration message removed as per updated requirements */}
-            <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
-              <Button
-                variant="outline"
-                onClick={() => onContinue?.()}
-                className="border-amber-200 bg-white/90 text-amber-700 hover:bg-amber-50"
-              >
-                Continue
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => onReset?.()}
-                className="bg-emerald-500/90 text-white shadow-lg transition hover:bg-emerald-600"
-              >
-                Reset
-              </Button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {showCelebration && mounted
+        ? createPortal(
+            <div className="pointer-events-none fixed inset-0 z-[100] flex items-center justify-center px-4 py-8 text-center sm:px-6">
+              {celebrationCard}
+            </div>,
+            document.body,
+          )
+        : null}
 
       {(loading || updating) && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-white/70 backdrop-blur-sm">
