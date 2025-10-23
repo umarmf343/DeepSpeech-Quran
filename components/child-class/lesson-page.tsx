@@ -345,21 +345,23 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                   onFail={handleTracingFailure}
                   resetSignal={tracingResetKey}
                 />
-                <div className="mt-6 flex flex-col items-center gap-3 text-maroon/80">
-                  <p className="text-lg font-semibold">Progress: {Math.round(tracingProgress * 100)}%</p>
-                  <p className={`text-sm font-bold ${tracingMistakes > 0 ? "text-red-500" : "text-maroon/60"}`}>
-                    Mistakes: {Math.min(tracingMistakes, 3)} / 3
-                  </p>
+                <div className="mt-6 flex flex-col items-center gap-4 text-maroon/80">
+                  <div className="grid w-full grid-cols-3 items-center gap-3 text-center text-xs sm:text-sm">
+                    {!tracingComplete && (
+                      <button
+                        onClick={handleResetTracing}
+                        className="justify-self-start rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-500 px-3 py-1 font-bold text-white shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg sm:px-4"
+                      >
+                        Start Over
+                      </button>
+                    )}
+                    <p className="text-base font-semibold sm:text-lg">Progress: {Math.round(tracingProgress * 100)}%</p>
+                    <p className={`text-sm font-bold sm:text-base ${tracingMistakes > 0 ? "text-red-500" : "text-maroon/60"}`}>
+                      Mistakes: {Math.min(tracingMistakes, 3)} / 3
+                    </p>
+                  </div>
                   {!tracingComplete && (
                     <p className="text-sm font-semibold text-emerald-600">Keep tracing inside the guide to finish!</p>
-                  )}
-                  {!tracingComplete && (
-                    <button
-                      onClick={handleResetTracing}
-                      className="self-start mt-4 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-500 px-4 py-1 text-xs font-bold text-white shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                    >
-                      Start Over
-                    </button>
                   )}
                   {tracingComplete && (
                     <p className="text-base font-semibold text-green-600">Great tracing! You can continue.</p>
