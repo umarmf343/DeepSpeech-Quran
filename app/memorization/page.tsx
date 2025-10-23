@@ -1485,17 +1485,49 @@ export default function MemorizationPage() {
 
                   <div className="mb-24 space-y-5 rounded-2xl border border-emerald-100 bg-white/90 p-6 shadow-inner lg:mb-32">
                     {sessionActive ? (
-                      versesForActiveLevel.map((verse) => (
-                        <div key={verse.numberInSurah} className="space-y-2">
-                          <p className="text-3xl leading-relaxed text-slate-900 md:text-[2.25rem]">{verse.arabicText}</p>
-                          {verse.transliteration ? (
-                            <p className="text-base italic leading-relaxed text-emerald-700">
-                              {verse.transliteration}
-                            </p>
-                          ) : null}
-                          <p className="text-sm leading-relaxed text-slate-600">{verse.translation}</p>
-                        </div>
-                      ))
+                      versesForActiveLevel.map((verse) => {
+                        const arabicText = verse.arabicText?.trim() ?? "";
+                        const bismillahPrefix = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
+                        const hasBismillah = arabicText.startsWith(bismillahPrefix);
+                        const verseRemainder = hasBismillah
+                          ? arabicText.slice(bismillahPrefix.length).trim()
+                          : arabicText;
+
+                        return (
+                          <div key={verse.numberInSurah} className="space-y-2">
+                            <div className="flex items-center gap-2 text-emerald-600">
+                              <span className="text-[0.625rem] font-semibold uppercase tracking-[0.3em] text-emerald-700">
+                                Voice Record
+                              </span>
+                              <div className="flex h-3 items-end gap-[2px]">
+                                <span className="h-1 w-1 rounded-full bg-emerald-400" />
+                                <span className="h-2 w-1 rounded-full bg-emerald-500" />
+                                <span className="h-3 w-1 rounded-full bg-emerald-600" />
+                                <span className="h-2 w-1 rounded-full bg-emerald-500" />
+                                <span className="h-1 w-1 rounded-full bg-emerald-400" />
+                              </div>
+                            </div>
+
+                            {hasBismillah ? (
+                              <>
+                                <p className="text-2xl leading-relaxed text-emerald-700 md:text-[1.75rem]">{bismillahPrefix}</p>
+                                {verseRemainder ? (
+                                  <p className="text-3xl leading-relaxed text-slate-900 md:text-[2.25rem]">{verseRemainder}</p>
+                                ) : null}
+                              </>
+                            ) : (
+                              <p className="text-3xl leading-relaxed text-slate-900 md:text-[2.25rem]">{verseRemainder}</p>
+                            )}
+
+                            {verse.transliteration ? (
+                              <p className="text-base italic leading-relaxed text-emerald-700">
+                                {verse.transliteration}
+                              </p>
+                            ) : null}
+                            <p className="text-sm leading-relaxed text-slate-600">{verse.translation}</p>
+                          </div>
+                        );
+                      })
                     ) : (
                       <div className="flex flex-col items-center justify-center gap-3 py-8 text-center text-slate-600">
                         <Mic className="h-6 w-6 text-emerald-600" />
