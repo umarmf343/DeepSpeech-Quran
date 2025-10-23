@@ -27,7 +27,7 @@ export function ArabicLetterCard({ children, className }: ArabicLetterCardProps)
           audioSrc={audioSrc}
           fallbackText={text}
           label={`Play pronunciation for ${text}`}
-          className="col-span-1 row-span-2 h-12 w-12 justify-self-center border border-maroon/15 bg-white text-maroon shadow-lg"
+          className="col-span-1 row-span-2 h-8 w-8 justify-self-center border border-maroon/15 bg-white text-maroon shadow-lg"
         />
       )}
     </span>
