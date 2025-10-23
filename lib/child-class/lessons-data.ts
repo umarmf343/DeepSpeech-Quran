@@ -466,7 +466,146 @@ const LETTER_DEFINITIONS: LetterDefinition[] = [
 
 type LessonEnrichment = Omit<ChildLesson, "id">
 
-const DAY_ENRICHMENTS: Record<number, LessonEnrichment[]> = {
+const TANWIN_FATHA = "\u064B"
+const TANWIN_DAMMA = "\u064C"
+const TANWIN_KASRA = "\u064D"
+
+const normaliseTranslit = (value: string): string => {
+  return value.toLowerCase().replace(/[^a-z']+/g, "")
+}
+
+const softTranslit = (value: string): string => {
+  return value.toLowerCase()
+}
+
+const createLetterDayEnrichments = (definition: LetterDefinition): LessonEnrichment[] => {
+  const fathaSound = normaliseTranslit(definition.fatha.translit)
+  const kasrahSound = normaliseTranslit(definition.kasrah.translit)
+  const dhammaSound = normaliseTranslit(definition.dhamma.translit)
+  const baseName = definition.name
+
+  return [
+    {
+      day: definition.day,
+      title: `${baseName} Tanwin Fathatan`,
+      level: "Beginner+",
+      arabic: `${definition.character}${TANWIN_FATHA}`,
+      translit: `${fathaSound}n`,
+      rule: "Tanwin",
+      description: `Read the -an tanwin sound with ${baseName}.`,
+    },
+    {
+      day: definition.day,
+      title: `${baseName} Tanwin Kasratan`,
+      level: "Beginner+",
+      arabic: `${definition.character}${TANWIN_KASRA}`,
+      translit: `${kasrahSound}n`,
+      rule: "Tanwin",
+      description: `Practise the -in tanwin ending on ${baseName}.`,
+    },
+    {
+      day: definition.day,
+      title: `${baseName} Tanwin Dammatan`,
+      level: "Beginner+",
+      arabic: `${definition.character}${TANWIN_DAMMA}`,
+      translit: `${dhammaSound}n`,
+      rule: "Tanwin",
+      description: `Pronounce the -un tanwin ending using ${baseName}.`,
+    },
+    {
+      day: definition.day,
+      title: `${baseName} Vowel Trio Drill`,
+      level: "Beginner",
+      arabic: `${definition.fatha.arabic} • ${definition.kasrah.arabic} • ${definition.dhamma.arabic}`,
+      translit: `${softTranslit(definition.fatha.translit)} • ${softTranslit(definition.kasrah.translit)} • ${softTranslit(definition.dhamma.translit)}`,
+      rule: "Vowel Review",
+      description: `Compare all three short vowels on ${baseName}.`,
+    },
+    {
+      day: definition.day,
+      title: `${baseName} Blend with Meem`,
+      level: "Explorer",
+      arabic: `${definition.fatha.arabic}م`,
+      translit: `${fathaSound}m`,
+      rule: "Blend Practice",
+      description: `Blend ${baseName} with meem for the ${fathaSound}m sound.`,
+    },
+    {
+      day: definition.day,
+      title: `${baseName} Blend with Nun`,
+      level: "Explorer",
+      arabic: `${definition.fatha.arabic}ن`,
+      translit: `${fathaSound}n`,
+      rule: "Blend Practice",
+      description: `Link ${baseName} to nun for the ${fathaSound}n blend.`,
+    },
+    {
+      day: definition.day,
+      title: `${baseName} Stop with Ba`,
+      level: "Explorer",
+      arabic: `${definition.fatha.arabic}بْ`,
+      translit: `${fathaSound}b`,
+      rule: "Stop Practice",
+      description: `Practise a gentle stop by ending ${baseName} with ba sukoon.`,
+    },
+    {
+      day: definition.day,
+      title: `${baseName} Kasrah with Meem`,
+      level: "Explorer",
+      arabic: `${definition.kasrah.arabic}م`,
+      translit: `${kasrahSound}m`,
+      rule: "Blend Practice",
+      description: `Slide from ${baseName} into meem with the ${kasrahSound}m sound.`,
+    },
+    {
+      day: definition.day,
+      title: `${baseName} Kasrah with Ya`,
+      level: "Explorer",
+      arabic: `${definition.kasrah.arabic}ي`,
+      translit: `${kasrahSound}y`,
+      rule: "Blend Practice",
+      description: `Glide into a long ee sound by joining ${baseName} to ya.`,
+    },
+    {
+      day: definition.day,
+      title: `${baseName} Kasrah with Ra`,
+      level: "Explorer",
+      arabic: `${definition.kasrah.arabic}ر`,
+      translit: `${kasrahSound}r`,
+      rule: "Blend Practice",
+      description: `Connect ${baseName} to ra for a smooth ${kasrahSound}r sound.`,
+    },
+    {
+      day: definition.day,
+      title: `${baseName} Dhamma with Waw`,
+      level: "Explorer",
+      arabic: `${definition.dhamma.arabic}و`,
+      translit: `${dhammaSound}w`,
+      rule: "Blend Practice",
+      description: `Round your lips for the long ${dhammaSound}w sound.`,
+    },
+    {
+      day: definition.day,
+      title: `${baseName} Dhamma with Nun`,
+      level: "Explorer",
+      arabic: `${definition.dhamma.arabic}ن`,
+      translit: `${dhammaSound}n`,
+      rule: "Blend Practice",
+      description: `Bounce into nun for the ${dhammaSound}n blend.`,
+    },
+    {
+      day: definition.day,
+      title: `${baseName} Sukoon to Lam`,
+      level: "Explorer+",
+      arabic: `${definition.sukoon.arabic}ل`,
+      translit: `${definition.transliteration.toLowerCase()} + lam`,
+      rule: "Sukoon Connection",
+      description: `Hold ${baseName} still, then connect softly to lam.`,
+    },
+  ]
+}
+
+const STATIC_DAY_ENRICHMENTS: Partial<Record<number, LessonEnrichment[]>> = {
   1: [
     {
       day: 1,
@@ -586,6 +725,31 @@ const DAY_ENRICHMENTS: Record<number, LessonEnrichment[]> = {
       description: "Point to the matching vowel sound for Alif.",
     },
   ],
+}
+
+const LETTER_DAY_ENRICHMENTS: Record<number, LessonEnrichment[]> = LETTER_DEFINITIONS.reduce(
+  (acc, definition) => {
+    acc[definition.day] = createLetterDayEnrichments(definition)
+    return acc
+  },
+  {} as Record<number, LessonEnrichment[]>,
+)
+
+const DAY_ENRICHMENTS: Record<number, LessonEnrichment[]> = Object.entries(LETTER_DAY_ENRICHMENTS).reduce(
+  (acc, [dayKey, enrichments]) => {
+    const day = Number(dayKey)
+    const staticExtras = STATIC_DAY_ENRICHMENTS[day] ?? []
+    acc[day] = [...enrichments, ...staticExtras]
+    return acc
+  },
+  {} as Record<number, LessonEnrichment[]>,
+)
+
+for (const [dayKey, enrichments] of Object.entries(STATIC_DAY_ENRICHMENTS)) {
+  const day = Number(dayKey)
+  if (!DAY_ENRICHMENTS[day]) {
+    DAY_ENRICHMENTS[day] = [...enrichments]
+  }
 }
 
 
@@ -1300,7 +1464,10 @@ const createPracticeLessons = (lessons: ChildLesson[]): ChildLesson[] => {
     expandedLessons.push(...sortedBaseLessons)
 
     const enrichments = DAY_ENRICHMENTS[day] ?? []
-    for (const enrichment of enrichments) {
+    const maxEnrichmentCount = Math.max(0, 20 - sortedBaseLessons.length)
+    const selectedEnrichments = enrichments.slice(0, maxEnrichmentCount)
+
+    for (const enrichment of selectedEnrichments) {
       maxId += 1
       expandedLessons.push({
         ...enrichment,
@@ -1308,7 +1475,7 @@ const createPracticeLessons = (lessons: ChildLesson[]): ChildLesson[] => {
       })
     }
 
-    const totalForDay = sortedBaseLessons.length + enrichments.length
+    const totalForDay = sortedBaseLessons.length + selectedEnrichments.length
     const additionalLessonsNeeded = Math.max(0, 20 - totalForDay)
 
     for (let i = 0; i < additionalLessonsNeeded; i++) {
