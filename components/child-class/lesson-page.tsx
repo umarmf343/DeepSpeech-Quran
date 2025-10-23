@@ -7,6 +7,7 @@ import { playSound } from "@/lib/child-class/sound-effects"
 import { loadSettings, type UserSettings } from "@/lib/child-class/settings-utils"
 import { LESSONS } from "@/lib/child-class/lessons-data"
 import type { ChildLesson } from "@/types/child-class"
+import { shuffleArray } from "@/lib/utils"
 
 const normalizeForComparison = (text: string) => text.normalize("NFC").replace(/\s+/g, " ").trim()
 const countGraphemes = (text: string) => Array.from(text.normalize("NFC").replace(/\s+/g, "")).length
@@ -88,7 +89,7 @@ const createPracticeOptions = (
   }
 
   const combined = [correctValue, ...selected.slice(0, 3)]
-  return combined.sort((a, b) => a.localeCompare(b, locale, { sensitivity: "base" }))
+  return shuffleArray(combined)
 }
 import TracingCanvas from "@/components/child-class/tracing-canvas"
 
