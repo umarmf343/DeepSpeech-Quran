@@ -1671,7 +1671,7 @@ export default function MemorizationPage() {
                     </Button>
                     <Button
                       variant="outline"
-                      className="border-emerald-200 bg-gradient-to-r from-emerald-100 via-emerald-200 to-emerald-300 text-emerald-900 shadow-md transition-all hover:from-emerald-200 hover:via-emerald-300 hover:to-emerald-400 hover:shadow-lg hover:text-emerald-950"
+                      className="border-blue-200 bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 text-blue-50 shadow-md transition-all hover:from-blue-800 hover:via-blue-700 hover:to-blue-600 hover:shadow-lg hover:text-blue-100"
                       onClick={handleShareWithTeacher}
                     >
                       <Share2 className="mr-2 h-4 w-4" /> Share with teacher
