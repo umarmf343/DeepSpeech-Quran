@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { playSound } from "@/lib/child-class/sound-effects"
 import { loadSettings, type UserSettings } from "@/lib/child-class/settings-utils"
 import type { ChildLesson } from "@/types/child-class"
+import TracingCanvas from "@/components/child-class/tracing-canvas"
 
 interface LessonPageProps {
   lesson: ChildLesson
@@ -19,6 +20,11 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
   const [feedbackType, setFeedbackType] = useState<"success" | "error">("success")
   const [settings, setSettings] = useState<UserSettings | null>(null)
   const [showCompletion, setShowCompletion] = useState<boolean>(false)
+  const [tracingProgress, setTracingProgress] = useState<number>(0)
+  const [tracingMistakes, setTracingMistakes] = useState<number>(0)
+  const [tracingComplete, setTracingComplete] = useState<boolean>(false)
+  const [tracingResetKey, setTracingResetKey] = useState<number>(0)
+  const [showTracingFailure, setShowTracingFailure] = useState<boolean>(false)
 
   useEffect(() => {
     setSettings(loadSettings())
@@ -97,6 +103,45 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     }
   }
 
+  const handleTracingSuccess = () => {
+    if (tracingComplete) return
+    setTracingComplete(true)
+    setScore((prev) => prev + 25)
+    setFeedbackMessage("Perfect tracing! 🎉")
+    setFeedbackType("success")
+    setShowFeedback(true)
+    if (settings?.soundEnabled) {
+      playSound("correct")
+    }
+    window.setTimeout(() => setShowFeedback(false), 1500)
+  }
+
+  const handleTracingFailure = () => {
+    setFeedbackMessage("Let's try again! 💪")
+    setFeedbackType("error")
+    setShowFeedback(true)
+    window.setTimeout(() => setShowFeedback(false), 1500)
+    setShowTracingFailure(true)
+  }
+
+  const handleResetTracing = () => {
+    setTracingProgress(0)
+    setTracingMistakes(0)
+    setTracingComplete(false)
+    setTracingResetKey((prev) => prev + 1)
+    setShowTracingFailure(false)
+  }
+
+  useEffect(() => {
+    setTracingProgress(0)
+    setTracingMistakes(0)
+    setTracingComplete(false)
+    setTracingResetKey((prev) => prev + 1)
+    setShowTracingFailure(false)
+  }, [lesson.id])
+
+  const isNextDisabled = currentStep === 3 && !tracingComplete
+
   return (
     <div className="relative min-h-screen px-4 py-10 md:px-8">
       <div className="pointer-events-none absolute inset-0">
@@ -112,6 +157,22 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
             <h2 className="text-4xl font-extrabold text-maroon mb-3">Lesson Complete!</h2>
             <p className="text-3xl font-black text-maroon mb-6">{score} Points</p>
             <p className="text-maroon/70 text-lg">Fantastic work! Keep learning!</p>
+          </div>
+        </div>
+      )}
+
+      {showTracingFailure && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="kid-card max-w-md p-10 text-center animate-scale-in">
+            <div className="text-6xl mb-4">😅</div>
+            <h2 className="text-3xl font-extrabold text-maroon mb-2">Oops! Try Again</h2>
+            <p className="text-maroon/70 mb-6">Stay inside the letter guide. Give it another go!</p>
+            <button
+              onClick={handleResetTracing}
+              className="rounded-full bg-gradient-to-r from-maroon via-maroon/90 to-maroon/80 px-8 py-3 text-sm font-semibold text-[var(--color-milk)] shadow-[0_10px_25px_rgba(123,51,96,0.25)] transition-transform duration-300 hover:scale-[1.04]"
+            >
+              Try Again
+            </button>
           </div>
         </div>
       )}
@@ -219,22 +280,34 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
           {currentStep === 3 && (
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[3].title}</h2>
-              <p className="text-lg text-maroon/70 mb-8">Trace the letter below</p>
-              <div className="kid-card p-12 mb-8 text-center">
-                <div className="text-black text-[16rem] mb-4 opacity-20">{lesson.arabic}</div>
-                <p className="text-maroon/70 mb-8">Try to write the letter in the space above</p>
-                <button
-                  onClick={() => {
-                    setScore((prev) => prev + 25)
-                    setFeedbackMessage("Perfect tracing! 🎉")
-                    setFeedbackType("success")
-                    setShowFeedback(true)
-                    setTimeout(() => setShowFeedback(false), 1500)
-                  }}
-                  className="kid-pill rounded-full px-8 py-3 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-[1.05]"
-                >
-                  ✓ I've traced it
-                </button>
+              <p className="text-lg text-maroon/70 mb-8">Trace the letter below and stay inside the guide.</p>
+              <div className="kid-card p-6 md:p-10 mb-8 text-center">
+                <TracingCanvas
+                  key={`${lesson.id}-${tracingResetKey}`}
+                  letter={lesson.arabic}
+                  onProgress={setTracingProgress}
+                  onMistake={setTracingMistakes}
+                  onSuccess={handleTracingSuccess}
+                  onFail={handleTracingFailure}
+                  resetSignal={tracingResetKey}
+                />
+                <div className="mt-6 flex flex-col items-center gap-2 text-maroon/80">
+                  <p className="text-lg font-semibold">Progress: {Math.round(tracingProgress * 100)}%</p>
+                  <p className={`text-sm font-bold ${tracingMistakes > 0 ? "text-red-500" : "text-maroon/60"}`}>
+                    Mistakes: {Math.min(tracingMistakes, 3)} / 3
+                  </p>
+                  {!tracingComplete && (
+                    <button
+                      onClick={handleResetTracing}
+                      className="kid-pill rounded-full px-6 py-2 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-[1.05]"
+                    >
+                      Start Over
+                    </button>
+                  )}
+                  {tracingComplete && (
+                    <p className="text-base font-semibold text-green-600">Great tracing! You can continue.</p>
+                  )}
+                </div>
               </div>
               {showFeedback && (
                 <div
@@ -287,7 +360,10 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
             </button>
             <button
               onClick={handleNextStep}
-              className="flex-1 rounded-3xl bg-gradient-to-r from-maroon via-maroon/90 to-maroon/80 py-4 text-lg font-extrabold text-[var(--color-milk)] shadow-[0_15px_35px_rgba(123,51,96,0.25)] transition-transform duration-300 hover:scale-[1.03]"
+              disabled={isNextDisabled}
+              className={`flex-1 rounded-3xl bg-gradient-to-r from-maroon via-maroon/90 to-maroon/80 py-4 text-lg font-extrabold text-[var(--color-milk)] shadow-[0_15px_35px_rgba(123,51,96,0.25)] transition-transform duration-300 ${
+                isNextDisabled ? "cursor-not-allowed opacity-50" : "hover:scale-[1.03]"
+              }`}
             >
               {currentStep === steps.length - 1 ? "Complete Lesson" : "Next"}
             </button>
