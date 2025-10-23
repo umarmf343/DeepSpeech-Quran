@@ -60,15 +60,15 @@ export function SpellingGame({ onComplete, onBack }: SpellingGameProps) {
   return (
     <div className="min-h-screen px-4 py-8 md:px-8">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex items-center gap-4 mb-8">
         <button
           onClick={onBack}
-          className="bg-gradient-to-r from-[#c084fc] via-[#b76dfd] to-[#9333ea] text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)] font-bold py-2 px-4 rounded-lg transition-all duration-300 md:bg-maroon/20 md:hover:bg-maroon/30 md:text-maroon md:drop-shadow-none"
+          className="self-start bg-gradient-to-r from-[#4169e1] via-[#2745c7] to-[#1d4ed8] text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)] font-bold py-2 px-4 rounded-lg transition-all duration-300"
         >
           ← Back
         </button>
-        <h1 className="text-3xl font-bold text-maroon">Spelling Challenge</h1>
-        <div className="text-2xl font-bold text-gold">{score} pts</div>
+        <h1 className="flex-1 text-center text-3xl font-bold text-maroon">Spelling Challenge</h1>
+        <div className="text-2xl font-bold text-gold ml-auto">{score} pts</div>
       </div>
 
       {/* Progress */}
