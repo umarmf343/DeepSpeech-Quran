@@ -62,7 +62,7 @@ export function MushafView({ ayahs, selectedAyahNumber, nightMode = false }: Mus
               )}
             >
               <div className="flex flex-row-reverse items-start gap-4">
-                <p className="flex-1 text-right font-arabic text-3xl leading-loose" dir="rtl">
+                <p className="flex-1 text-right font-arabic text-[1.44rem] leading-loose" dir="rtl">
                   {ayah.text}
                 </p>
                 <span
