@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import type { PointerEvent as ReactPointerEvent } from "react"
 
 interface TracingCanvasProps {
@@ -43,6 +43,51 @@ export function TracingCanvas({
   const completedRef = useRef(false)
   const [ready, setReady] = useState(false)
   const [letterFontSize, setLetterFontSize] = useState(() => CANVAS_SIZE * 0.8)
+  const [letterPreview, setLetterPreview] = useState<string | null>(null)
+
+  const updateLetterPreview = useCallback((width: number, height: number, data: Uint8ClampedArray) => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    const previewCanvas = document.createElement("canvas")
+    previewCanvas.width = width
+    previewCanvas.height = height
+    const previewCtx = previewCanvas.getContext("2d")
+    if (!previewCtx) {
+      setLetterPreview(null)
+      return
+    }
+
+    const previewData = previewCtx.createImageData(width, height)
+    const { data: previewPixels } = previewData
+    const PREVIEW_ALPHA_SCALE = 0.18
+    let hasAlpha = false
+
+    for (let i = 0; i < data.length; i += 4) {
+      const alpha = data[i + 3]
+      if (alpha > 0) {
+        hasAlpha = true
+        previewPixels[i] = 0
+        previewPixels[i + 1] = 0
+        previewPixels[i + 2] = 0
+        previewPixels[i + 3] = Math.min(255, Math.round(alpha * PREVIEW_ALPHA_SCALE))
+      } else {
+        previewPixels[i] = 0
+        previewPixels[i + 1] = 0
+        previewPixels[i + 2] = 0
+        previewPixels[i + 3] = 0
+      }
+    }
+
+    if (!hasAlpha) {
+      setLetterPreview(null)
+      return
+    }
+
+    previewCtx.putImageData(previewData, 0, 0)
+    setLetterPreview(previewCanvas.toDataURL("image/png"))
+  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -50,6 +95,7 @@ export function TracingCanvas({
     if (!canvas || !maskCanvas) return
 
     setReady(false)
+    setLetterPreview(null)
 
     const initializeCanvas = () => {
       const ratio = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1
@@ -157,6 +203,7 @@ export function TracingCanvas({
 
       if (finalMaskData) {
         maskDataRef.current = finalMaskData.data
+        updateLetterPreview(maskCanvas.width, maskCanvas.height, finalMaskData.data)
       } else {
         maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height)
         maskCtx.font = `900 ${fontSize}px 'Scheherazade New', 'Noto Naskh Arabic', 'Amiri', serif`
@@ -170,6 +217,7 @@ export function TracingCanvas({
           }
         }
         finalTotalPixels = Math.max(fallbackTotal, 1)
+        updateLetterPreview(maskCanvas.width, maskCanvas.height, fallbackData.data)
       }
 
       totalLetterPixelsRef.current = finalTotalPixels
@@ -211,7 +259,7 @@ export function TracingCanvas({
       resizeObserver?.disconnect()
       window.removeEventListener("resize", handleResize)
     }
-  }, [letter, onProgress, onMistake, resetSignal])
+  }, [letter, onProgress, onMistake, resetSignal, updateLetterPreview])
 
   useEffect(() => {
     if (!ready) return
@@ -379,13 +427,27 @@ export function TracingCanvas({
     <div className="relative mx-auto aspect-square w-full max-w-[420px]">
       <div className="pointer-events-none absolute inset-0 select-none rounded-[36px] border-4 border-dashed border-black/10 bg-white/70 backdrop-blur-sm"></div>
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden rounded-[36px]">
-        <span
-          aria-hidden="true"
-          className="block select-none font-black leading-none text-black/15"
-          style={{ fontSize: `${letterFontSize}px` }}
-        >
-          {letter}
-        </span>
+        {letterPreview ? (
+          <div
+            aria-hidden="true"
+            className="h-full w-full select-none"
+            style={{
+              backgroundImage: `url(${letterPreview})`,
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "100% 100%",
+              imageRendering: "high-quality",
+            }}
+          />
+        ) : (
+          <span
+            aria-hidden="true"
+            className="block select-none font-black leading-none text-black/15"
+            style={{ fontSize: `${letterFontSize}px` }}
+          >
+            {letter}
+          </span>
+        )}
       </div>
       <canvas
         ref={canvasRef}
