@@ -1,6 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  type PointerEvent as ReactPointerEvent,
+} from "react"
 import { playSound } from "@/lib/child-class/sound-effects"
 import { loadSettings, type UserSettings } from "@/lib/child-class/settings-utils"
 import type { ChildLesson } from "@/types/child-class"
@@ -19,10 +25,274 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
   const [feedbackType, setFeedbackType] = useState<"success" | "error">("success")
   const [settings, setSettings] = useState<UserSettings | null>(null)
   const [showCompletion, setShowCompletion] = useState<boolean>(false)
+  const [mistakes, setMistakes] = useState<number>(0)
+  const [tracingComplete, setTracingComplete] = useState<boolean>(false)
+  const [coverage, setCoverage] = useState<number>(0)
+  const [showFailure, setShowFailure] = useState<boolean>(false)
+
+  const guideCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const drawingCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const letterMaskRef = useRef<Uint8Array | null>(null)
+  const coverageMapRef = useRef<Uint8Array | null>(null)
+  const totalLetterPixelsRef = useRef<number>(0)
+  const coveredPixelsRef = useRef<number>(0)
+  const lastPointRef = useRef<{ x: number; y: number } | null>(null)
+  const isDrawingRef = useRef<boolean>(false)
+  const wasOutsideRef = useRef<boolean>(false)
+  const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const failureTriggeredRef = useRef<boolean>(false)
+  const successTriggeredRef = useRef<boolean>(false)
+
+  const CANVAS_SIZE = 420
+  const BRUSH_RADIUS = 12
 
   useEffect(() => {
     setSettings(loadSettings())
   }, [])
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  const triggerFeedback = useCallback((message: string, type: "success" | "error") => {
+    if (feedbackTimeoutRef.current) {
+      clearTimeout(feedbackTimeoutRef.current)
+    }
+    setFeedbackMessage(message)
+    setFeedbackType(type)
+    setShowFeedback(true)
+    feedbackTimeoutRef.current = setTimeout(() => {
+      setShowFeedback(false)
+    }, 1800)
+  }, [])
+
+  const resetTracingState = useCallback(() => {
+    setMistakes(0)
+    setCoverage(0)
+    setTracingComplete(false)
+    setShowFailure(false)
+    failureTriggeredRef.current = false
+    successTriggeredRef.current = false
+    coveredPixelsRef.current = 0
+    lastPointRef.current = null
+    isDrawingRef.current = false
+    wasOutsideRef.current = false
+  }, [])
+
+  const initialiseTracingCanvas = useCallback(() => {
+    if (typeof window === "undefined") return
+
+    const guideCanvas = guideCanvasRef.current
+    const drawingCanvas = drawingCanvasRef.current
+    if (!guideCanvas || !drawingCanvas) return
+
+    guideCanvas.width = CANVAS_SIZE
+    guideCanvas.height = CANVAS_SIZE
+    drawingCanvas.width = CANVAS_SIZE
+    drawingCanvas.height = CANVAS_SIZE
+
+    const guideCtx = guideCanvas.getContext("2d")
+    const drawingCtx = drawingCanvas.getContext("2d")
+    if (!guideCtx || !drawingCtx) return
+
+    guideCtx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
+    drawingCtx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
+
+    const fontSize = CANVAS_SIZE * 0.6
+    const fontFamily = `'Scheherazade New', 'Amiri', serif`
+
+    guideCtx.fillStyle = "rgba(30, 20, 40, 0.15)"
+    guideCtx.textAlign = "center"
+    guideCtx.textBaseline = "middle"
+    guideCtx.font = `${fontSize}px ${fontFamily}`
+    guideCtx.fillText(lesson.arabic, CANVAS_SIZE / 2, CANVAS_SIZE / 2)
+
+    const maskCanvas = document.createElement("canvas")
+    maskCanvas.width = CANVAS_SIZE
+    maskCanvas.height = CANVAS_SIZE
+    const maskCtx = maskCanvas.getContext("2d")
+    if (!maskCtx) return
+
+    maskCtx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
+    maskCtx.fillStyle = "#000"
+    maskCtx.textAlign = "center"
+    maskCtx.textBaseline = "middle"
+    maskCtx.font = `${fontSize}px ${fontFamily}`
+    maskCtx.fillText(lesson.arabic, CANVAS_SIZE / 2, CANVAS_SIZE / 2)
+
+    const imageData = maskCtx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE)
+    const mask = new Uint8Array(CANVAS_SIZE * CANVAS_SIZE)
+    let total = 0
+    for (let i = 0; i < CANVAS_SIZE * CANVAS_SIZE; i++) {
+      const alpha = imageData.data[i * 4 + 3]
+      if (alpha > 80) {
+        mask[i] = 1
+        total += 1
+      }
+    }
+    letterMaskRef.current = mask
+    coverageMapRef.current = new Uint8Array(CANVAS_SIZE * CANVAS_SIZE)
+    totalLetterPixelsRef.current = total
+
+    resetTracingState()
+  }, [CANVAS_SIZE, lesson.arabic, resetTracingState])
+
+  useEffect(() => {
+    if (currentStep === 3) {
+      initialiseTracingCanvas()
+    }
+  }, [currentStep, initialiseTracingCanvas])
+
+  const handleTracingSuccess = useCallback(() => {
+    if (successTriggeredRef.current) return
+    successTriggeredRef.current = true
+    setTracingComplete(true)
+    setScore((prev) => prev + 25)
+    triggerFeedback("Perfect tracing! 🎉", "success")
+    if (settings?.soundEnabled) {
+      playSound("correct")
+    }
+  }, [settings?.soundEnabled, triggerFeedback])
+
+  const handleTracingFailure = useCallback(() => {
+    if (failureTriggeredRef.current) return
+    failureTriggeredRef.current = true
+    setShowFailure(true)
+    triggerFeedback("Oops! Let's try again.", "error")
+    if (settings?.soundEnabled) {
+      playSound("incorrect")
+    }
+  }, [settings?.soundEnabled, triggerFeedback])
+
+  const getCanvasCoordinates = useCallback((
+    event: ReactPointerEvent<HTMLCanvasElement>,
+  ): { x: number; y: number } => {
+    const canvas = event.currentTarget
+    const rect = canvas.getBoundingClientRect()
+    const scaleX = canvas.width / rect.width
+    const scaleY = canvas.height / rect.height
+    const x = (event.clientX - rect.left) * scaleX
+    const y = (event.clientY - rect.top) * scaleY
+    return { x, y }
+  }, [])
+
+  const drawStroke = useCallback(
+    (from: { x: number; y: number }, to: { x: number; y: number }) => {
+      const drawingCanvas = drawingCanvasRef.current
+      const mask = letterMaskRef.current
+      const coverageMap = coverageMapRef.current
+      if (!drawingCanvas || !mask || !coverageMap) return
+
+      const ctx = drawingCanvas.getContext("2d")
+      if (!ctx) return
+
+      const dx = to.x - from.x
+      const dy = to.y - from.y
+      const steps = Math.max(Math.abs(dx), Math.abs(dy))
+      let outsideSegment = false
+      let insidePainted = false
+
+      for (let i = 0; i <= steps; i++) {
+        const progress = steps === 0 ? 0 : i / steps
+        const x = Math.round(from.x + dx * progress)
+        const y = Math.round(from.y + dy * progress)
+        if (x < 0 || y < 0 || x >= CANVAS_SIZE || y >= CANVAS_SIZE) {
+          outsideSegment = true
+          continue
+        }
+
+        const index = y * CANVAS_SIZE + x
+        const insideLetter = mask[index] === 1
+        ctx.beginPath()
+        ctx.arc(x, y, BRUSH_RADIUS, 0, Math.PI * 2)
+        ctx.fillStyle = insideLetter ? "#111111" : "rgba(200, 40, 60, 0.85)"
+        ctx.fill()
+
+        if (insideLetter) {
+          insidePainted = true
+          if (coverageMap[index] === 0) {
+            coverageMap[index] = 1
+            coveredPixelsRef.current += 1
+          }
+        } else {
+          outsideSegment = true
+        }
+      }
+
+      if (insidePainted && totalLetterPixelsRef.current > 0) {
+        const progress = Math.min(
+          100,
+          Math.round((coveredPixelsRef.current / totalLetterPixelsRef.current) * 100),
+        )
+        setCoverage((prev) => (progress > prev ? progress : prev))
+        if (coveredPixelsRef.current / totalLetterPixelsRef.current >= 0.65) {
+          handleTracingSuccess()
+        }
+      }
+
+      if (outsideSegment) {
+        if (!wasOutsideRef.current) {
+          wasOutsideRef.current = true
+          setMistakes((prev) => {
+            const next = prev + 1
+            if (next >= 3) {
+              handleTracingFailure()
+            }
+            return next
+          })
+        }
+      } else {
+        wasOutsideRef.current = false
+      }
+    },
+    [BRUSH_RADIUS, CANVAS_SIZE, handleTracingFailure, handleTracingSuccess],
+  )
+
+  const handlePointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLCanvasElement>) => {
+      if (tracingComplete || showFailure) return
+      if (!drawingCanvasRef.current) return
+
+      event.preventDefault()
+      const point = getCanvasCoordinates(event)
+      isDrawingRef.current = true
+      lastPointRef.current = point
+      wasOutsideRef.current = false
+      drawStroke(point, point)
+      event.currentTarget.setPointerCapture(event.pointerId)
+    },
+    [drawStroke, getCanvasCoordinates, showFailure, tracingComplete],
+  )
+
+  const handlePointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLCanvasElement>) => {
+      if (!isDrawingRef.current || tracingComplete || showFailure) return
+      event.preventDefault()
+      const point = getCanvasCoordinates(event)
+      const lastPoint = lastPointRef.current ?? point
+      drawStroke(lastPoint, point)
+      lastPointRef.current = point
+    },
+    [drawStroke, getCanvasCoordinates, showFailure, tracingComplete],
+  )
+
+  const stopDrawing = useCallback((event: ReactPointerEvent<HTMLCanvasElement>) => {
+    if (!isDrawingRef.current) return
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+    isDrawingRef.current = false
+    lastPointRef.current = null
+    wasOutsideRef.current = false
+  }, [])
+
+  const handleResetTracing = useCallback(() => {
+    initialiseTracingCanvas()
+  }, [initialiseTracingCanvas])
 
   const steps = [
     {
@@ -67,20 +337,16 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
   const handlePracticeAnswer = (isCorrect: boolean) => {
     if (isCorrect) {
       setScore((prev) => prev + 25)
-      setFeedbackMessage("Excellent! 🎉")
-      setFeedbackType("success")
+      triggerFeedback("Excellent! 🎉", "success")
       if (settings?.soundEnabled) {
         playSound("correct")
       }
     } else {
-      setFeedbackMessage("Try again! 💪")
-      setFeedbackType("error")
+      triggerFeedback("Try again! 💪", "error")
       if (settings?.soundEnabled) {
         playSound("incorrect")
       }
     }
-    setShowFeedback(true)
-    setTimeout(() => setShowFeedback(false), 1500)
   }
 
   const handleNextStep = () => {
@@ -219,22 +485,55 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
           {currentStep === 3 && (
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[3].title}</h2>
-              <p className="text-lg text-maroon/70 mb-8">Trace the letter below</p>
-              <div className="kid-card p-12 mb-8 text-center">
-                <div className="text-black text-[16rem] mb-8 opacity-20">{lesson.arabic}</div>
-                <p className="text-maroon/70 mb-8">Try to write the letter in the space above</p>
-                <button
-                  onClick={() => {
-                    setScore((prev) => prev + 25)
-                    setFeedbackMessage("Perfect tracing! 🎉")
-                    setFeedbackType("success")
-                    setShowFeedback(true)
-                    setTimeout(() => setShowFeedback(false), 1500)
-                  }}
-                  className="kid-pill rounded-full px-8 py-3 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-[1.05]"
-                >
-                  ✓ I've traced it
-                </button>
+              <p className="text-lg text-maroon/70 mb-8">Trace the glowing letter without going outside the lines</p>
+              <div className="relative">
+                <div className="kid-card relative p-6 md:p-8 mb-8 flex flex-col items-center justify-center">
+                  <div className="relative flex h-[420px] w-full max-w-[420px] items-center justify-center overflow-hidden rounded-[2.5rem] bg-white">
+                    <canvas
+                      ref={guideCanvasRef}
+                      className="absolute inset-0 h-full w-full select-none"
+                    ></canvas>
+                    <canvas
+                      ref={drawingCanvasRef}
+                      className="relative z-10 h-full w-full touch-none select-none"
+                      onPointerDown={handlePointerDown}
+                      onPointerMove={handlePointerMove}
+                      onPointerUp={stopDrawing}
+                      onPointerLeave={stopDrawing}
+                      onPointerCancel={stopDrawing}
+                    ></canvas>
+                    {showFailure && (
+                      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 rounded-[2.5rem] bg-white/90 text-maroon">
+                        <p className="text-3xl font-extrabold text-red-500">Almost there!</p>
+                        <p className="text-lg text-maroon/70">Let's try tracing again.</p>
+                        <button
+                          onClick={handleResetTracing}
+                          className="kid-pill rounded-full px-6 py-2 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-[1.05]"
+                        >
+                          ↺ Try again
+                        </button>
+                      </div>
+                    )}
+                    {tracingComplete && (
+                      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center rounded-[2.5rem] bg-white/80 text-maroon">
+                        <p className="text-3xl font-extrabold">Amazing tracing! ✨</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm font-semibold text-maroon">
+                    <span className="rounded-full bg-maroon/5 px-4 py-2">Progress: {coverage}%</span>
+                    <span className={`rounded-full px-4 py-2 ${mistakes > 0 ? "bg-red-100 text-red-600" : "bg-maroon/5"}`}>
+                      Mistakes: {mistakes} / 3
+                    </span>
+                    <button
+                      onClick={handleResetTracing}
+                      disabled={tracingComplete}
+                      className={`kid-pill rounded-full px-6 py-2 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-[1.05] ${tracingComplete ? "pointer-events-none opacity-50" : ""}`}
+                    >
+                      Reset canvas
+                    </button>
+                  </div>
+                </div>
               </div>
               {showFeedback && (
                 <div
