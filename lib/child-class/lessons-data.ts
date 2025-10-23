@@ -719,7 +719,7 @@ const STATIC_DAY_ENRICHMENTS: Partial<Record<number, LessonEnrichment[]>> = {
       day: 1,
       title: "Mini Quiz: Vowels",
       level: "Beginner",
-      arabic: "؟",
+      arabic: "أَ • أِ • أُ",
       translit: "quiz",
       rule: "Check-Up",
       description: "Point to the matching vowel sound for Alif.",
@@ -1555,6 +1555,24 @@ const BASE_LESSONS: ChildLesson[] = [
   ...quranVersesResult.lessons,
 ]
 
+const PLACEHOLDER_ARABIC_PATTERN = /^[\s?؟]+$/u
+
+const ensureValidArabicLessons = (lessons: ChildLesson[]): ChildLesson[] => {
+  const invalidLessons = lessons.filter((lesson) =>
+    PLACEHOLDER_ARABIC_PATTERN.test(lesson.arabic.trim()),
+  )
+
+  if (invalidLessons.length > 0) {
+    const details = invalidLessons
+      .map((lesson) => `Day ${lesson.day} - ${lesson.title} (#${lesson.id})`)
+      .join(", ")
+
+    throw new Error(`Placeholder Arabic content detected for lessons: ${details}`)
+  }
+
+  return lessons
+}
+
 const createPracticeLessons = (lessons: ChildLesson[]): ChildLesson[] => {
   if (lessons.length === 0) {
     return []
@@ -1616,7 +1634,7 @@ const createPracticeLessons = (lessons: ChildLesson[]): ChildLesson[] => {
   return expandedLessons
 }
 
-export const LESSONS: ChildLesson[] = createPracticeLessons(BASE_LESSONS)
+export const LESSONS: ChildLesson[] = ensureValidArabicLessons(createPracticeLessons(BASE_LESSONS))
 
 export const getLessonsByDay = (day: number): ChildLesson[] => {
   return LESSONS.filter((lesson) => lesson.day === day)
