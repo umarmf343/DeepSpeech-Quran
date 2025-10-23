@@ -24,6 +24,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
   const [tracingProgress, setTracingProgress] = useState<number>(0)
   const [tracingMistakes, setTracingMistakes] = useState<number>(0)
   const [tracingComplete, setTracingComplete] = useState<boolean>(false)
+  const [tracingReady, setTracingReady] = useState<boolean>(false)
   const [tracingResetKey, setTracingResetKey] = useState<number>(0)
   const [showTracingFailure, setShowTracingFailure] = useState<boolean>(false)
 
@@ -112,16 +113,8 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
   }
 
   const handleTracingSuccess = () => {
-    if (tracingComplete) return
-    setTracingComplete(true)
-    setScore((prev) => prev + 25)
-    setFeedbackMessage("Perfect tracing! 🎉")
-    setFeedbackType("success")
-    setShowFeedback(true)
-    if (settings?.soundEnabled) {
-      playSound("correct")
-    }
-    window.setTimeout(() => setShowFeedback(false), 1500)
+    if (tracingReady) return
+    setTracingReady(true)
   }
 
   const handleTracingFailure = () => {
@@ -129,6 +122,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     setFeedbackType("error")
     setShowFeedback(true)
     window.setTimeout(() => setShowFeedback(false), 1500)
+    setTracingReady(false)
     setShowTracingFailure(true)
   }
 
@@ -136,6 +130,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     setTracingProgress(0)
     setTracingMistakes(0)
     setTracingComplete(false)
+    setTracingReady(false)
     setTracingResetKey((prev) => prev + 1)
     setShowTracingFailure(false)
   }
@@ -144,9 +139,35 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     setTracingProgress(0)
     setTracingMistakes(0)
     setTracingComplete(false)
+    setTracingReady(false)
     setTracingResetKey((prev) => prev + 1)
     setShowTracingFailure(false)
   }, [lesson.id])
+
+  const handleCheckTracing = () => {
+    if (tracingComplete) return
+
+    if (tracingReady) {
+      setTracingComplete(true)
+      setScore((prev) => prev + 25)
+      setFeedbackMessage("Perfect tracing! 🎉")
+      setFeedbackType("success")
+      setShowFeedback(true)
+      if (settings?.soundEnabled) {
+        playSound("correct")
+      }
+      window.setTimeout(() => setShowFeedback(false), 1500)
+      return
+    }
+
+    setFeedbackMessage("Keep tracing inside the guide before pressing Go.")
+    setFeedbackType("error")
+    setShowFeedback(true)
+    if (settings?.soundEnabled) {
+      playSound("incorrect")
+    }
+    window.setTimeout(() => setShowFeedback(false), 1500)
+  }
 
   const isNextDisabled = currentStep === 3 && !tracingComplete
 
@@ -299,11 +320,23 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                   onFail={handleTracingFailure}
                   resetSignal={tracingResetKey}
                 />
-                <div className="mt-6 flex flex-col items-center gap-2 text-maroon/80">
+                <div className="mt-6 flex flex-col items-center gap-3 text-maroon/80">
                   <p className="text-lg font-semibold">Progress: {Math.round(tracingProgress * 100)}%</p>
                   <p className={`text-sm font-bold ${tracingMistakes > 0 ? "text-red-500" : "text-maroon/60"}`}>
                     Mistakes: {Math.min(tracingMistakes, 3)} / 3
                   </p>
+                  {tracingReady && !tracingComplete && (
+                    <p className="text-sm font-semibold text-emerald-600">Looking good! Press Go to check your tracing.</p>
+                  )}
+                  <button
+                    onClick={handleCheckTracing}
+                    disabled={tracingComplete}
+                    className={`inline-flex items-center justify-center rounded-full bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 px-10 py-3 text-lg font-extrabold text-white shadow-lg transition-transform duration-300 ${
+                      tracingComplete ? "cursor-not-allowed opacity-60" : "hover:scale-105"
+                    }`}
+                  >
+                    Go
+                  </button>
                   {!tracingComplete && (
                     <button
                       onClick={handleResetTracing}
