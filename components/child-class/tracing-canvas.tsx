@@ -39,7 +39,7 @@ export function TracingCanvas({
   const mistakesRef = useRef(0)
   const completedRef = useRef(false)
   const [ready, setReady] = useState(false)
-  const [displaySize, setDisplaySize] = useState(CANVAS_SIZE)
+  const [letterFontSize, setLetterFontSize] = useState(() => CANVAS_SIZE * 0.8)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -78,20 +78,80 @@ export function TracingCanvas({
       maskCtx.fillStyle = "#000"
       maskCtx.textAlign = "center"
       maskCtx.textBaseline = "middle"
-      const fontSize = nextDisplaySize * FONT_SCALE * ratio
-      maskCtx.font = `${fontSize}px 'Scheherazade New', 'Noto Naskh Arabic', 'Amiri', serif`
-      maskCtx.fillText(letter, maskCanvas.width / 2, maskCanvas.height / 2)
 
-      const maskData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height)
-      maskDataRef.current = maskData.data
+      const edgeBuffer = Math.max(2, Math.round(ratio * 4))
+      const maxFontAdjustments = 10
+      let fontSize = nextDisplaySize * FONT_SCALE * ratio
+      let finalMaskData: ImageData | null = null
+      let finalTotalPixels = 1
 
-      let total = 0
-      for (let i = 3; i < maskData.data.length; i += 4) {
-        if (maskData.data[i] > 0) {
-          total += 1
+      for (let attempt = 0; attempt < maxFontAdjustments; attempt++) {
+        maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height)
+        maskCtx.font = `900 ${fontSize}px 'Scheherazade New', 'Noto Naskh Arabic', 'Amiri', serif`
+        maskCtx.fillText(letter, maskCanvas.width / 2, maskCanvas.height / 2)
+
+        const maskData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height)
+        const data = maskData.data
+
+        let total = 0
+        let minX = maskCanvas.width
+        let maxX = 0
+        let minY = maskCanvas.height
+        let maxY = 0
+
+        for (let y = 0; y < maskCanvas.height; y++) {
+          for (let x = 0; x < maskCanvas.width; x++) {
+            const alphaIndex = (y * maskCanvas.width + x) * 4 + 3
+            if (data[alphaIndex] > 0) {
+              total += 1
+              if (x < minX) minX = x
+              if (x > maxX) maxX = x
+              if (y < minY) minY = y
+              if (y > maxY) maxY = y
+            }
+          }
         }
+
+        if (total === 0) {
+          finalMaskData = maskData
+          finalTotalPixels = 1
+          break
+        }
+
+        const touchesEdge =
+          minX <= edgeBuffer ||
+          minY <= edgeBuffer ||
+          maxX >= maskCanvas.width - 1 - edgeBuffer ||
+          maxY >= maskCanvas.height - 1 - edgeBuffer
+
+        if (!touchesEdge || attempt === maxFontAdjustments - 1) {
+          finalMaskData = maskData
+          finalTotalPixels = Math.max(total, 1)
+          break
+        }
+
+        fontSize *= 0.94
       }
-      totalLetterPixelsRef.current = Math.max(total, 1)
+
+      if (finalMaskData) {
+        maskDataRef.current = finalMaskData.data
+      } else {
+        maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height)
+        maskCtx.font = `900 ${fontSize}px 'Scheherazade New', 'Noto Naskh Arabic', 'Amiri', serif`
+        maskCtx.fillText(letter, maskCanvas.width / 2, maskCanvas.height / 2)
+        const fallbackData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height)
+        maskDataRef.current = fallbackData.data
+        let fallbackTotal = 0
+        for (let i = 3; i < fallbackData.data.length; i += 4) {
+          if (fallbackData.data[i] > 0) {
+            fallbackTotal += 1
+          }
+        }
+        finalTotalPixels = Math.max(fallbackTotal, 1)
+      }
+
+      totalLetterPixelsRef.current = finalTotalPixels
+      setLetterFontSize(Math.max(fontSize / ratio, 1))
 
       coverageMapRef.current = new Uint8Array(maskCanvas.width * maskCanvas.height)
       coveredPixelsRef.current = 0
@@ -104,7 +164,6 @@ export function TracingCanvas({
 
       onProgress?.(0)
       onMistake?.(0)
-      setDisplaySize(nextDisplaySize)
       setReady(true)
     }
 
@@ -277,7 +336,7 @@ export function TracingCanvas({
         <span
           aria-hidden="true"
           className="block select-none font-black leading-none text-black/15"
-          style={{ fontSize: `${displaySize * 0.8}px` }}
+          style={{ fontSize: `${letterFontSize}px` }}
         >
           {letter}
         </span>
