@@ -1,6 +1,13 @@
 "use client"
 
-import { useState, useEffect, type ReactNode } from "react"
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+  type CSSProperties,
+} from "react"
 import { renderTextWithArabicCard } from "./arabic-letter-card"
 import { playSound } from "@/lib/child-class/sound-effects"
 import { loadSettings, type UserSettings } from "@/lib/child-class/settings-utils"
@@ -12,6 +19,16 @@ interface LessonPageProps {
   onComplete: (score: number) => void
   onBack: () => void
 }
+
+const TRACING_CELEBRATION_DURATION = 1600
+const TRACING_SPRINKLE_COLORS = [
+  "bg-amber-400",
+  "bg-emerald-400",
+  "bg-sky-400",
+  "bg-rose-400",
+  "bg-purple-400",
+  "bg-lime-400",
+]
 
 const renderLessonTitle = (title: string): ReactNode => {
   const practiceMatch = title.match(/^(.*?)(Practice)(\s+)(\d+)$/i)
@@ -50,8 +67,11 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
   const [tracingReady, setTracingReady] = useState<boolean>(false)
   const [tracingResetKey, setTracingResetKey] = useState<number>(0)
   const [showTracingFailure, setShowTracingFailure] = useState<boolean>(false)
+  const [showTracingCelebration, setShowTracingCelebration] = useState<boolean>(false)
+  const [tracingCelebrationDone, setTracingCelebrationDone] = useState<boolean>(false)
   const [selectedPracticeOption, setSelectedPracticeOption] = useState<string | null>(null)
   const [selectedPracticeCorrect, setSelectedPracticeCorrect] = useState<boolean | null>(null)
+  const tracingCelebrationTimeoutRef = useRef<number | null>(null)
 
   useEffect(() => {
     setSettings(loadSettings())
@@ -156,25 +176,88 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     window.setTimeout(() => setShowFeedback(false), 1500)
     setTracingReady(false)
     setShowTracingFailure(true)
+    setShowTracingCelebration(false)
+    setTracingCelebrationDone(false)
   }
 
   const handleResetTracing = () => {
+    if (tracingCelebrationTimeoutRef.current) {
+      window.clearTimeout(tracingCelebrationTimeoutRef.current)
+      tracingCelebrationTimeoutRef.current = null
+    }
     setTracingProgress(0)
     setTracingMistakes(0)
     setTracingComplete(false)
     setTracingReady(false)
     setTracingResetKey((prev) => prev + 1)
     setShowTracingFailure(false)
+    setShowTracingCelebration(false)
+    setTracingCelebrationDone(false)
   }
 
   useEffect(() => {
+    if (tracingCelebrationTimeoutRef.current) {
+      window.clearTimeout(tracingCelebrationTimeoutRef.current)
+      tracingCelebrationTimeoutRef.current = null
+    }
     setTracingProgress(0)
     setTracingMistakes(0)
     setTracingComplete(false)
     setTracingReady(false)
     setTracingResetKey((prev) => prev + 1)
     setShowTracingFailure(false)
+    setShowTracingCelebration(false)
+    setTracingCelebrationDone(false)
   }, [lesson.id])
+
+  useEffect(() => {
+    return () => {
+      if (tracingCelebrationTimeoutRef.current) {
+        window.clearTimeout(tracingCelebrationTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  const tracingCelebrationSprinkles = useMemo(() => {
+    if (!showTracingCelebration) return []
+    const count = 18
+    return Array.from({ length: count }, (_, index) => {
+      const angle = (index / count) * Math.PI * 2
+      const radius = 110 + (index % 4) * 16
+      const x = Math.cos(angle) * radius
+      const y = Math.sin(angle) * radius * -1
+      const color = TRACING_SPRINKLE_COLORS[index % TRACING_SPRINKLE_COLORS.length]
+      const delay = (index % 6) * 0.05
+      return {
+        key: `tracing-sprinkle-${index}`,
+        color,
+        style: {
+          "--sprinkle-x": `${x}px`,
+          "--sprinkle-y": `${y}px`,
+          left: "50%",
+          top: "50%",
+          animationDelay: `${delay}s`,
+        } as CSSProperties,
+      }
+    })
+  }, [showTracingCelebration])
+
+  const triggerTracingCelebration = () => {
+    if (typeof window === "undefined") {
+      setTracingCelebrationDone(true)
+      return
+    }
+    if (tracingCelebrationTimeoutRef.current) {
+      window.clearTimeout(tracingCelebrationTimeoutRef.current)
+    }
+    setShowTracingCelebration(true)
+    setTracingCelebrationDone(false)
+    tracingCelebrationTimeoutRef.current = window.setTimeout(() => {
+      setShowTracingCelebration(false)
+      setTracingCelebrationDone(true)
+      tracingCelebrationTimeoutRef.current = null
+    }, TRACING_CELEBRATION_DURATION)
+  }
 
   const handleCheckTracing = () => {
     if (tracingComplete) return
@@ -189,6 +272,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
         playSound("correct")
       }
       window.setTimeout(() => setShowFeedback(false), 1500)
+      triggerTracingCelebration()
       return
     }
 
@@ -201,7 +285,8 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     window.setTimeout(() => setShowFeedback(false), 1500)
   }
 
-  const isNextDisabled = currentStep === 3 && !tracingComplete
+  const isNextDisabled =
+    currentStep === 3 && (!tracingComplete || !tracingCelebrationDone)
 
   return (
     <div className="relative min-h-screen px-4 py-10 md:px-8">
@@ -354,7 +439,27 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[3].title}</h2>
               <p className="text-lg text-maroon/70 mb-8">Trace the letter below and stay inside the guide.</p>
-              <div className="kid-card kid-gradient-tropical p-6 md:p-10 mb-8 text-center">
+              <div className="kid-card kid-gradient-tropical relative overflow-hidden p-6 md:p-10 mb-8 text-center">
+                {showTracingCelebration && (
+                  <>
+                    <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
+                      <div className="relative flex h-28 w-28 items-center justify-center">
+                        <span className="absolute inset-0 rounded-full bg-gradient-to-br from-emerald-200/80 via-white/60 to-pink-200/80 blur-2xl" />
+                        <span className="absolute inset-0 rounded-full border-4 border-white/70 opacity-70 animate-ping" />
+                        <span className="relative text-6xl drop-shadow-[0_12px_28px_rgba(244,114,182,0.45)]">✨</span>
+                      </div>
+                    </div>
+                    <div className="pointer-events-none absolute inset-0 z-10 overflow-visible">
+                      {tracingCelebrationSprinkles.map((sprinkle) => (
+                        <span
+                          key={sprinkle.key}
+                          className={`sprinkle-piece ${sprinkle.color}`}
+                          style={sprinkle.style}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
                 <TracingCanvas
                   key={`${lesson.id}-${tracingResetKey}`}
                   letter={lesson.arabic}
@@ -392,7 +497,11 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                     )}
                   </div>
                   {tracingComplete && (
-                    <p className="text-base font-semibold text-green-600">Great tracing! You can continue.</p>
+                    <p className="text-base font-semibold text-green-600">
+                      {showTracingCelebration
+                        ? "Amazing tracing! Enjoy the sparkles..."
+                        : "Great tracing! You can continue."}
+                    </p>
                   )}
                 </div>
               </div>
