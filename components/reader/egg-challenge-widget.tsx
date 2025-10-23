@@ -217,11 +217,6 @@ export function EggChallengeWidget({
             </div>
             <h3 className="mt-3 text-2xl font-semibold text-maroon-700">Brakllahu Feek!</h3>
             {/* Celebration message removed as per updated requirements */}
-            <p className="mt-1 text-xs text-slate-500">
-              {celebration?.roundsTarget
-                ? `Round ${celebration.completedRound} of ${celebration.roundsTarget} is now complete.`
-                : "Keep nurturing your momentum."}
-            </p>
             <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
               <Button
                 variant="outline"
