@@ -1434,7 +1434,7 @@ export default function MemorizationPage() {
                     <p className="text-sm text-slate-600">{activeLevelDefinition?.description}</p>
                   </div>
 
-                  <div className="space-y-5 rounded-2xl border border-emerald-100 bg-white/90 p-6 shadow-inner">
+                  <div className="mb-24 space-y-5 rounded-2xl border border-emerald-100 bg-white/90 p-6 shadow-inner lg:mb-32">
                     {sessionActive ? (
                       versesForActiveLevel.map((verse) => (
                         <div key={verse.numberInSurah} className="space-y-2">
