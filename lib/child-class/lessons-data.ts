@@ -1,6 +1,7 @@
 
 import type { ChildLesson } from "@/types/child-class"
 import { registerLessonAudio } from "./lessons-audio"
+import { LESSON_AUDIO_DATA } from "./lesson-audio-data"
 
 const ORDINALS = [
   "First",
@@ -1405,7 +1406,10 @@ const createLetterLessons = (): { lessons: ChildLesson[]; nextId: number } => {
 
   const addLesson = (lesson: Omit<ChildLesson, "id">) => {
     const lessonId = id++
-    const audioSrc = `/audio/child-lessons/${lessonId}.mp3`
+    const base64Audio = LESSON_AUDIO_DATA[lessonId]
+    const audioSrc = base64Audio
+      ? `data:audio/mp3;base64,${base64Audio}`
+      : `/audio/child-lessons/${lessonId}`
     const lessonWithAudio: ChildLesson = {
       ...lesson,
       id: lessonId,

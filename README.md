@@ -57,8 +57,11 @@ hooks/
 
 ### Child class audio assets
 
-The kids' classroom lessons expect MP3 pronunciations to live in `public/audio/child-lessons/`. Binary assets are not tracked
-in git—generate them locally with:
+The kids' classroom lessons embed their pronunciations as Base64-encoded data URIs generated from `scripts/fetch-child-lesson-audio.mjs`.
+The script still saves extensionless MP3 caches to `public/audio/child-lessons/` (ignored by git) so reruns can reuse existing clips, then writes
+`lib/child-class/lesson-audio-data.ts` with the encoded payloads consumed by the app.
+
+Generate or refresh the bundle with:
 
 ```bash
 pnpm install
@@ -66,13 +69,16 @@ pnpm run fetch:child-audio
 ```
 
 The script uses Google Translate TTS to create Arabic pronunciations for every lesson defined in
-`scripts/letter-lesson-text.json`. Re-run the command with `--force` to refresh existing files:
+`scripts/letter-lesson-text.json`. Re-run the command with `--force` to refresh existing files and regenerate the Base64 module:
 
 ```bash
 pnpm run fetch:child-audio -- --force
 ```
 
-Each run prints a summary of which clips were downloaded or re-used.
+Each run prints a summary of which clips were downloaded or re-used and reports the location of the regenerated TypeScript module.
+
+When the script cannot reach Google Translate (for example, in offline environments) it now synthesizes short placeholder tones
+using the bundled `ffmpeg-static` binary, ensuring the directory is always populated.
 
 ### Environment variables
 

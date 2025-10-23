@@ -12,8 +12,8 @@
 # production
 /build
 
-# generated audio assets
-public/audio/child-lessons/
+# generated audio caches
+/public/audio/child-lessons/
 
 # debug
 npm-debug.log*
