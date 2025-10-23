@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import type { CSSProperties } from "react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -12,6 +13,13 @@ import { cn } from "@/lib/utils"
 import { createAudioPlayerService } from "@/lib/reader/audio-player-service"
 import type { ReaderProfile } from "@/lib/reader/preference-manager"
 import { generateTajweedForRange } from "@/lib/deepspeech/tajweed-engine"
+import {
+  DEFAULT_TAJWEED_LEGEND,
+  TAJWEED_RULE_METADATA,
+  TAJWEED_RULE_ORDER,
+} from "@/lib/deepspeech/tajweed-metadata"
+
+type TajweedLegendStyle = CSSProperties & { "--tajweed-color"?: string }
 import type { SparkleEvent } from "@/hooks/use-hasanat-tracker"
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion"
 import { HasanatSparkleEmitter } from "./hasanat-sparkles"
@@ -145,6 +153,7 @@ export function QuranReaderContainer({
   const [activeVerse, setActiveVerse] = useState<number | null>(null)
   const [tajweedError, setTajweedError] = useState<string | null>(null)
   const [tajweedMap, setTajweedMap] = useState<Map<number, string>>(new Map())
+  const [tajweedLegend, setTajweedLegend] = useState<Record<string, string> | null>(null)
   const [speakingVerse, setSpeakingVerse] = useState<number | null>(null)
   const verseCacheRef = useRef<Map<string, VerseRenderData>>(new Map())
   const surahVerseDetailsRef = useRef<{
@@ -490,6 +499,7 @@ export function QuranReaderContainer({
     if (!profile.showTajweed || !surahNumber || versesToRender.length === 0) {
       setTajweedError(null)
       setTajweedMap(new Map())
+      setTajweedLegend(null)
       return
     }
     let isMounted = true
@@ -503,6 +513,7 @@ export function QuranReaderContainer({
       if (!response.success) {
         setTajweedError(response.error ?? "Tajweed view unavailable. Showing standard text.")
         setTajweedMap(new Map())
+        setTajweedLegend(null)
         return
       }
       const map = new Map<number, string>()
@@ -510,17 +521,30 @@ export function QuranReaderContainer({
         map.set(fragment.ayah, fragment.html)
       })
       setTajweedMap(map)
+      setTajweedLegend(response.legend ?? DEFAULT_TAJWEED_LEGEND)
       setTajweedError(null)
     })().catch((err) => {
       console.error("Tajweed load failed", err)
       if (!isMounted) return
       setTajweedError("Tajweed view unavailable. Showing standard text.")
       setTajweedMap(new Map())
+      setTajweedLegend(null)
     })
     return () => {
       isMounted = false
     }
   }, [profile.showTajweed, surahNumber, versesToRender])
+
+  const tajweedLegendEntries = useMemo(() => {
+    if (!tajweedLegend) {
+      return []
+    }
+    return TAJWEED_RULE_ORDER.filter((rule) => Boolean(tajweedLegend[rule])).map((rule) => ({
+      rule,
+      label: tajweedLegend[rule] ?? TAJWEED_RULE_METADATA[rule]?.label ?? rule,
+      color: TAJWEED_RULE_METADATA[rule]?.color ?? "var(--foreground)",
+    }))
+  }, [tajweedLegend])
 
   const handlePlay = useCallback(
     async (ayah: Ayah) => {
@@ -719,6 +743,36 @@ export function QuranReaderContainer({
           <AlertTitle>Tajweed view unavailable</AlertTitle>
           <AlertDescription>{tajweedError}</AlertDescription>
         </Alert>
+      ) : null}
+      {profile.showTajweed && tajweedLegendEntries.length > 0 ? (
+        <section
+          aria-label="Tajweed color legend"
+          className="tajweed-legend-panel rounded-2xl border border-emerald-200/80 bg-emerald-50/70 p-4 shadow-sm dark:border-emerald-700/60 dark:bg-emerald-900/30"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-900 dark:text-emerald-100">
+                Tajweed color legend
+              </h3>
+              <p className="text-xs text-emerald-700/80 dark:text-emerald-200/80">
+                Each hue highlights a specific articulation rule so you can track pronunciation cues at a glance.
+              </p>
+            </div>
+          </div>
+          <div className="tajweed-legend-grid mt-3 gap-2">
+            {tajweedLegendEntries.map(({ rule, label, color }) => (
+              <span
+                key={rule}
+                className="tajweed-legend-item"
+                data-tajweed={rule}
+                style={{ "--tajweed-color": color } as TajweedLegendStyle}
+              >
+                <span className="tajweed-legend-swatch" aria-hidden="true" />
+                <span className="tajweed-legend-label">{label}</span>
+              </span>
+            ))}
+          </div>
+        </section>
       ) : null}
 
       <div className={cn("space-y-6", profile.fullSurahView ? "max-h-[520px] overflow-y-auto pr-2" : "")}

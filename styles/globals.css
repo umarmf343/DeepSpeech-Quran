@@ -246,3 +246,106 @@
     color: #f472b6;
   }
 }
+
+/* Tajweed overlay styling */
+.tajweed-text {
+  display: block;
+  direction: rtl;
+  text-align: right;
+  font-size: clamp(1.75rem, 2.6vw, 2.85rem);
+  line-height: 2;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+  color: currentColor;
+  transition: color 0.25s ease;
+}
+
+.tajweed-text .tajweed-fragment {
+  color: var(--tajweed-color, currentColor);
+  padding-inline: 0.18em;
+  border-radius: 0.35em;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+}
+
+.tajweed-text .tajweed-fragment::selection {
+  background-color: color-mix(in srgb, var(--tajweed-color, currentColor) 35%, #ffffff);
+  color: #0f172a;
+}
+
+.tajweed-text .tajweed-fragment:hover {
+  background-color: color-mix(in srgb, var(--tajweed-color, currentColor) 16%, transparent);
+  box-shadow: 0 0 0 0.2em color-mix(in srgb, var(--tajweed-color, currentColor) 12%, transparent);
+}
+
+.dark .tajweed-text .tajweed-fragment::selection {
+  background-color: color-mix(in srgb, var(--tajweed-color, currentColor) 40%, #020617);
+  color: #f8fafc;
+}
+
+.dark .tajweed-text .tajweed-fragment:hover {
+  background-color: color-mix(in srgb, var(--tajweed-color, currentColor) 22%, transparent);
+  box-shadow: 0 0 0 0.2em color-mix(in srgb, var(--tajweed-color, currentColor) 18%, transparent);
+}
+
+.tajweed-end {
+  font-size: 0.65em;
+  font-weight: 400;
+  margin-inline-start: 0.35em;
+  color: var(--muted-foreground);
+  vertical-align: middle;
+}
+
+.dark .tajweed-end {
+  color: oklch(0.75 0 0 / 0.75);
+}
+
+.tajweed-legend-panel {
+  overflow: hidden;
+}
+
+.tajweed-legend-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.tajweed-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 9999px;
+  background-color: color-mix(in srgb, var(--tajweed-color, currentColor) 12%, transparent);
+  color: var(--tajweed-color, currentColor);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--tajweed-color, currentColor) 30%, transparent);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tajweed-legend-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 14px -8px color-mix(in srgb, var(--tajweed-color, currentColor) 35%, transparent);
+}
+
+.dark .tajweed-legend-item {
+  background-color: color-mix(in srgb, var(--tajweed-color, currentColor) 18%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--tajweed-color, currentColor) 45%, transparent);
+}
+
+.tajweed-legend-swatch {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  background-color: var(--tajweed-color, currentColor);
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.15);
+}
+
+.dark .tajweed-legend-swatch {
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.35);
+}
+
+.tajweed-legend-label {
+  white-space: nowrap;
+}
