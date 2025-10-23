@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { LESSONS } from "@/lib/child-class/lessons-data"
 import type { ChildLesson } from "@/types/child-class"
 
@@ -17,34 +17,70 @@ export function MemoryGame({ onComplete, onBack }: MemoryGameProps) {
 
   const gameLessons = useMemo<ChildLesson[]>(() => LESSONS.slice(0, 6), [])
   const cards = useMemo<ChildLesson[]>(() => [...gameLessons, ...gameLessons].sort(() => Math.random() - 0.5), [gameLessons])
+  const lastProcessedPair = useRef<string | null>(null)
 
   useEffect(() => {
-    if (flipped.length !== 2) return
+    if (flipped.length !== 2) {
+      lastProcessedPair.current = null
+      return
+    }
     if (typeof window === "undefined") return
 
-    setMoves((prev) => prev + 1)
     const [first, second] = flipped
-    if (cards[first]?.id === cards[second]?.id) {
-      const nextScore = score + 30
-      const nextMatchedCount = matched.length + 1
-      setMatched((prev) => [...prev, cards[first]!.id])
-      setScore(nextScore)
+    const firstCard = cards[first]
+    const secondCard = cards[second]
+    if (!firstCard || !secondCard) return
 
-      const completionTimeout =
-        nextMatchedCount === gameLessons.length
-          ? window.setTimeout(() => onComplete(nextScore), 500)
-          : null
+    const pairKey = `${Math.min(first, second)}-${Math.max(first, second)}`
+    const isNewPair = lastProcessedPair.current !== pairKey
+    lastProcessedPair.current = pairKey
 
-      const resetTimeout = window.setTimeout(() => setFlipped([]), 800)
-      return () => {
-        window.clearTimeout(resetTimeout)
-        if (completionTimeout) window.clearTimeout(completionTimeout)
-      }
+    if (isNewPair) {
+      setMoves((prev) => prev + 1)
     }
 
-    const timeout = window.setTimeout(() => setFlipped([]), 800)
-    return () => window.clearTimeout(timeout)
-  }, [flipped, cards, score, matched.length, gameLessons.length, onComplete])
+    let resetTimeout: number | null = null
+    let completionTimeout: number | null = null
+
+    if (firstCard.id === secondCard.id) {
+      const cardId = firstCard.id
+      let didMatch = false
+      let updatedMatchedCount = 0
+      let updatedScore = 0
+
+      setMatched((prevMatched) => {
+        if (prevMatched.includes(cardId)) {
+          return prevMatched
+        }
+
+        didMatch = true
+        const updatedMatched = [...prevMatched, cardId]
+        updatedMatchedCount = updatedMatched.length
+        return updatedMatched
+      })
+
+      if (didMatch) {
+        setScore((prevScore) => {
+          const nextScore = prevScore + 30
+          updatedScore = nextScore
+          return nextScore
+        })
+
+        if (updatedMatchedCount === gameLessons.length) {
+          completionTimeout = window.setTimeout(() => onComplete(updatedScore), 500)
+        }
+      }
+
+      resetTimeout = window.setTimeout(() => setFlipped([]), 800)
+    } else {
+      resetTimeout = window.setTimeout(() => setFlipped([]), 800)
+    }
+
+    return () => {
+      if (resetTimeout) window.clearTimeout(resetTimeout)
+      if (completionTimeout) window.clearTimeout(completionTimeout)
+    }
+  }, [flipped, cards, gameLessons.length, onComplete])
 
   const toggleFlip = (index: number) => {
     if (flipped.includes(index) || matched.includes(cards[index]?.id ?? -1)) return
