@@ -219,12 +219,6 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     },
   ]
 
-  const handleLessonAudioPlay = () => {
-    if (settings?.soundEnabled) {
-      playSound("correct")
-    }
-  }
-
   const showAudioButton = Boolean(lesson.audioSrc || isArabicText(lesson.arabic))
 
   const lessonCharacterDisplay = (
@@ -243,7 +237,6 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
               audioSrc={lesson.audioSrc}
               fallbackText={lesson.arabic}
               label={`Play pronunciation for ${lesson.title}`}
-              onPlay={handleLessonAudioPlay}
             />
           </div>
         )}
@@ -530,7 +523,6 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                 fallbackText={lesson.arabic}
                 label={`Listen to pronunciation for ${lesson.title}`}
                 variant="primary"
-                onPlay={handleLessonAudioPlay}
               >
                 Listen to Pronunciation
               </AudioPlayButton>
