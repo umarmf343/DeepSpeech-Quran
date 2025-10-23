@@ -190,7 +190,7 @@ export default function Dashboard({
                 )}
               </div>
               <h3 className="mb-2 text-lg font-extrabold text-maroon">{lesson.title}</h3>
-              <div className="mb-4 text-center text-5xl">{lesson.arabic}</div>
+              <div className="mb-4 text-center text-black text-[6rem]">{lesson.arabic}</div>
               <p className="text-sm text-maroon/70">{lesson.translit}</p>
               <p className="mt-2 text-xs uppercase tracking-widest text-maroon/50">{lesson.rule}</p>
             </div>

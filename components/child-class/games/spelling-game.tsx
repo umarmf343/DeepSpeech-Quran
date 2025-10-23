@@ -95,7 +95,7 @@ export function SpellingGame({ onComplete, onBack }: SpellingGameProps) {
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 text-center">
           <p className="text-lg text-gray-600 mb-6">Spell this word:</p>
-          <div className="text-7xl mb-8 font-bold">{currentLesson.arabic}</div>
+          <div className="text-black text-[9rem] mb-8 font-bold">{currentLesson.arabic}</div>
 
           <div className="mb-6">
             <input

@@ -90,11 +90,11 @@ export function LetterMatchingGame({ onComplete, onBack }: LetterMatchingGamePro
                     key={`left-${lesson.id}`}
                     onClick={() => !matchedPairs.includes(lesson.id) && setSelectedLeft(lesson)}
                     disabled={matchedPairs.includes(lesson.id)}
-                    className={`w-full text-4xl font-bold py-6 px-4 rounded-2xl transition-all duration-300 ${
+                    className={`w-full text-black text-[4.5rem] font-bold py-6 px-4 rounded-2xl transition-all duration-300 ${
                       matchedPairs.includes(lesson.id)
                         ? "bg-green-100 border-2 border-green-400 opacity-50"
                         : selectedLeft?.id === lesson.id
-                          ? "bg-maroon text-white border-2 border-maroon"
+                          ? "bg-amber-100 border-2 border-amber-400"
                           : "bg-gradient-to-r from-maroon/10 to-gold/10 border-2 border-maroon/20 hover:border-maroon"
                     }`}
                   >
