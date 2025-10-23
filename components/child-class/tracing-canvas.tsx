@@ -13,9 +13,9 @@ interface TracingCanvasProps {
 }
 
 const CANVAS_SIZE = 420
-const BRUSH_SIZE = 34
+const BRUSH_SIZE = 17
 const MAX_MISTAKES = 3
-const COMPLETION_THRESHOLD = 0.72
+export const COMPLETION_THRESHOLD = 0.72
 
 export function TracingCanvas({
   letter,
@@ -66,7 +66,7 @@ export function TracingCanvas({
     maskCtx.fillStyle = "#000"
     maskCtx.textAlign = "center"
     maskCtx.textBaseline = "middle"
-    const fontSize = 280 * ratio
+    const fontSize = 560 * ratio
     maskCtx.font = `${fontSize}px 'Scheherazade New', 'Noto Naskh Arabic', 'Amiri', serif`
     maskCtx.fillText(letter, maskCanvas.width / 2, maskCanvas.height / 2)
 
@@ -236,7 +236,7 @@ export function TracingCanvas({
   return (
     <div className="relative mx-auto h-[420px] w-full max-w-[420px]">
       <div className="pointer-events-none absolute inset-0 select-none rounded-[36px] border-4 border-dashed border-black/10 bg-white/70 backdrop-blur-sm"></div>
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-[14rem] font-black text-black/15">
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-[28rem] font-black text-black/15">
         {letter}
       </div>
       <canvas
