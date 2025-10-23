@@ -1077,6 +1077,30 @@
   animation: confetti 2s ease-out forwards;
 }
 
+.memory-confetti-piece {
+  position: absolute;
+  width: 0.35rem;
+  height: 1.05rem;
+  border-radius: 9999px;
+  opacity: 0;
+  transform: translate3d(0, -40px, 0) rotate(0deg);
+  animation: memory-confetti-fall 1.6s ease-out forwards;
+}
+
+@keyframes memory-confetti-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(var(--confetti-offset, 0), -40px, 0) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--confetti-offset, 0), 140px, 0) rotate(320deg);
+  }
+}
+
 .card-premium {
   background: linear-gradient(135deg, #ffffff 0%, #faf5ee 100%);
   box-shadow: 0 10px 30px rgba(114, 20, 20, 0.1), 0 0 0 1px rgba(232, 220, 200, 0.5);
