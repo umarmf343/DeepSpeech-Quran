@@ -149,18 +149,26 @@ export default function Dashboard({
             {totalDays} Days
           </span>
         </div>
-        <div className="flex gap-3 overflow-x-auto pb-2">
+        <div className="flex gap-3 overflow-x-auto pb-2 px-1">
           {Array.from({ length: totalDays }, (_, i) => i + 1).map((day) => (
             <button
               key={day}
               onClick={() => setFilterDay(day)}
-              className={`rounded-full px-5 py-2 text-sm font-semibold uppercase tracking-wide transition-all ${
+              className={`group relative flex items-center gap-2 rounded-full border text-sm font-semibold uppercase tracking-wide transition-all duration-300 focus:outline-none ${
                 filterDay === day
-                  ? "bg-gradient-to-r from-maroon to-maroon/85 text-[var(--color-milk)] shadow-lg shadow-maroon/30 scale-105"
-                  : "bg-white/80 text-maroon border border-white/70 hover:border-maroon/40"
+                  ? "border-white/50 bg-gradient-to-r from-[#5B36E5] via-[#FF8DDC] to-[#FFD569] px-6 py-2 text-white shadow-[0_12px_30px_rgba(255,141,220,0.45)] ring-2 ring-[#fff4bf]/70 scale-105"
+                  : "border-[#F5CEF6] bg-white/70 px-6 py-2 text-[#4B2E83] shadow-[0_6px_18px_rgba(91,54,229,0.08)] hover:bg-gradient-to-r hover:from-[#fdf2ff]/90 hover:via-[#ffe6f5]/90 hover:to-[#fffbea]/90 hover:shadow-[0_10px_24px_rgba(255,213,105,0.35)]"
               }`}
             >
-              Day {day}
+              <span
+                className={`text-lg transition-transform duration-300 ${
+                  filterDay === day ? "rotate-12" : "group-hover:rotate-12"
+                }`}
+                aria-hidden
+              >
+                {filterDay === day ? "✨" : "🌟"}
+              </span>
+              <span className="drop-shadow-[0_1px_0_rgba(255,255,255,0.6)]">Day {day}</span>
             </button>
           ))}
         </div>
