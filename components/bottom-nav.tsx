@@ -282,7 +282,7 @@ export function BottomNavigation() {
       <button
         type="button"
         onClick={() => setIsCollapsed((prev) => !prev)}
-        className="flex items-center gap-1 self-start rounded-full border border-maroon-100/70 bg-white/90 px-4 py-1 text-xs font-semibold text-maroon-700 shadow-sm transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maroon-300"
+        className="flex items-center gap-1 self-end rounded-full border border-maroon-100/70 bg-white/90 px-4 py-1 text-xs font-semibold text-maroon-700 shadow-sm transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maroon-300"
         aria-controls="alfawz-mobile-nav-content"
         aria-expanded={!isCollapsed}
       >
