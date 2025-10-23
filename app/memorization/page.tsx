@@ -1677,8 +1677,8 @@ export default function MemorizationPage() {
                       <Share2 className="mr-2 h-4 w-4" /> Share with teacher
                     </Button>
                     <Button
-                      variant="ghost"
-                      className="text-slate-500 hover:text-emerald-700"
+                      variant="outline"
+                      className="border-transparent bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-400 text-amber-950 shadow-md transition-all hover:from-amber-300 hover:via-yellow-400 hover:to-amber-500 hover:shadow-lg focus-visible:ring-amber-500"
                       onClick={handleManualCompletion}
                       disabled={activePlan.completed}
                     >
