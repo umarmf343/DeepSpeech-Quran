@@ -516,7 +516,6 @@ export default function AlfawzReaderPage() {
         profile={profile}
         onProfileChange={updateReaderProfile}
         translationOptions={translationOptions}
-        transliterationOptions={transliterationOptions}
         reciterOptions={RECITER_OPTIONS}
       />
 
