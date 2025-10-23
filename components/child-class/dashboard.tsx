@@ -154,13 +154,17 @@ export default function Dashboard({
             <button
               key={day}
               onClick={() => setFilterDay(day)}
-              className={`rounded-full px-5 py-2 text-sm font-semibold uppercase tracking-wide transition-all ${
+              className={`relative flex-shrink-0 overflow-hidden rounded-full px-6 py-2 text-sm font-semibold uppercase tracking-wide transition-all duration-300 ${
                 filterDay === day
-                  ? "bg-gradient-to-r from-[#4c0519] via-[#7f1d1d] to-[#9d174d] text-[var(--color-milk)] shadow-[0_14px_32px_rgba(123,51,96,0.35)] ring-2 ring-white/40 scale-105"
-                  : "bg-gradient-to-r from-maroon/20 via-maroon/10 to-maroon/25 text-maroon shadow-[0_10px_24px_rgba(123,51,96,0.18)] hover:from-maroon/25 hover:via-maroon/15 hover:to-maroon/30 hover:text-maroon"
+                  ? "bg-[radial-gradient(circle_at_top,_#fef3c7,_#f472b6_55%,_#5b21b6_95%)] text-[var(--color-milk)] shadow-[0_18px_40px_rgba(99,102,241,0.45)] ring-2 ring-white/60 scale-105 before:absolute before:inset-[-30%] before:rounded-full before:bg-[conic-gradient(from_90deg_at_50%_50%,rgba(255,255,255,0.7),rgba(255,255,255,0)_70%)] before:opacity-60 before:blur-xl before:content-[''] after:absolute after:bottom-[-35%] after:left-1/2 after:h-12 after:w-12 after:-translate-x-1/2 after:rounded-full after:bg-white/40 after:blur-xl after:content-['']"
+                  : "bg-[radial-gradient(circle_at_top,_rgba(244,114,182,0.15),_rgba(59,130,246,0.12)_60%,_rgba(14,116,144,0.08)_95%)] text-maroon shadow-[0_12px_28px_rgba(30,64,175,0.15)] hover:shadow-[0_16px_32px_rgba(76,29,149,0.25)] hover:scale-105 hover:text-maroon before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_10%_-20%,rgba(255,255,255,0.6),rgba(255,255,255,0)_60%)] before:opacity-0 before:transition-opacity before:duration-300 before:content-[''] hover:before:opacity-70"
               }`}
             >
-              Day {day}
+              <span className="relative z-[1] flex items-center gap-2">
+                <span className="text-base">✨</span>
+                Day {day}
+                <span className="text-base">🌟</span>
+              </span>
             </button>
           ))}
         </div>
