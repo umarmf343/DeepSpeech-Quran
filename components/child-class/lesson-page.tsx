@@ -47,7 +47,6 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
   const [tracingProgress, setTracingProgress] = useState<number>(0)
   const [tracingMistakes, setTracingMistakes] = useState<number>(0)
   const [tracingComplete, setTracingComplete] = useState<boolean>(false)
-  const [tracingReady, setTracingReady] = useState<boolean>(false)
   const [tracingResetKey, setTracingResetKey] = useState<number>(0)
   const [showTracingFailure, setShowTracingFailure] = useState<boolean>(false)
   const [selectedPracticeOption, setSelectedPracticeOption] = useState<string | null>(null)
@@ -145,8 +144,18 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
   }
 
   const handleTracingSuccess = () => {
-    if (tracingReady) return
-    setTracingReady(true)
+    if (tracingComplete) return
+
+    setTracingComplete(true)
+    setScore((prev) => prev + 25)
+    setFeedbackMessage("Perfect tracing! 🎉")
+    setFeedbackType("success")
+    setShowFeedback(true)
+    setShowTracingFailure(false)
+    if (settings?.soundEnabled) {
+      playSound("correct")
+    }
+    window.setTimeout(() => setShowFeedback(false), 1500)
   }
 
   const handleTracingFailure = () => {
@@ -154,7 +163,6 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     setFeedbackType("error")
     setShowFeedback(true)
     window.setTimeout(() => setShowFeedback(false), 1500)
-    setTracingReady(false)
     setShowTracingFailure(true)
   }
 
@@ -162,7 +170,6 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     setTracingProgress(0)
     setTracingMistakes(0)
     setTracingComplete(false)
-    setTracingReady(false)
     setTracingResetKey((prev) => prev + 1)
     setShowTracingFailure(false)
   }
@@ -171,35 +178,9 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     setTracingProgress(0)
     setTracingMistakes(0)
     setTracingComplete(false)
-    setTracingReady(false)
     setTracingResetKey((prev) => prev + 1)
     setShowTracingFailure(false)
   }, [lesson.id])
-
-  const handleCheckTracing = () => {
-    if (tracingComplete) return
-
-    if (tracingReady) {
-      setTracingComplete(true)
-      setScore((prev) => prev + 25)
-      setFeedbackMessage("Perfect tracing! 🎉")
-      setFeedbackType("success")
-      setShowFeedback(true)
-      if (settings?.soundEnabled) {
-        playSound("correct")
-      }
-      window.setTimeout(() => setShowFeedback(false), 1500)
-      return
-    }
-
-    setFeedbackMessage("Keep tracing inside the guide before pressing Go.")
-    setFeedbackType("error")
-    setShowFeedback(true)
-    if (settings?.soundEnabled) {
-      playSound("incorrect")
-    }
-    window.setTimeout(() => setShowFeedback(false), 1500)
-  }
 
   const isNextDisabled = currentStep === 3 && !tracingComplete
 
@@ -369,28 +350,17 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                   <p className={`text-sm font-bold ${tracingMistakes > 0 ? "text-red-500" : "text-maroon/60"}`}>
                     Mistakes: {Math.min(tracingMistakes, 3)} / 3
                   </p>
-                  {tracingReady && !tracingComplete && (
-                    <p className="text-sm font-semibold text-emerald-600">Looking good! Press Go to check your tracing.</p>
+                  {!tracingComplete && (
+                    <p className="text-sm font-semibold text-emerald-600">Keep tracing inside the guide to finish!</p>
                   )}
-                  <div className="mt-2 flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  {!tracingComplete && (
                     <button
-                      onClick={handleCheckTracing}
-                      disabled={tracingComplete}
-                      className={`inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 px-10 py-3 text-lg font-extrabold text-white shadow-lg transition-transform duration-300 sm:w-auto ${
-                        tracingComplete ? "cursor-not-allowed opacity-60" : "hover:scale-105"
-                      }`}
+                      onClick={handleResetTracing}
+                      className="kid-button kid-button-bubblegum mt-2 w-full px-6 py-2 text-sm font-semibold sm:w-auto"
                     >
-                      Go
+                      Start Over
                     </button>
-                    {!tracingComplete && (
-                      <button
-                        onClick={handleResetTracing}
-                        className="kid-button kid-button-bubblegum w-full px-6 py-2 text-sm font-semibold sm:w-auto"
-                      >
-                        Start Over
-                      </button>
-                    )}
-                  </div>
+                  )}
                   {tracingComplete && (
                     <p className="text-base font-semibold text-green-600">Great tracing! You can continue.</p>
                   )}
