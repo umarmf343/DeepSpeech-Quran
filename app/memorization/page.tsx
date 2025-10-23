@@ -323,6 +323,24 @@ export default function MemorizationPage() {
   }, [baseTarget, createDefaultProgressState])
 
   useEffect(() => {
+    if (plans.length === 0) return
+
+    const storedPlanId = preferences.lastSelectedPlanId
+    const existingPlanId = storedPlanId && plans.some((plan) => plan.id === storedPlanId) ? storedPlanId : null
+    const fallbackPlanId = existingPlanId ?? plans[0]?.id ?? null
+
+    if (!fallbackPlanId) return
+
+    if (selectedPlanId !== fallbackPlanId) {
+      setSelectedPlanId(fallbackPlanId)
+    }
+
+    if (preferences.lastSelectedPlanId !== fallbackPlanId) {
+      setPreferences((previous) => ({ ...previous, lastSelectedPlanId: fallbackPlanId }))
+    }
+  }, [plans, preferences.lastSelectedPlanId, selectedPlanId])
+
+  useEffect(() => {
     if (typeof window === "undefined") return
     window.localStorage.setItem(LOCAL_STORAGE_KEYS.plans, JSON.stringify(plans))
   }, [plans])
@@ -1395,12 +1413,40 @@ export default function MemorizationPage() {
             </CardHeader>
             <CardContent className="space-y-6 pb-10">
               {!activePlan ? (
-                <div className="-mt-6 rounded-xl border border-dashed border-emerald-200 bg-emerald-50/60 p-8 text-center">
-                  <p className="text-sm font-medium text-emerald-900">No plan selected</p>
-                  <p className="mt-1 text-sm text-emerald-700">Select a plan or create one to begin reciting.</p>
+                <div className="-mt-6 space-y-4 rounded-xl border border-dashed border-emerald-200 bg-emerald-50/60 p-8 text-center">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-emerald-900">No plan selected</p>
+                    <p className="text-sm text-emerald-700">Select a plan from the dropdown or create a new one to begin reciting.</p>
+                  </div>
+                  {plans.length > 0 && (
+                    <div className="mx-auto max-w-xs text-left">
+                      <Select
+                        open={planDropdownOpen}
+                        onOpenChange={setPlanDropdownOpen}
+                        value={selectedPlanId ?? undefined}
+                        onValueChange={(value) => {
+                          setSelectedPlanId(value)
+                          setPreferences((previous) => ({ ...previous, lastSelectedPlanId: value }))
+                          setPlanDropdownOpen(false)
+                          setShowCelebration(false)
+                        }}
+                      >
+                        <SelectTrigger className="w-full border-emerald-200 focus:border-emerald-400 focus:ring-emerald-200">
+                          <SelectValue placeholder="Choose a saved plan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {plans.map((plan) => (
+                            <SelectItem key={plan.id} value={plan.id}>
+                              {plan.surahName} • Ayah {plan.startAyah} – {plan.endAyah}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                   <Button
                     size="sm"
-                    className="mt-4 rounded-full bg-emerald-500 px-4 text-xs font-semibold text-white hover:bg-emerald-600"
+                    className="rounded-full bg-emerald-500 px-4 text-xs font-semibold text-white hover:bg-emerald-600"
                     onClick={() => setIsCreateDialogOpen(true)}
                   >
                     <PlusCircle className="mr-1 h-4 w-4" /> Create plan
