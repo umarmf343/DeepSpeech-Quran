@@ -171,7 +171,6 @@ export default function Dashboard({
               <span className="relative z-[1] flex items-center gap-2">
                 <span className="text-base">✨</span>
                 Day {day}
-                <span className="text-base">🌟</span>
               </span>
             </button>
           ))}
