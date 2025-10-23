@@ -207,9 +207,10 @@ export function TracingCanvas({
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext("2d", { willReadFrequently: true })
+    const maskCanvas = maskCanvasRef.current
     const maskData = maskDataRef.current
     const coverageMap = coverageMapRef.current
-    if (!ctx || !maskData || !coverageMap) return
+    if (!ctx || !maskCanvas || !maskData || !coverageMap) return
 
     const ratio = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1
     const canvasWidth = canvas.width
@@ -239,10 +240,29 @@ export function TracingCanvas({
 
     const inside = hasOverlap
 
-    ctx.fillStyle = inside ? "#000" : "rgba(220,38,38,0.85)"
-    ctx.beginPath()
-    ctx.arc(x, y, (BRUSH_SIZE / 2) * ratio, 0, Math.PI * 2)
-    ctx.fill()
+    const circleRadius = (BRUSH_SIZE / 2) * ratio
+
+    if (inside) {
+      ctx.save()
+      ctx.beginPath()
+      ctx.arc(x, y, circleRadius, 0, Math.PI * 2)
+      ctx.clip()
+
+      ctx.globalCompositeOperation = "source-over"
+      ctx.fillStyle = "#000"
+      ctx.beginPath()
+      ctx.arc(x, y, circleRadius, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.globalCompositeOperation = "destination-in"
+      ctx.drawImage(maskCanvas, 0, 0, canvasWidth, canvasHeight)
+      ctx.restore()
+    } else {
+      ctx.fillStyle = "rgba(220,38,38,0.85)"
+      ctx.beginPath()
+      ctx.arc(x, y, circleRadius, 0, Math.PI * 2)
+      ctx.fill()
+    }
 
     if (inside) {
       for (let yy = minY; yy <= maxY; yy++) {
