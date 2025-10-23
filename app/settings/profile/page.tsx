@@ -483,15 +483,6 @@ export default function ProfileSettingsPage() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <div>
-                  <p className="font-medium text-slate-900">Senior mode</p>
-                  <p className="text-sm text-slate-600">
-                    High-contrast visuals, simplified navigation, and larger targets for gentle interaction.
-                  </p>
-                </div>
-                <Switch checked={formState.seniorMode} onCheckedChange={handleToggle("seniorMode")} />
-              </div>
             </CardContent>
           </Card>
 
