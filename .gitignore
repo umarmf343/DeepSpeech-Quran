@@ -12,6 +12,9 @@
 # production
 /build
 
+# generated audio assets
+public/audio/child-lessons/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

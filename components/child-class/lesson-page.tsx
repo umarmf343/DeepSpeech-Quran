@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef, type ReactNode } from "react"
 import { renderTextWithArabicCard } from "./arabic-letter-card"
+import { AudioPlayButton } from "./audio-play-button"
 import { AutoFitText } from "@/components/common/AutoFitText"
 import { playSound } from "@/lib/child-class/sound-effects"
 import { loadSettings, type UserSettings } from "@/lib/child-class/settings-utils"
@@ -217,29 +218,37 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     },
   ]
 
-  const lessonCharacterDisplay = (
-    <div className="mx-auto mb-6 flex h-48 w-full max-w-[18rem] items-center justify-center">
-      <AutoFitText
-        maxFontSize={192}
-        minFontSize={72}
-        className="animate-float text-black font-black leading-none text-center"
-      >
-        {lesson.arabic}
-      </AutoFitText>
-    </div>
-  )
-
-  const handlePronounce = () => {
-    if (typeof window === "undefined") return
-
-    const utterance = new SpeechSynthesisUtterance(lesson.arabic)
-    utterance.lang = "ar-SA"
-    utterance.rate = 0.8
-    window.speechSynthesis.speak(utterance)
+  const handleLessonAudioPlay = () => {
     if (settings?.soundEnabled) {
       playSound("correct")
     }
   }
+
+  const showAudioButton = Boolean(lesson.audioSrc || isArabicText(lesson.arabic))
+
+  const lessonCharacterDisplay = (
+    <div className="mx-auto mb-6 flex h-48 w-full max-w-[18rem] items-center justify-center">
+      <div className="relative flex h-full w-full items-center justify-center">
+        <AutoFitText
+          maxFontSize={192}
+          minFontSize={72}
+          className="animate-float text-black font-black leading-none text-center"
+        >
+          {lesson.arabic}
+        </AutoFitText>
+        {showAudioButton && (
+          <div className="absolute bottom-4 right-4">
+            <AudioPlayButton
+              audioSrc={lesson.audioSrc}
+              fallbackText={lesson.arabic}
+              label={`Play pronunciation for ${lesson.title}`}
+              onPlay={handleLessonAudioPlay}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  )
 
   const handlePracticeAnswer = (isCorrect: boolean, optionKey: string) => {
     setSelectedPracticeOption(optionKey)
@@ -515,12 +524,15 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-maroon mb-8">{steps[1].title}</h2>
               {lessonCharacterDisplay}
-              <button
-                onClick={handlePronounce}
-                className="kid-button kid-button-sunset inline-flex px-12 py-6 text-2xl font-extrabold"
+              <AudioPlayButton
+                audioSrc={lesson.audioSrc}
+                fallbackText={lesson.arabic}
+                label={`Listen to pronunciation for ${lesson.title}`}
+                variant="primary"
+                onPlay={handleLessonAudioPlay}
               >
-                🔊 Listen to Pronunciation
-              </button>
+                Listen to Pronunciation
+              </AudioPlayButton>
               <p className="text-lg text-maroon/70">Click the button to hear the correct pronunciation</p>
             </div>
           )}

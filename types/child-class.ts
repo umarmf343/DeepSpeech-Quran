@@ -7,6 +7,7 @@ export interface ChildLesson {
   translit: string
   rule: string
   description: string
+  audioSrc?: string
 }
 
 export interface ChildProgress {

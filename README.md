@@ -55,6 +55,25 @@ hooks/
    pnpm lint
    ```
 
+### Child class audio assets
+
+The kids' classroom lessons expect MP3 pronunciations to live in `public/audio/child-lessons/`. Binary assets are not tracked
+in git—generate them locally with:
+
+```bash
+pnpm install
+pnpm run fetch:child-audio
+```
+
+The script uses Google Translate TTS to create Arabic pronunciations for every lesson defined in
+`scripts/letter-lesson-text.json`. Re-run the command with `--force` to refresh existing files:
+
+```bash
+pnpm run fetch:child-audio -- --force
+```
+
+Each run prints a summary of which clips were downloaded or re-used.
+
 ### Environment variables
 
 Copy the provided `.env.example` into a new `.env.local` file before running the API routes. The key settings are:

@@ -1,0 +1,1178 @@
+[
+  {
+    "id": 1,
+    "day": 1,
+    "title": "Alif - Introduction",
+    "text": "أ"
+  },
+  {
+    "id": 2,
+    "day": 1,
+    "title": "Alif with Fatha",
+    "text": "أَ"
+  },
+  {
+    "id": 3,
+    "day": 1,
+    "title": "Alif with Kasrah",
+    "text": "أِ"
+  },
+  {
+    "id": 4,
+    "day": 1,
+    "title": "Alif with Dhamma",
+    "text": "أُ"
+  },
+  {
+    "id": 5,
+    "day": 1,
+    "title": "Alif with Sukoon",
+    "text": "أْ"
+  },
+  {
+    "id": 6,
+    "day": 1,
+    "title": "Alif Joining",
+    "text": "آ"
+  },
+  {
+    "id": 7,
+    "day": 1,
+    "title": "Alif Practice Word",
+    "text": "أَمَّ"
+  },
+  {
+    "id": 8,
+    "day": 2,
+    "title": "Ba - Introduction",
+    "text": "ب"
+  },
+  {
+    "id": 9,
+    "day": 2,
+    "title": "Ba with Fatha",
+    "text": "بَ"
+  },
+  {
+    "id": 10,
+    "day": 2,
+    "title": "Ba with Kasrah",
+    "text": "بِ"
+  },
+  {
+    "id": 11,
+    "day": 2,
+    "title": "Ba with Dhamma",
+    "text": "بُ"
+  },
+  {
+    "id": 12,
+    "day": 2,
+    "title": "Ba with Sukoon",
+    "text": "بْ"
+  },
+  {
+    "id": 13,
+    "day": 2,
+    "title": "Ba Joining",
+    "text": "بَا"
+  },
+  {
+    "id": 14,
+    "day": 2,
+    "title": "Ba Practice Word",
+    "text": "بَابْ"
+  },
+  {
+    "id": 15,
+    "day": 3,
+    "title": "Ta - Introduction",
+    "text": "ت"
+  },
+  {
+    "id": 16,
+    "day": 3,
+    "title": "Ta with Fatha",
+    "text": "تَ"
+  },
+  {
+    "id": 17,
+    "day": 3,
+    "title": "Ta with Kasrah",
+    "text": "تِ"
+  },
+  {
+    "id": 18,
+    "day": 3,
+    "title": "Ta with Dhamma",
+    "text": "تُ"
+  },
+  {
+    "id": 19,
+    "day": 3,
+    "title": "Ta with Sukoon",
+    "text": "تْ"
+  },
+  {
+    "id": 20,
+    "day": 3,
+    "title": "Ta Joining",
+    "text": "تَا"
+  },
+  {
+    "id": 21,
+    "day": 3,
+    "title": "Ta Practice Word",
+    "text": "تَابْ"
+  },
+  {
+    "id": 22,
+    "day": 4,
+    "title": "Tha - Introduction",
+    "text": "ث"
+  },
+  {
+    "id": 23,
+    "day": 4,
+    "title": "Tha with Fatha",
+    "text": "ثَ"
+  },
+  {
+    "id": 24,
+    "day": 4,
+    "title": "Tha with Kasrah",
+    "text": "ثِ"
+  },
+  {
+    "id": 25,
+    "day": 4,
+    "title": "Tha with Dhamma",
+    "text": "ثُ"
+  },
+  {
+    "id": 26,
+    "day": 4,
+    "title": "Tha with Sukoon",
+    "text": "ثْ"
+  },
+  {
+    "id": 27,
+    "day": 4,
+    "title": "Tha Joining",
+    "text": "ثَا"
+  },
+  {
+    "id": 28,
+    "day": 4,
+    "title": "Tha Practice Word",
+    "text": "ثَابِتْ"
+  },
+  {
+    "id": 29,
+    "day": 5,
+    "title": "Jim - Introduction",
+    "text": "ج"
+  },
+  {
+    "id": 30,
+    "day": 5,
+    "title": "Jim with Fatha",
+    "text": "جَ"
+  },
+  {
+    "id": 31,
+    "day": 5,
+    "title": "Jim with Kasrah",
+    "text": "جِ"
+  },
+  {
+    "id": 32,
+    "day": 5,
+    "title": "Jim with Dhamma",
+    "text": "جُ"
+  },
+  {
+    "id": 33,
+    "day": 5,
+    "title": "Jim with Sukoon",
+    "text": "جْ"
+  },
+  {
+    "id": 34,
+    "day": 5,
+    "title": "Jim Joining",
+    "text": "جَا"
+  },
+  {
+    "id": 35,
+    "day": 5,
+    "title": "Jim Practice Word",
+    "text": "جَمِيلْ"
+  },
+  {
+    "id": 36,
+    "day": 6,
+    "title": "Ha - Introduction",
+    "text": "ح"
+  },
+  {
+    "id": 37,
+    "day": 6,
+    "title": "Ha with Fatha",
+    "text": "حَ"
+  },
+  {
+    "id": 38,
+    "day": 6,
+    "title": "Ha with Kasrah",
+    "text": "حِ"
+  },
+  {
+    "id": 39,
+    "day": 6,
+    "title": "Ha with Dhamma",
+    "text": "حُ"
+  },
+  {
+    "id": 40,
+    "day": 6,
+    "title": "Ha with Sukoon",
+    "text": "حْ"
+  },
+  {
+    "id": 41,
+    "day": 6,
+    "title": "Ha Joining",
+    "text": "حَا"
+  },
+  {
+    "id": 42,
+    "day": 6,
+    "title": "Ha Practice Word",
+    "text": "حِكْمَة"
+  },
+  {
+    "id": 43,
+    "day": 7,
+    "title": "Kha - Introduction",
+    "text": "خ"
+  },
+  {
+    "id": 44,
+    "day": 7,
+    "title": "Kha with Fatha",
+    "text": "خَ"
+  },
+  {
+    "id": 45,
+    "day": 7,
+    "title": "Kha with Kasrah",
+    "text": "خِ"
+  },
+  {
+    "id": 46,
+    "day": 7,
+    "title": "Kha with Dhamma",
+    "text": "خُ"
+  },
+  {
+    "id": 47,
+    "day": 7,
+    "title": "Kha with Sukoon",
+    "text": "خْ"
+  },
+  {
+    "id": 48,
+    "day": 7,
+    "title": "Kha Joining",
+    "text": "خَا"
+  },
+  {
+    "id": 49,
+    "day": 7,
+    "title": "Kha Practice Word",
+    "text": "خُبْز"
+  },
+  {
+    "id": 50,
+    "day": 8,
+    "title": "Dal - Introduction",
+    "text": "د"
+  },
+  {
+    "id": 51,
+    "day": 8,
+    "title": "Dal with Fatha",
+    "text": "دَ"
+  },
+  {
+    "id": 52,
+    "day": 8,
+    "title": "Dal with Kasrah",
+    "text": "دِ"
+  },
+  {
+    "id": 53,
+    "day": 8,
+    "title": "Dal with Dhamma",
+    "text": "دُ"
+  },
+  {
+    "id": 54,
+    "day": 8,
+    "title": "Dal with Sukoon",
+    "text": "دْ"
+  },
+  {
+    "id": 55,
+    "day": 8,
+    "title": "Dal Joining",
+    "text": "دَا"
+  },
+  {
+    "id": 56,
+    "day": 8,
+    "title": "Dal Practice Word",
+    "text": "دَرْس"
+  },
+  {
+    "id": 57,
+    "day": 9,
+    "title": "Thal - Introduction",
+    "text": "ذ"
+  },
+  {
+    "id": 58,
+    "day": 9,
+    "title": "Thal with Fatha",
+    "text": "ذَ"
+  },
+  {
+    "id": 59,
+    "day": 9,
+    "title": "Thal with Kasrah",
+    "text": "ذِ"
+  },
+  {
+    "id": 60,
+    "day": 9,
+    "title": "Thal with Dhamma",
+    "text": "ذُ"
+  },
+  {
+    "id": 61,
+    "day": 9,
+    "title": "Thal with Sukoon",
+    "text": "ذْ"
+  },
+  {
+    "id": 62,
+    "day": 9,
+    "title": "Thal Joining",
+    "text": "ذَا"
+  },
+  {
+    "id": 63,
+    "day": 9,
+    "title": "Thal Practice Word",
+    "text": "ذِكْر"
+  },
+  {
+    "id": 64,
+    "day": 10,
+    "title": "Ra - Introduction",
+    "text": "ر"
+  },
+  {
+    "id": 65,
+    "day": 10,
+    "title": "Ra with Fatha",
+    "text": "رَ"
+  },
+  {
+    "id": 66,
+    "day": 10,
+    "title": "Ra with Kasrah",
+    "text": "رِ"
+  },
+  {
+    "id": 67,
+    "day": 10,
+    "title": "Ra with Dhamma",
+    "text": "رُ"
+  },
+  {
+    "id": 68,
+    "day": 10,
+    "title": "Ra with Sukoon",
+    "text": "رْ"
+  },
+  {
+    "id": 69,
+    "day": 10,
+    "title": "Ra Joining",
+    "text": "رَا"
+  },
+  {
+    "id": 70,
+    "day": 10,
+    "title": "Ra Practice Word",
+    "text": "رَبْ"
+  },
+  {
+    "id": 71,
+    "day": 11,
+    "title": "Zay - Introduction",
+    "text": "ز"
+  },
+  {
+    "id": 72,
+    "day": 11,
+    "title": "Zay with Fatha",
+    "text": "زَ"
+  },
+  {
+    "id": 73,
+    "day": 11,
+    "title": "Zay with Kasrah",
+    "text": "زِ"
+  },
+  {
+    "id": 74,
+    "day": 11,
+    "title": "Zay with Dhamma",
+    "text": "زُ"
+  },
+  {
+    "id": 75,
+    "day": 11,
+    "title": "Zay with Sukoon",
+    "text": "زْ"
+  },
+  {
+    "id": 76,
+    "day": 11,
+    "title": "Zay Joining",
+    "text": "زَا"
+  },
+  {
+    "id": 77,
+    "day": 11,
+    "title": "Zay Practice Word",
+    "text": "زَهْرَة"
+  },
+  {
+    "id": 78,
+    "day": 12,
+    "title": "Seen - Introduction",
+    "text": "س"
+  },
+  {
+    "id": 79,
+    "day": 12,
+    "title": "Seen with Fatha",
+    "text": "سَ"
+  },
+  {
+    "id": 80,
+    "day": 12,
+    "title": "Seen with Kasrah",
+    "text": "سِ"
+  },
+  {
+    "id": 81,
+    "day": 12,
+    "title": "Seen with Dhamma",
+    "text": "سُ"
+  },
+  {
+    "id": 82,
+    "day": 12,
+    "title": "Seen with Sukoon",
+    "text": "سْ"
+  },
+  {
+    "id": 83,
+    "day": 12,
+    "title": "Seen Joining",
+    "text": "سَا"
+  },
+  {
+    "id": 84,
+    "day": 12,
+    "title": "Seen Practice Word",
+    "text": "سَلَام"
+  },
+  {
+    "id": 85,
+    "day": 13,
+    "title": "Sheen - Introduction",
+    "text": "ش"
+  },
+  {
+    "id": 86,
+    "day": 13,
+    "title": "Sheen with Fatha",
+    "text": "شَ"
+  },
+  {
+    "id": 87,
+    "day": 13,
+    "title": "Sheen with Kasrah",
+    "text": "شِ"
+  },
+  {
+    "id": 88,
+    "day": 13,
+    "title": "Sheen with Dhamma",
+    "text": "شُ"
+  },
+  {
+    "id": 89,
+    "day": 13,
+    "title": "Sheen with Sukoon",
+    "text": "شْ"
+  },
+  {
+    "id": 90,
+    "day": 13,
+    "title": "Sheen Joining",
+    "text": "شَا"
+  },
+  {
+    "id": 91,
+    "day": 13,
+    "title": "Sheen Practice Word",
+    "text": "شَمْس"
+  },
+  {
+    "id": 92,
+    "day": 14,
+    "title": "Sad - Introduction",
+    "text": "ص"
+  },
+  {
+    "id": 93,
+    "day": 14,
+    "title": "Sad with Fatha",
+    "text": "صَ"
+  },
+  {
+    "id": 94,
+    "day": 14,
+    "title": "Sad with Kasrah",
+    "text": "صِ"
+  },
+  {
+    "id": 95,
+    "day": 14,
+    "title": "Sad with Dhamma",
+    "text": "صُ"
+  },
+  {
+    "id": 96,
+    "day": 14,
+    "title": "Sad with Sukoon",
+    "text": "صْ"
+  },
+  {
+    "id": 97,
+    "day": 14,
+    "title": "Sad Joining",
+    "text": "صَا"
+  },
+  {
+    "id": 98,
+    "day": 14,
+    "title": "Sad Practice Word",
+    "text": "صَبْر"
+  },
+  {
+    "id": 99,
+    "day": 15,
+    "title": "Dad - Introduction",
+    "text": "ض"
+  },
+  {
+    "id": 100,
+    "day": 15,
+    "title": "Dad with Fatha",
+    "text": "ضَ"
+  },
+  {
+    "id": 101,
+    "day": 15,
+    "title": "Dad with Kasrah",
+    "text": "ضِ"
+  },
+  {
+    "id": 102,
+    "day": 15,
+    "title": "Dad with Dhamma",
+    "text": "ضُ"
+  },
+  {
+    "id": 103,
+    "day": 15,
+    "title": "Dad with Sukoon",
+    "text": "ضْ"
+  },
+  {
+    "id": 104,
+    "day": 15,
+    "title": "Dad Joining",
+    "text": "ضَا"
+  },
+  {
+    "id": 105,
+    "day": 15,
+    "title": "Dad Practice Word",
+    "text": "ضِيَاء"
+  },
+  {
+    "id": 106,
+    "day": 16,
+    "title": "Tah - Introduction",
+    "text": "ط"
+  },
+  {
+    "id": 107,
+    "day": 16,
+    "title": "Tah with Fatha",
+    "text": "طَ"
+  },
+  {
+    "id": 108,
+    "day": 16,
+    "title": "Tah with Kasrah",
+    "text": "طِ"
+  },
+  {
+    "id": 109,
+    "day": 16,
+    "title": "Tah with Dhamma",
+    "text": "طُ"
+  },
+  {
+    "id": 110,
+    "day": 16,
+    "title": "Tah with Sukoon",
+    "text": "طْ"
+  },
+  {
+    "id": 111,
+    "day": 16,
+    "title": "Tah Joining",
+    "text": "طَا"
+  },
+  {
+    "id": 112,
+    "day": 16,
+    "title": "Tah Practice Word",
+    "text": "طَلَب"
+  },
+  {
+    "id": 113,
+    "day": 17,
+    "title": "Zah - Introduction",
+    "text": "ظ"
+  },
+  {
+    "id": 114,
+    "day": 17,
+    "title": "Zah with Fatha",
+    "text": "ظَ"
+  },
+  {
+    "id": 115,
+    "day": 17,
+    "title": "Zah with Kasrah",
+    "text": "ظِ"
+  },
+  {
+    "id": 116,
+    "day": 17,
+    "title": "Zah with Dhamma",
+    "text": "ظُ"
+  },
+  {
+    "id": 117,
+    "day": 17,
+    "title": "Zah with Sukoon",
+    "text": "ظْ"
+  },
+  {
+    "id": 118,
+    "day": 17,
+    "title": "Zah Joining",
+    "text": "ظَا"
+  },
+  {
+    "id": 119,
+    "day": 17,
+    "title": "Zah Practice Word",
+    "text": "ظِل"
+  },
+  {
+    "id": 120,
+    "day": 18,
+    "title": "Ain - Introduction",
+    "text": "ع"
+  },
+  {
+    "id": 121,
+    "day": 18,
+    "title": "Ain with Fatha",
+    "text": "عَ"
+  },
+  {
+    "id": 122,
+    "day": 18,
+    "title": "Ain with Kasrah",
+    "text": "عِ"
+  },
+  {
+    "id": 123,
+    "day": 18,
+    "title": "Ain with Dhamma",
+    "text": "عُ"
+  },
+  {
+    "id": 124,
+    "day": 18,
+    "title": "Ain with Sukoon",
+    "text": "عْ"
+  },
+  {
+    "id": 125,
+    "day": 18,
+    "title": "Ain Joining",
+    "text": "عَا"
+  },
+  {
+    "id": 126,
+    "day": 18,
+    "title": "Ain Practice Word",
+    "text": "عِلْم"
+  },
+  {
+    "id": 127,
+    "day": 19,
+    "title": "Ghain - Introduction",
+    "text": "غ"
+  },
+  {
+    "id": 128,
+    "day": 19,
+    "title": "Ghain with Fatha",
+    "text": "غَ"
+  },
+  {
+    "id": 129,
+    "day": 19,
+    "title": "Ghain with Kasrah",
+    "text": "غِ"
+  },
+  {
+    "id": 130,
+    "day": 19,
+    "title": "Ghain with Dhamma",
+    "text": "غُ"
+  },
+  {
+    "id": 131,
+    "day": 19,
+    "title": "Ghain with Sukoon",
+    "text": "غْ"
+  },
+  {
+    "id": 132,
+    "day": 19,
+    "title": "Ghain Joining",
+    "text": "غَا"
+  },
+  {
+    "id": 133,
+    "day": 19,
+    "title": "Ghain Practice Word",
+    "text": "غَيْم"
+  },
+  {
+    "id": 134,
+    "day": 20,
+    "title": "Fa - Introduction",
+    "text": "ف"
+  },
+  {
+    "id": 135,
+    "day": 20,
+    "title": "Fa with Fatha",
+    "text": "فَ"
+  },
+  {
+    "id": 136,
+    "day": 20,
+    "title": "Fa with Kasrah",
+    "text": "فِ"
+  },
+  {
+    "id": 137,
+    "day": 20,
+    "title": "Fa with Dhamma",
+    "text": "فُ"
+  },
+  {
+    "id": 138,
+    "day": 20,
+    "title": "Fa with Sukoon",
+    "text": "فْ"
+  },
+  {
+    "id": 139,
+    "day": 20,
+    "title": "Fa Joining",
+    "text": "فَا"
+  },
+  {
+    "id": 140,
+    "day": 20,
+    "title": "Fa Practice Word",
+    "text": "فَجْر"
+  },
+  {
+    "id": 141,
+    "day": 21,
+    "title": "Qaf - Introduction",
+    "text": "ق"
+  },
+  {
+    "id": 142,
+    "day": 21,
+    "title": "Qaf with Fatha",
+    "text": "قَ"
+  },
+  {
+    "id": 143,
+    "day": 21,
+    "title": "Qaf with Kasrah",
+    "text": "قِ"
+  },
+  {
+    "id": 144,
+    "day": 21,
+    "title": "Qaf with Dhamma",
+    "text": "قُ"
+  },
+  {
+    "id": 145,
+    "day": 21,
+    "title": "Qaf with Sukoon",
+    "text": "قْ"
+  },
+  {
+    "id": 146,
+    "day": 21,
+    "title": "Qaf Joining",
+    "text": "قَا"
+  },
+  {
+    "id": 147,
+    "day": 21,
+    "title": "Qaf Practice Word",
+    "text": "قَلْب"
+  },
+  {
+    "id": 148,
+    "day": 22,
+    "title": "Kaf - Introduction",
+    "text": "ك"
+  },
+  {
+    "id": 149,
+    "day": 22,
+    "title": "Kaf with Fatha",
+    "text": "كَ"
+  },
+  {
+    "id": 150,
+    "day": 22,
+    "title": "Kaf with Kasrah",
+    "text": "كِ"
+  },
+  {
+    "id": 151,
+    "day": 22,
+    "title": "Kaf with Dhamma",
+    "text": "كُ"
+  },
+  {
+    "id": 152,
+    "day": 22,
+    "title": "Kaf with Sukoon",
+    "text": "كْ"
+  },
+  {
+    "id": 153,
+    "day": 22,
+    "title": "Kaf Joining",
+    "text": "كَا"
+  },
+  {
+    "id": 154,
+    "day": 22,
+    "title": "Kaf Practice Word",
+    "text": "كِتَاب"
+  },
+  {
+    "id": 155,
+    "day": 23,
+    "title": "Lam - Introduction",
+    "text": "ل"
+  },
+  {
+    "id": 156,
+    "day": 23,
+    "title": "Lam with Fatha",
+    "text": "لَ"
+  },
+  {
+    "id": 157,
+    "day": 23,
+    "title": "Lam with Kasrah",
+    "text": "لِ"
+  },
+  {
+    "id": 158,
+    "day": 23,
+    "title": "Lam with Dhamma",
+    "text": "لُ"
+  },
+  {
+    "id": 159,
+    "day": 23,
+    "title": "Lam with Sukoon",
+    "text": "لْ"
+  },
+  {
+    "id": 160,
+    "day": 23,
+    "title": "Lam Joining",
+    "text": "لَا"
+  },
+  {
+    "id": 161,
+    "day": 23,
+    "title": "Lam Practice Word",
+    "text": "لُغَة"
+  },
+  {
+    "id": 162,
+    "day": 24,
+    "title": "Mim - Introduction",
+    "text": "م"
+  },
+  {
+    "id": 163,
+    "day": 24,
+    "title": "Mim with Fatha",
+    "text": "مَ"
+  },
+  {
+    "id": 164,
+    "day": 24,
+    "title": "Mim with Kasrah",
+    "text": "مِ"
+  },
+  {
+    "id": 165,
+    "day": 24,
+    "title": "Mim with Dhamma",
+    "text": "مُ"
+  },
+  {
+    "id": 166,
+    "day": 24,
+    "title": "Mim with Sukoon",
+    "text": "مْ"
+  },
+  {
+    "id": 167,
+    "day": 24,
+    "title": "Mim Joining",
+    "text": "مَا"
+  },
+  {
+    "id": 168,
+    "day": 24,
+    "title": "Mim Practice Word",
+    "text": "مَدْرَسَة"
+  },
+  {
+    "id": 169,
+    "day": 25,
+    "title": "Nun - Introduction",
+    "text": "ن"
+  },
+  {
+    "id": 170,
+    "day": 25,
+    "title": "Nun with Fatha",
+    "text": "نَ"
+  },
+  {
+    "id": 171,
+    "day": 25,
+    "title": "Nun with Kasrah",
+    "text": "نِ"
+  },
+  {
+    "id": 172,
+    "day": 25,
+    "title": "Nun with Dhamma",
+    "text": "نُ"
+  },
+  {
+    "id": 173,
+    "day": 25,
+    "title": "Nun with Sukoon",
+    "text": "نْ"
+  },
+  {
+    "id": 174,
+    "day": 25,
+    "title": "Nun Joining",
+    "text": "نَا"
+  },
+  {
+    "id": 175,
+    "day": 25,
+    "title": "Nun Practice Word",
+    "text": "نُور"
+  },
+  {
+    "id": 176,
+    "day": 26,
+    "title": "Ha - Introduction",
+    "text": "ه"
+  },
+  {
+    "id": 177,
+    "day": 26,
+    "title": "Ha with Fatha",
+    "text": "هَ"
+  },
+  {
+    "id": 178,
+    "day": 26,
+    "title": "Ha with Kasrah",
+    "text": "هِ"
+  },
+  {
+    "id": 179,
+    "day": 26,
+    "title": "Ha with Dhamma",
+    "text": "هُ"
+  },
+  {
+    "id": 180,
+    "day": 26,
+    "title": "Ha with Sukoon",
+    "text": "هْ"
+  },
+  {
+    "id": 181,
+    "day": 26,
+    "title": "Ha Joining",
+    "text": "هَا"
+  },
+  {
+    "id": 182,
+    "day": 26,
+    "title": "Ha Practice Word",
+    "text": "هَدِيَّة"
+  },
+  {
+    "id": 183,
+    "day": 27,
+    "title": "Waw - Introduction",
+    "text": "و"
+  },
+  {
+    "id": 184,
+    "day": 27,
+    "title": "Waw with Fatha",
+    "text": "وَ"
+  },
+  {
+    "id": 185,
+    "day": 27,
+    "title": "Waw with Kasrah",
+    "text": "وِ"
+  },
+  {
+    "id": 186,
+    "day": 27,
+    "title": "Waw with Dhamma",
+    "text": "وُ"
+  },
+  {
+    "id": 187,
+    "day": 27,
+    "title": "Waw with Sukoon",
+    "text": "وْ"
+  },
+  {
+    "id": 188,
+    "day": 27,
+    "title": "Waw Joining",
+    "text": "وَا"
+  },
+  {
+    "id": 189,
+    "day": 27,
+    "title": "Waw Practice Word",
+    "text": "وَرْد"
+  },
+  {
+    "id": 190,
+    "day": 28,
+    "title": "Ya - Introduction",
+    "text": "ي"
+  },
+  {
+    "id": 191,
+    "day": 28,
+    "title": "Ya with Fatha",
+    "text": "يَ"
+  },
+  {
+    "id": 192,
+    "day": 28,
+    "title": "Ya with Kasrah",
+    "text": "يِ"
+  },
+  {
+    "id": 193,
+    "day": 28,
+    "title": "Ya with Dhamma",
+    "text": "يُ"
+  },
+  {
+    "id": 194,
+    "day": 28,
+    "title": "Ya with Sukoon",
+    "text": "يْ"
+  },
+  {
+    "id": 195,
+    "day": 28,
+    "title": "Ya Joining",
+    "text": "يَا"
+  },
+  {
+    "id": 196,
+    "day": 28,
+    "title": "Ya Practice Word",
+    "text": "يَقِين"
+  }
+]
