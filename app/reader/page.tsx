@@ -655,7 +655,7 @@ export default function AlfawzReaderPage() {
                     htmlFor="translation-toggle"
                     className="text-sm font-medium text-muted-foreground"
                   >
-                    Translation
+                    ENG
                   </Label>
                   <span className="text-xs uppercase tracking-wide text-muted-foreground">
                     {
