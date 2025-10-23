@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, type CSSProperties } from "react"
 import { LESSONS, getLessonsByDay, getTotalDays } from "@/lib/child-class/lessons-data"
 import { loadGameStats, type GameStats } from "@/lib/child-class/game-stats"
 import { loadStreakData, type StreakData } from "@/lib/child-class/streak-utils"
@@ -88,6 +88,7 @@ export default function Dashboard({
     return getLessonsByDay(filterDay)
   }, [filterDay])
   const progressPercentage = (userProgress.completedLessons.length / LESSONS.length) * 100
+  const qKidLetters = ["Q", "-", "K", "I", "D"]
 
   return (
     <div className="relative min-h-screen px-4 py-10 md:px-8">
@@ -99,7 +100,21 @@ export default function Dashboard({
         <div className="kid-card kid-gradient-bubblegum flex flex-col gap-6 rounded-3xl p-8 text-left md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-maroon/60">Today&apos;s Adventure</p>
-            <h1 className="mt-2 text-4xl md:text-5xl font-extrabold text-maroon">Welcome back, Q-KID!</h1>
+            <h1 className="mt-2 text-4xl md:text-5xl font-extrabold text-maroon">
+              Welcome back, {" "}
+              <span className="qkid-animated-word" aria-hidden="true">
+                {qKidLetters.map((letter, index) => (
+                  <span
+                    key={`${letter}-${index}`}
+                    className="qkid-letter"
+                    style={{ "--qkid-offset": index } as CSSProperties}
+                  >
+                    {letter}
+                  </span>
+                ))}
+              </span>
+              <span className="sr-only">Q-KID</span>!
+            </h1>
             <p className="mt-3 text-maroon/70">
               Day {filterDay} of {totalDays} • Keep the streak glowing bright ✨
             </p>
