@@ -446,7 +446,6 @@ export default function QuranCompanionWorkspacePage() {
         profile={profile}
         onProfileChange={updateReaderProfile}
         translationOptions={translationOptions}
-        transliterationOptions={transliterationOptions}
         reciterOptions={RECITER_OPTIONS}
       />
 
