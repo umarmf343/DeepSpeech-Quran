@@ -1614,7 +1614,7 @@ export default function MemorizationPage() {
                   <div className="flex flex-wrap items-center gap-3">
                     <Button
                       variant="outline"
-                      className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                      className="border-transparent bg-gradient-to-r from-rose-500 via-red-500 to-orange-500 text-white shadow-md transition-all hover:shadow-lg hover:brightness-105 focus-visible:ring-red-500"
                       onClick={() => setShowPauseDialog(true)}
                       disabled={activePlan.completed}
                     >
