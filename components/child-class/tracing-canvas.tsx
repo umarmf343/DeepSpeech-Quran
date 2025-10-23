@@ -54,8 +54,8 @@ export function TracingCanvas({
     maskCanvas.width = CANVAS_SIZE * ratio
     maskCanvas.height = CANVAS_SIZE * ratio
 
-    const ctx = canvas.getContext("2d")
-    const maskCtx = maskCanvas.getContext("2d")
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })
+    const maskCtx = maskCanvas.getContext("2d", { willReadFrequently: true })
     if (!ctx || !maskCtx) return
 
     ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -100,7 +100,7 @@ export function TracingCanvas({
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const ctx = canvas.getContext("2d")
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })
     if (!ctx) return
 
     ctx.lineCap = "round"
@@ -110,7 +110,7 @@ export function TracingCanvas({
   const drawPoint = (x: number, y: number) => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = canvas.getContext("2d")
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })
     const maskData = maskDataRef.current
     const coverageMap = coverageMapRef.current
     if (!ctx || !maskData || !coverageMap) return
