@@ -382,15 +382,19 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                     >
                       Go
                     </button>
-                    {!tracingComplete && (
-                      <button
-                        onClick={handleResetTracing}
-                        className="kid-button kid-button-bubblegum w-full px-6 py-2 text-sm font-semibold sm:w-auto"
-                      >
-                        Start Over
-                      </button>
-                    )}
                   </div>
+                  {!tracingComplete && (
+                    <div className="w-full">
+                      <div className="mt-2 flex justify-start">
+                        <button
+                          onClick={handleResetTracing}
+                          className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-pink-400 via-purple-400 to-orange-400 px-5 py-1.5 text-xs font-bold uppercase tracking-wide text-white shadow-md transition-transform duration-200 hover:scale-105"
+                        >
+                          Start Over
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   {tracingComplete && (
                     <p className="text-base font-semibold text-green-600">Great tracing! You can continue.</p>
                   )}
