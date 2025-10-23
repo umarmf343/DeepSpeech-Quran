@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { playSound } from "@/lib/child-class/sound-effects"
 import { loadSettings, type UserSettings } from "@/lib/child-class/settings-utils"
 import type { ChildLesson } from "@/types/child-class"
+import { LetterTracingCanvas } from "./tracing-canvas"
 
 interface LessonPageProps {
   lesson: ChildLesson
@@ -19,6 +20,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
   const [feedbackType, setFeedbackType] = useState<"success" | "error">("success")
   const [settings, setSettings] = useState<UserSettings | null>(null)
   const [showCompletion, setShowCompletion] = useState<boolean>(false)
+  const [hasTracedSuccessfully, setHasTracedSuccessfully] = useState<boolean>(false)
 
   useEffect(() => {
     setSettings(loadSettings())
@@ -83,6 +85,31 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     setTimeout(() => setShowFeedback(false), 1500)
   }
 
+  const handleTraceSuccess = () => {
+    if (hasTracedSuccessfully) return
+
+    setHasTracedSuccessfully(true)
+    setScore((prev) => prev + 25)
+    setFeedbackMessage("Perfect tracing! 🎉")
+    setFeedbackType("success")
+    if (settings?.soundEnabled) {
+      playSound("correct")
+    }
+    setShowFeedback(true)
+    window.setTimeout(() => setShowFeedback(false), 1800)
+  }
+
+  const handleTraceFail = () => {
+    setHasTracedSuccessfully(false)
+    setFeedbackMessage("Failed, try again! 🔁")
+    setFeedbackType("error")
+    if (settings?.soundEnabled) {
+      playSound("incorrect")
+    }
+    setShowFeedback(true)
+    window.setTimeout(() => setShowFeedback(false), 1800)
+  }
+
   const handleNextStep = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1)
@@ -96,6 +123,14 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
       }, 2500)
     }
   }
+
+  useEffect(() => {
+    if (currentStep !== 3) {
+      setHasTracedSuccessfully(false)
+    }
+  }, [currentStep])
+
+  const isNextDisabled = currentStep === 3 && !hasTracedSuccessfully
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-milk via-milk to-milk/95 px-4 py-8 md:px-8">
@@ -211,22 +246,12 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
           {currentStep === 3 && (
             <div className="text-center">
               <h2 className="text-3xl font-bold text-maroon mb-8">{steps[3].title}</h2>
-              <p className="text-lg text-maroon/70 mb-10">Trace the letter below</p>
-              <div className="card-premium p-12 mb-8 border-2 border-gold/30">
-                <div className="text-9xl mb-8 opacity-20">{lesson.arabic}</div>
-                <p className="text-maroon/70 mb-8">Try to write the letter in the space above</p>
-                <button
-                  onClick={() => {
-                    setScore((prev) => prev + 25)
-                    setFeedbackMessage("Perfect tracing! 🎉")
-                    setFeedbackType("success")
-                    setShowFeedback(true)
-                    setTimeout(() => setShowFeedback(false), 1500)
-                  }}
-                  className="btn-secondary hover:shadow-lg transition-all py-4 px-8"
-                >
-                  ✓ I've traced it
-                </button>
+              <p className="text-lg text-maroon/70 mb-6">Trace the letter below</p>
+              <div className="card-premium p-10 mb-8 border-2 border-gold/30 flex flex-col items-center gap-6">
+                <LetterTracingCanvas letter={lesson.arabic} onSuccess={handleTraceSuccess} onFail={handleTraceFail} />
+                <p className="text-maroon/70">
+                  Stay inside the faded letter. Three mistakes will reset the activity.
+                </p>
               </div>
               {showFeedback && (
                 <div
@@ -277,7 +302,13 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
             >
               Cancel
             </button>
-            <button onClick={handleNextStep} className="flex-1 btn-primary hover:shadow-lg transition-all py-4 text-lg">
+            <button
+              onClick={handleNextStep}
+              disabled={isNextDisabled}
+              className={`flex-1 btn-primary hover:shadow-lg transition-all py-4 text-lg ${
+                isNextDisabled ? "cursor-not-allowed opacity-60 hover:shadow-none" : ""
+              }`}
+            >
               {currentStep === steps.length - 1 ? "Complete Lesson" : "Next"}
             </button>
           </div>
