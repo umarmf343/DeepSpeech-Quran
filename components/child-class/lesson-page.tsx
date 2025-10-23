@@ -4,7 +4,91 @@ import { useState, useEffect, useMemo, useRef, type ReactNode } from "react"
 import { renderTextWithArabicCard } from "./arabic-letter-card"
 import { playSound } from "@/lib/child-class/sound-effects"
 import { loadSettings, type UserSettings } from "@/lib/child-class/settings-utils"
+import { LESSONS } from "@/lib/child-class/lessons-data"
 import type { ChildLesson } from "@/types/child-class"
+
+const normalizeForComparison = (text: string) => text.normalize("NFC").replace(/\s+/g, " ").trim()
+const countGraphemes = (text: string) => Array.from(text.normalize("NFC").replace(/\s+/g, "")).length
+const isArabicText = (text: string) => /[\u0600-\u06FF]/.test(text)
+const isLatinText = (text: string) => /[A-Za-z]/.test(text)
+
+const createPracticeOptions = (
+  correctValue: string,
+  pool: string[],
+  {
+    locale,
+    filter,
+    fallback,
+  }: {
+    locale: string
+    filter: (value: string) => boolean
+    fallback: string[]
+  },
+) => {
+  const normalizedCorrect = normalizeForComparison(correctValue)
+  if (!normalizedCorrect) {
+    return [correctValue]
+  }
+
+  const uniquePool = new Map<string, string>()
+  for (const rawValue of pool) {
+    if (!rawValue) continue
+    if (!filter(rawValue)) continue
+
+    const normalizedCandidate = normalizeForComparison(rawValue)
+    if (!normalizedCandidate || normalizedCandidate === normalizedCorrect) continue
+
+    if (!uniquePool.has(normalizedCandidate)) {
+      uniquePool.set(normalizedCandidate, rawValue)
+    }
+  }
+
+  const targetLength = countGraphemes(correctValue)
+  const scoredCandidates = Array.from(uniquePool.entries())
+    .map(([normalized, original]) => ({
+      normalized,
+      original,
+      score: Math.abs(countGraphemes(original) - targetLength),
+    }))
+    .sort((a, b) => {
+      if (a.score !== b.score) {
+        return a.score - b.score
+      }
+      return a.normalized.localeCompare(b.normalized, locale, { sensitivity: "base" })
+    })
+
+  const selected: string[] = []
+  for (const candidate of scoredCandidates) {
+    if (!selected.includes(candidate.original)) {
+      selected.push(candidate.original)
+    }
+    if (selected.length === 3) {
+      break
+    }
+  }
+
+  if (selected.length < 3) {
+    for (const fallbackOption of uniquePool.values()) {
+      if (selected.length === 3) break
+      if (fallbackOption === correctValue) continue
+      if (!selected.includes(fallbackOption)) {
+        selected.push(fallbackOption)
+      }
+    }
+  }
+
+  if (selected.length < 3) {
+    for (const fallbackOption of fallback) {
+      if (selected.length === 3) break
+      if (!selected.includes(fallbackOption) && fallbackOption !== correctValue) {
+        selected.push(fallbackOption)
+      }
+    }
+  }
+
+  const combined = [correctValue, ...selected.slice(0, 3)]
+  return combined.sort((a, b) => a.localeCompare(b, locale, { sensitivity: "base" }))
+}
 import TracingCanvas from "@/components/child-class/tracing-canvas"
 
 interface LessonPageProps {
@@ -79,6 +163,30 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     "kid-gradient-mint",
     "kid-gradient-sunset",
   ]
+
+  const arabicPracticeOptions = useMemo(() => {
+    return createPracticeOptions(
+      lesson.arabic,
+      LESSONS.map((item) => item.arabic),
+      {
+        locale: "ar",
+        filter: isArabicText,
+        fallback: ["ب", "ت", "ث", "ن", "م"],
+      },
+    )
+  }, [lesson.arabic])
+
+  const transliterationPracticeOptions = useMemo(() => {
+    return createPracticeOptions(
+      lesson.translit,
+      LESSONS.map((item) => item.translit),
+      {
+        locale: "en",
+        filter: isLatinText,
+        fallback: ["Ba", "Ta", "Tha", "Na", "Ma"],
+      },
+    )
+  }, [lesson.translit])
 
   const steps = [
     {
@@ -411,7 +519,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                 Which one is {renderLessonTitle(lesson.title)}?
               </p>
               <div className="grid grid-cols-2 gap-6 mb-8">
-                {[lesson.arabic, "ب", "ت", "ث"].map((letter, idx) => {
+                {arabicPracticeOptions.map((letter, idx) => {
                   const optionKey = `practice-${currentStep}-${idx}`
                   const isSelected = selectedPracticeOption === optionKey
                   const selectionClass = isSelected
@@ -500,7 +608,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                   {renderTextWithArabicCard(`What is the transliteration of ${lesson.arabic}?`)}
                 </p>
                 <div className="grid grid-cols-2 gap-4">
-                  {[lesson.translit, "Ba", "Ta", "Tha"].map((option, idx) => {
+                  {transliterationPracticeOptions.map((option, idx) => {
                     const optionKey = `practice-${currentStep}-${idx}`
                     const isSelected = selectedPracticeOption === optionKey
                     const selectionClass = isSelected
