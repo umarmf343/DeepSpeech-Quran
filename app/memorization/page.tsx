@@ -134,6 +134,7 @@ export default function MemorizationPage() {
   const [plans, setPlans] = useState<MemorizationPlan[]>([])
   const [planProgress, setPlanProgress] = useState<Record<string, PlanProgressState>>({})
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
+  const [hasHydratedFromStorage, setHasHydratedFromStorage] = useState(false)
   const [preferences, setPreferences] = useState<MemorizationPreferences>({
     defaultMode: null,
     graceEnabled: true,
@@ -319,6 +320,8 @@ export default function MemorizationPage() {
       }
     } catch (error) {
       console.error("Unable to restore memorization state", error)
+    } finally {
+      setHasHydratedFromStorage(true)
     }
   }, [baseTarget, createDefaultProgressState])
 
@@ -341,19 +344,19 @@ export default function MemorizationPage() {
   }, [plans, preferences.lastSelectedPlanId, selectedPlanId])
 
   useEffect(() => {
-    if (typeof window === "undefined") return
+    if (typeof window === "undefined" || !hasHydratedFromStorage) return
     window.localStorage.setItem(LOCAL_STORAGE_KEYS.plans, JSON.stringify(plans))
-  }, [plans])
+  }, [plans, hasHydratedFromStorage])
 
   useEffect(() => {
-    if (typeof window === "undefined") return
+    if (typeof window === "undefined" || !hasHydratedFromStorage) return
     window.localStorage.setItem(LOCAL_STORAGE_KEYS.progress, JSON.stringify(planProgress))
-  }, [planProgress])
+  }, [planProgress, hasHydratedFromStorage])
 
   useEffect(() => {
-    if (typeof window === "undefined") return
+    if (typeof window === "undefined" || !hasHydratedFromStorage) return
     window.localStorage.setItem(LOCAL_STORAGE_KEYS.preferences, JSON.stringify(preferences))
-  }, [preferences])
+  }, [preferences, hasHydratedFromStorage])
 
   useEffect(() => {
     setPlanProgress((previous) => {
