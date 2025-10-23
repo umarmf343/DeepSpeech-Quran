@@ -207,10 +207,9 @@ export function TracingCanvas({
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext("2d", { willReadFrequently: true })
-    const maskCanvas = maskCanvasRef.current
     const maskData = maskDataRef.current
     const coverageMap = coverageMapRef.current
-    if (!ctx || !maskCanvas || !maskData || !coverageMap) return
+    if (!ctx || !maskData || !coverageMap) return
 
     const ratio = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1
     const canvasWidth = canvas.width
@@ -223,63 +222,53 @@ export function TracingCanvas({
     const minY = Math.max(0, Math.floor(y - radius))
     const maxY = Math.min(canvasHeight - 1, Math.ceil(y + radius))
 
-    let hasOverlap = false
+    const width = maxX - minX + 1
+    const height = maxY - minY + 1
+    const imageData = ctx.getImageData(minX, minY, width, height)
+    const pixelData = imageData.data
+    const redAlpha = Math.round(0.85 * 255)
+
+    let insidePixelCount = 0
+    let paintedPixelCount = 0
+
     for (let yy = minY; yy <= maxY; yy++) {
+      const offsetY = yy - minY
       for (let xx = minX; xx <= maxX; xx++) {
         const dx = xx - x
         const dy = yy - y
         if (dx * dx + dy * dy > radiusSq) continue
-        const alphaIndex = (yy * canvasWidth + xx) * 4 + 3
+
+        paintedPixelCount += 1
+        const pixelIndex = yy * canvasWidth + xx
+        const alphaIndex = pixelIndex * 4 + 3
+        const dataIndex = (offsetY * width + (xx - minX)) * 4
+
         if (maskData[alphaIndex] > 0) {
-          hasOverlap = true
-          break
-        }
-      }
-      if (hasOverlap) break
-    }
+          insidePixelCount += 1
+          pixelData[dataIndex] = 0
+          pixelData[dataIndex + 1] = 0
+          pixelData[dataIndex + 2] = 0
+          pixelData[dataIndex + 3] = 255
 
-    const inside = hasOverlap
-
-    const circleRadius = (BRUSH_SIZE / 2) * ratio
-
-    if (inside) {
-      ctx.save()
-      ctx.beginPath()
-      ctx.arc(x, y, circleRadius, 0, Math.PI * 2)
-      ctx.clip()
-
-      ctx.globalCompositeOperation = "source-over"
-      ctx.fillStyle = "#000"
-      ctx.beginPath()
-      ctx.arc(x, y, circleRadius, 0, Math.PI * 2)
-      ctx.fill()
-
-      ctx.globalCompositeOperation = "destination-in"
-      ctx.drawImage(maskCanvas, 0, 0, canvasWidth, canvasHeight)
-      ctx.restore()
-    } else {
-      ctx.fillStyle = "rgba(220,38,38,0.85)"
-      ctx.beginPath()
-      ctx.arc(x, y, circleRadius, 0, Math.PI * 2)
-      ctx.fill()
-    }
-
-    if (inside) {
-      for (let yy = minY; yy <= maxY; yy++) {
-        for (let xx = minX; xx <= maxX; xx++) {
-          const dx = xx - x
-          const dy = yy - y
-          if (dx * dx + dy * dy > radiusSq) continue
-          const pixelIndex = yy * canvasWidth + xx
-          const alphaIndex = pixelIndex * 4 + 3
-          if (maskData[alphaIndex] === 0) continue
           if (coverageMap[pixelIndex] === 0) {
             coverageMap[pixelIndex] = 1
             coveredPixelsRef.current += 1
           }
+        } else {
+          pixelData[dataIndex] = 220
+          pixelData[dataIndex + 1] = 38
+          pixelData[dataIndex + 2] = 38
+          pixelData[dataIndex + 3] = redAlpha
         }
       }
+    }
 
+    ctx.putImageData(imageData, minX, minY)
+
+    const hasInside = insidePixelCount > 0
+    const hasOutside = paintedPixelCount > insidePixelCount
+
+    if (hasInside) {
       const completionRatio = coveredPixelsRef.current / totalLetterPixelsRef.current
       onProgress?.(Math.min(1, completionRatio))
       if (completionRatio >= COMPLETION_THRESHOLD && !completedRef.current) {
@@ -287,7 +276,9 @@ export function TracingCanvas({
         lockedRef.current = true
         onSuccess()
       }
-    } else if (!strokeMistakeRef.current) {
+    }
+
+    if (hasOutside && !hasInside && !strokeMistakeRef.current) {
       strokeMistakeRef.current = true
       mistakesRef.current += 1
       onMistake?.(mistakesRef.current)
