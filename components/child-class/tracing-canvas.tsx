@@ -13,6 +13,7 @@ interface TracingCanvasProps {
 }
 
 const CANVAS_SIZE = 420
+const FONT_SCALE = 560 / CANVAS_SIZE
 const BRUSH_SIZE = 18.7
 const MAX_MISTAKES = 3
 export const COMPLETION_THRESHOLD = 0.72
@@ -38,61 +39,97 @@ export function TracingCanvas({
   const mistakesRef = useRef(0)
   const completedRef = useRef(false)
   const [ready, setReady] = useState(false)
+  const [displaySize, setDisplaySize] = useState(CANVAS_SIZE)
 
   useEffect(() => {
     const canvas = canvasRef.current
     const maskCanvas = maskCanvasRef.current
     if (!canvas || !maskCanvas) return
 
-    const ratio = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1
+    setReady(false)
 
-    canvas.width = CANVAS_SIZE * ratio
-    canvas.height = CANVAS_SIZE * ratio
-    canvas.style.width = "100%"
-    canvas.style.height = "100%"
+    const initializeCanvas = () => {
+      const ratio = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1
+      const parent = canvas.parentElement
+      const rect = parent?.getBoundingClientRect()
+      const size = rect ? Math.min(rect.width, rect.height || rect.width) : CANVAS_SIZE
+      const nextDisplaySize = Math.max(size, 1)
+      const pixelSize = nextDisplaySize * ratio
 
-    maskCanvas.width = CANVAS_SIZE * ratio
-    maskCanvas.height = CANVAS_SIZE * ratio
+      canvas.width = pixelSize
+      canvas.height = pixelSize
+      canvas.style.width = `${nextDisplaySize}px`
+      canvas.style.height = `${nextDisplaySize}px`
 
-    const ctx = canvas.getContext("2d", { willReadFrequently: true })
-    const maskCtx = maskCanvas.getContext("2d", { willReadFrequently: true })
-    if (!ctx || !maskCtx) return
+      maskCanvas.width = pixelSize
+      maskCanvas.height = pixelSize
+      maskCanvas.style.width = `${nextDisplaySize}px`
+      maskCanvas.style.height = `${nextDisplaySize}px`
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    ctx.fillStyle = "transparent"
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+      const ctx = canvas.getContext("2d", { willReadFrequently: true })
+      const maskCtx = maskCanvas.getContext("2d", { willReadFrequently: true })
+      if (!ctx || !maskCtx) return
 
-    maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height)
-    maskCtx.fillStyle = "#000"
-    maskCtx.textAlign = "center"
-    maskCtx.textBaseline = "middle"
-    const fontSize = 560 * ratio
-    maskCtx.font = `${fontSize}px 'Scheherazade New', 'Noto Naskh Arabic', 'Amiri', serif`
-    maskCtx.fillText(letter, maskCanvas.width / 2, maskCanvas.height / 2)
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.fillStyle = "transparent"
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    const maskData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height)
-    maskDataRef.current = maskData.data
+      maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height)
+      maskCtx.fillStyle = "#000"
+      maskCtx.textAlign = "center"
+      maskCtx.textBaseline = "middle"
+      const fontSize = nextDisplaySize * FONT_SCALE * ratio
+      maskCtx.font = `${fontSize}px 'Scheherazade New', 'Noto Naskh Arabic', 'Amiri', serif`
+      maskCtx.fillText(letter, maskCanvas.width / 2, maskCanvas.height / 2)
 
-    let total = 0
-    for (let i = 3; i < maskData.data.length; i += 4) {
-      if (maskData.data[i] > 0) {
-        total += 1
+      const maskData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height)
+      maskDataRef.current = maskData.data
+
+      let total = 0
+      for (let i = 3; i < maskData.data.length; i += 4) {
+        if (maskData.data[i] > 0) {
+          total += 1
+        }
       }
+      totalLetterPixelsRef.current = Math.max(total, 1)
+
+      coverageMapRef.current = new Uint8Array(maskCanvas.width * maskCanvas.height)
+      coveredPixelsRef.current = 0
+      isDrawingRef.current = false
+      lastPointRef.current = null
+      strokeMistakeRef.current = false
+      lockedRef.current = false
+      mistakesRef.current = 0
+      completedRef.current = false
+
+      onProgress?.(0)
+      onMistake?.(0)
+      setDisplaySize(nextDisplaySize)
+      setReady(true)
     }
-    totalLetterPixelsRef.current = Math.max(total, 1)
 
-    coverageMapRef.current = new Uint8Array(maskCanvas.width * maskCanvas.height)
-    coveredPixelsRef.current = 0
-    isDrawingRef.current = false
-    lastPointRef.current = null
-    strokeMistakeRef.current = false
-    lockedRef.current = false
-    mistakesRef.current = 0
-    completedRef.current = false
+    initializeCanvas()
 
-    onProgress?.(0)
-    onMistake?.(0)
-    setReady(true)
+    if (typeof window === "undefined") return
+
+    const handleResize = () => {
+      initializeCanvas()
+    }
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined" && canvas.parentElement
+        ? new ResizeObserver(handleResize)
+        : null
+    if (resizeObserver && canvas.parentElement) {
+      resizeObserver.observe(canvas.parentElement)
+    }
+
+    window.addEventListener("resize", handleResize)
+
+    return () => {
+      resizeObserver?.disconnect()
+      window.removeEventListener("resize", handleResize)
+    }
   }, [letter, onProgress, onMistake, resetSignal])
 
   useEffect(() => {
@@ -240,7 +277,7 @@ export function TracingCanvas({
         <span
           aria-hidden="true"
           className="block select-none font-black leading-none text-black/15"
-          style={{ fontSize: `${CANVAS_SIZE * 0.8}px` }}
+          style={{ fontSize: `${displaySize * 0.8}px` }}
         >
           {letter}
         </span>
