@@ -48,14 +48,14 @@ export function LetterMatchingGame({ onComplete, onBack }: LetterMatchingGamePro
   return (
     <div className="min-h-screen px-4 py-8 md:px-8">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col items-center gap-4 mb-8 md:flex-row md:justify-between md:items-center">
         <button
           onClick={onBack}
           className="bg-gradient-to-r from-[#c084fc] via-[#b76dfd] to-[#9333ea] text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)] font-bold py-2 px-4 rounded-lg transition-all duration-300 md:bg-maroon/20 md:hover:bg-maroon/30 md:text-maroon md:drop-shadow-none"
         >
           ← Back
         </button>
-        <h1 className="text-3xl font-bold text-maroon">Letter Matching</h1>
+        <h1 className="text-3xl font-bold text-maroon text-center md:text-left">Letter Matching</h1>
         <div className="text-2xl font-bold text-gold">{score} pts</div>
       </div>
 
