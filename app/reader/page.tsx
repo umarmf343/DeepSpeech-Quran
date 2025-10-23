@@ -689,10 +689,10 @@ export default function AlfawzReaderPage() {
                   asChild
                   variant="secondary"
                   size="sm"
-                  className="w-full gap-2 sm:w-auto sm:justify-self-end"
+                  className="w-full h-[1.55rem] px-[0.6rem] has-[>svg]:px-[0.5rem] gap-1 text-xs sm:w-auto sm:justify-self-end"
                 >
-                  <Link href="/practice" className="inline-flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" /> Launch AI Lab
+                  <Link href="/practice" className="inline-flex items-center gap-1 text-xs">
+                    <Sparkles className="h-3 w-3" /> Launch AI Lab
                   </Link>
                 </Button>
               </div>
