@@ -51,7 +51,7 @@ export function LetterMatchingGame({ onComplete, onBack }: LetterMatchingGamePro
       <div className="flex justify-between items-center mb-8">
         <button
           onClick={onBack}
-          className="bg-maroon/20 hover:bg-maroon/30 text-maroon font-bold py-2 px-4 rounded-lg transition-all duration-300"
+          className="bg-gradient-to-r from-[#c084fc] via-[#b76dfd] to-[#9333ea] text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)] font-bold py-2 px-4 rounded-lg transition-all duration-300 md:bg-maroon/20 md:hover:bg-maroon/30 md:text-maroon md:drop-shadow-none"
         >
           ← Back
         </button>
