@@ -663,7 +663,7 @@ export default function AlfawzReaderPage() {
                     htmlFor="transliteration-toggle"
                     className="text-sm font-medium text-muted-foreground"
                   >
-                    Transliteration
+                    Trans
                   </Label>
                   <span className="text-xs uppercase tracking-wide text-muted-foreground">
                     {profile.showTransliteration ? "On" : "Off"}

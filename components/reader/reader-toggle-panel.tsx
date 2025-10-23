@@ -89,7 +89,7 @@ export function ReaderTogglePanel({
         </div>
         <div className="flex items-center justify-between">
           <Label htmlFor="toggle-transliteration" className="text-xs uppercase tracking-wide text-muted-foreground">
-            Transliteration
+            Trans
           </Label>
           <Switch
             id="toggle-transliteration"
