@@ -261,25 +261,29 @@ export default function Dashboard({
             <div
               key={lesson.id}
               onClick={() => onSelectLesson(lesson)}
-              className={`kid-card ${lessonGradients[index % lessonGradients.length]} cursor-pointer p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] ${
+              className={`kid-card ${
+                lessonGradients[index % lessonGradients.length]
+              } cursor-pointer flex flex-col items-center gap-3 p-4 text-center transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] sm:gap-4 sm:p-6 ${
                 userProgress.completedLessons.includes(lesson.id)
                   ? "kid-card-completed"
                   : ""
               }`}
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              <div className="flex justify-between items-start mb-4">
+              <div className="mb-2 flex w-full flex-wrap items-center justify-center gap-2 sm:justify-between">
                 <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-maroon/70 shadow-sm">
                   Lesson {index + 1}
                 </span>
                 {userProgress.completedLessons.includes(lesson.id) && (
-                  <span className="text-2xl animate-bounce">✓</span>
+                  <span className="text-xl animate-bounce sm:text-2xl">✓</span>
                 )}
               </div>
-              <h3 className="mb-2 text-lg font-extrabold text-maroon">{lesson.title}</h3>
-              <div className="mb-4 text-center text-black text-[6rem]">{lesson.arabic}</div>
-              <p className="text-sm text-maroon/70">{lesson.translit}</p>
-              <p className="mt-2 text-xs uppercase tracking-widest text-maroon/50">{lesson.rule}</p>
+              <h3 className="mb-1 text-base font-extrabold text-maroon sm:mb-2 sm:text-lg">{lesson.title}</h3>
+              <div className="mb-2 text-black text-[3.5rem] leading-none sm:mb-3 sm:text-[4.5rem] md:text-[5.5rem] lg:text-[6rem]">
+                {lesson.arabic}
+              </div>
+              <p className="text-sm text-maroon/70 sm:text-base">{lesson.translit}</p>
+              <p className="mt-1 text-xs uppercase tracking-widest text-maroon/50 sm:mt-2">{lesson.rule}</p>
             </div>
           ))}
         </div>
