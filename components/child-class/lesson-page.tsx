@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef, type ReactNode } from "react"
 import { renderTextWithArabicCard } from "./arabic-letter-card"
 import { AudioPlayButton } from "./audio-play-button"
-import TraceSelectionArea from "./trace-selection-area"
+import { TraceSelectionArea } from "./trace-selection-area"
 import { AutoFitText } from "@/components/common/AutoFitText"
 import { playSound } from "@/lib/child-class/sound-effects"
 import { loadSettings, type UserSettings } from "@/lib/child-class/settings-utils"
@@ -93,7 +93,7 @@ const createPracticeOptions = (
   const combined = [correctValue, ...selected.slice(0, 3)]
   return shuffleArray(combined)
 }
-import TracingCanvas from "@/components/child-class/tracing-canvas"
+import { TracingCanvas } from "@/components/child-class/tracing-canvas"
 
 interface LessonPageProps {
   lesson: ChildLesson
