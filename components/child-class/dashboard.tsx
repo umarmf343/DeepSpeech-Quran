@@ -292,7 +292,7 @@ export default function Dashboard({
                     audioSrc={lesson.audioSrc}
                     fallbackText={lesson.arabic}
                     label={`Play pronunciation for ${lesson.title}`}
-                    className="h-14 w-14 justify-self-center border border-white/70 bg-white/95 text-maroon shadow-lg"
+                    className="h-9 w-9 justify-self-center border border-white/70 bg-white/95 text-maroon shadow-lg"
                   />
                 </div>
                 <p className="col-span-2 text-sm text-maroon/70 sm:text-base">{lesson.translit}</p>
