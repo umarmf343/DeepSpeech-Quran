@@ -19,6 +19,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
   const [feedbackType, setFeedbackType] = useState<"success" | "error">("success")
   const [settings, setSettings] = useState<UserSettings | null>(null)
   const [showCompletion, setShowCompletion] = useState<boolean>(false)
+  const [isTracingActive, setIsTracingActive] = useState<boolean>(false)
 
   useEffect(() => {
     setSettings(loadSettings())
@@ -86,6 +87,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
   const handleNextStep = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1)
+      setIsTracingActive(false)
     } else {
       setShowCompletion(true)
       if (settings?.soundEnabled) {
@@ -222,7 +224,23 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
               <p className="text-lg text-maroon/70 mb-8">Trace the letter below</p>
               <div className="kid-card p-12 mb-8 text-center">
                 <div className="text-black text-[16rem] mb-4 opacity-20">{lesson.arabic}</div>
-                <p className="text-maroon/70 mb-8">Try to write the letter in the space above</p>
+                <div className="mb-6 flex items-center justify-center gap-3">
+                  <button
+                    onClick={() => setIsTracingActive(true)}
+                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-300 via-pink-400 to-maroon px-5 py-2 text-sm font-bold text-[var(--color-milk)] shadow-lg transition-transform duration-300 hover:-translate-y-0.5 hover:scale-[1.04]"
+                  >
+                    <span className="text-lg">▶</span>
+                    Start Tracing
+                  </button>
+                  {!isTracingActive && (
+                    <span className="text-xs font-semibold uppercase tracking-widest text-maroon/60">
+                      Tap to begin!
+                    </span>
+                  )}
+                </div>
+                <p className="text-maroon/70 mb-8">
+                  {isTracingActive ? "Trace the letter carefully then confirm when you're done" : "Try to write the letter in the space above"}
+                </p>
                 <button
                   onClick={() => {
                     setScore((prev) => prev + 25)
@@ -231,7 +249,12 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                     setShowFeedback(true)
                     setTimeout(() => setShowFeedback(false), 1500)
                   }}
-                  className="kid-pill rounded-full px-8 py-3 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-[1.05]"
+                  disabled={!isTracingActive}
+                  className={`kid-pill rounded-full px-8 py-3 text-sm font-semibold transition-transform duration-300 hover:scale-[1.05] ${
+                    isTracingActive
+                      ? "text-maroon"
+                      : "cursor-not-allowed text-maroon/40 hover:scale-100"
+                  }`}
                 >
                   ✓ I've traced it
                 </button>
