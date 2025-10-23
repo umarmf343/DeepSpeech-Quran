@@ -187,7 +187,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
 
       {/* Premium Header */}
       <div className="relative z-10 mb-8 animate-slide-down">
-        <div className="kid-card kid-gradient-tropical flex flex-col gap-4 rounded-3xl p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="kid-card kid-gradient-tropical grid grid-cols-[auto_1fr_auto] items-center gap-4 rounded-3xl p-6">
           <button
             onClick={onBack}
             className="kid-pill kid-pill-mint flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-105"
@@ -198,7 +198,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
             <p className="text-xs uppercase tracking-[0.4em] text-maroon/60">Lesson Spotlight</p>
             <h1 className="text-3xl md:text-4xl font-extrabold text-maroon">{lesson.title}</h1>
           </div>
-          <div className="rounded-full bg-white/80 px-5 py-2 text-2xl font-black text-maroon shadow-inner">
+          <div className="justify-self-end rounded-full bg-white/80 px-5 py-2 text-2xl font-black text-maroon shadow-inner">
             {score} pts
           </div>
         </div>
