@@ -1555,7 +1555,12 @@ export default function MemorizationPage() {
                         <p className="text-sm font-semibold text-emerald-900">{modeDescriptions[activeMode].title}</p>
                         <p className="text-xs text-slate-600">{modeDescriptions[activeMode].support}</p>
                       </div>
-                      <Button variant="outline" size="sm" className="border-emerald-200 text-emerald-700 hover:bg-emerald-50" onClick={() => setShowModeDialog(true)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-red-600"
+                        onClick={() => setShowModeDialog(true)}
+                      >
                         Change mode
                       </Button>
                     </div>
