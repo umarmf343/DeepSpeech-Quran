@@ -601,12 +601,12 @@
   .kid-button-sunset {
     --kid-button-gradient: linear-gradient(
       135deg,
-      rgba(59, 130, 246, 0.98) 0%,
-      rgba(37, 99, 235, 0.96) 55%,
-      rgba(30, 64, 175, 0.92) 100%
+      rgba(255, 105, 180, 0.98) 0%,
+      rgba(245, 61, 104, 0.96) 50%,
+      rgba(199, 0, 57, 0.94) 100%
     );
-    --kid-button-shadow: 0 22px 46px rgba(37, 99, 235, 0.32), 0 16px 36px rgba(30, 64, 175, 0.26);
-    --kid-button-foreground: #f7fbff;
+    --kid-button-shadow: 0 22px 46px rgba(245, 61, 104, 0.32), 0 16px 36px rgba(199, 0, 57, 0.26);
+    --kid-button-foreground: #fff7fb;
   }
 
   .kid-button-tropical {
