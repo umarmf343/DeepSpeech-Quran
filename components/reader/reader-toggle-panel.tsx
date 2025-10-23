@@ -47,6 +47,7 @@ export function ReaderTogglePanel({
   const isMobile = useIsMobile()
   const prefersReducedMotion = usePrefersReducedMotion()
   const [isOpen, setIsOpen] = useState(false)
+  const [tajweedAvailable, setTajweedAvailable] = useState<boolean | null>(null)
 
   useEffect(() => {
     if (!isMobile) {
@@ -55,6 +56,41 @@ export function ReaderTogglePanel({
       setIsOpen(false)
     }
   }, [isMobile])
+
+  useEffect(() => {
+    let isActive = true
+    const controller = new AbortController()
+    const load = async () => {
+      try {
+        const response = await fetch("/api/deepspeech/tajweed/availability", {
+          signal: controller.signal,
+        })
+        if (!isActive) return
+        if (!response.ok) {
+          setTajweedAvailable(false)
+          return
+        }
+        const json: { available?: boolean } = await response.json()
+        if (!isActive) return
+        setTajweedAvailable(Boolean(json.available))
+      } catch (error) {
+        if (!isActive) return
+        console.warn("Failed to detect tajweed availability", error)
+        setTajweedAvailable(false)
+      }
+    }
+    void load()
+    return () => {
+      isActive = false
+      controller.abort()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (tajweedAvailable === false && profile.showTajweed) {
+      onProfileChange({ showTajweed: false })
+    }
+  }, [tajweedAvailable, onProfileChange, profile.showTajweed])
 
   const translationLabel = useMemo(() => {
     return translationOptions.find((option) => option.edition === profile.translationEdition)?.label
@@ -117,9 +153,17 @@ export function ReaderTogglePanel({
             id="toggle-tajweed"
             checked={profile.showTajweed}
             onCheckedChange={(checked) => onProfileChange({ showTajweed: checked })}
+            disabled={tajweedAvailable === false || tajweedAvailable === null}
             aria-label="Toggle tajweed view"
           />
         </div>
+        {tajweedAvailable === false ? (
+          <p className="text-xs text-muted-foreground">
+            Tajweed overlays require the optional DeepSpeech dataset. Install{" "}
+            <code className="rounded bg-muted px-1 py-0.5 text-[0.7rem]">deepspeech-quran/tajweed</code>{" "}
+            to enable the color-coded Mushaf.
+          </p>
+        ) : null}
         <div className="flex items-center justify-between">
           <Label htmlFor="toggle-telemetry" className="text-xs uppercase tracking-wide text-muted-foreground">
             Help Improve

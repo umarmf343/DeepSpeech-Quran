@@ -17,6 +17,18 @@ export interface TajweedRenderResult {
 const tajweedCache = new Map<string, TajweedRenderResult>()
 
 let warnedMissingModule = false
+let tajweedModulePromise:
+  | Promise<
+      | {
+          generateTajweedMushaf?: (
+            surahNumber: number,
+            verseRange: { start: number; end: number },
+          ) => Promise<{ fragments: TajweedFragment[]; legend?: Record<string, string> }>
+        }
+      | null
+    >
+  | null = null
+let tajweedModuleAvailable: boolean | null = null
 
 const loadTajweedModule = async () => {
   if (typeof window !== "undefined") {
@@ -50,6 +62,29 @@ const loadTajweedModule = async () => {
   }
 }
 
+const ensureTajweedModule = async () => {
+  if (!tajweedModulePromise) {
+    tajweedModulePromise = loadTajweedModule()
+  }
+  const module = await tajweedModulePromise
+  tajweedModuleAvailable = Boolean(module?.generateTajweedMushaf)
+  return module
+}
+
+export const isTajweedModuleAvailable = cache(async (): Promise<boolean> => {
+  if (tajweedModuleAvailable !== null) {
+    return tajweedModuleAvailable
+  }
+  try {
+    const module = await ensureTajweedModule()
+    return Boolean(module?.generateTajweedMushaf)
+  } catch (error) {
+    console.error("isTajweedModuleAvailable", error)
+    tajweedModuleAvailable = false
+    return false
+  }
+})
+
 export const generateTajweedForRange = cache(
   async (surahNumber: number, range: { start: number; end: number }): Promise<TajweedRenderResult> => {
     const key = cacheKey(surahNumber, range.start, range.end)
@@ -58,7 +93,7 @@ export const generateTajweedForRange = cache(
     }
 
     try {
-      const module = await loadTajweedModule()
+      const module = await ensureTajweedModule()
 
       if (!module?.generateTajweedMushaf) {
         const response: TajweedRenderResult = {
@@ -84,6 +119,7 @@ export const generateTajweedForRange = cache(
       return normalized
     } catch (error) {
       console.error("generateTajweedForRange", error)
+      tajweedModuleAvailable = false
       const fallback: TajweedRenderResult = {
         success: false,
         fragments: [],
