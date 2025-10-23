@@ -35,11 +35,11 @@ export function AdvancedAudioRecorder({ onRecordingComplete, maxDuration = 300, 
   const audioContextRef = useRef<AudioContext | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const isRecordingRef = useRef(false)
 
   // Initialize waveform visualization
-  const initializeWaveform = useCallback(async () => {
+  const initializeWaveform = useCallback((stream: MediaStream) => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       streamRef.current = stream
 
       audioContextRef.current = new AudioContext()
@@ -47,25 +47,32 @@ export function AdvancedAudioRecorder({ onRecordingComplete, maxDuration = 300, 
       const source = audioContextRef.current.createMediaStreamSource(stream)
 
       analyserRef.current.fftSize = 256
+      analyserRef.current.smoothingTimeConstant = 0.8
       source.connect(analyserRef.current)
 
       const bufferLength = analyserRef.current.frequencyBinCount
       const dataArray = new Uint8Array(bufferLength)
 
       const updateWaveform = () => {
-        if (analyserRef.current && isRecording) {
-          analyserRef.current.getByteFrequencyData(dataArray)
-          setWaveformData(Array.from(dataArray))
+        if (!analyserRef.current) return
+
+        analyserRef.current.getByteTimeDomainData(dataArray)
+
+        if (isRecordingRef.current) {
+          const normalizedData = Array.from(dataArray, (value) => Math.min(Math.abs(value - 128) * 2, 255))
+          setWaveformData(normalizedData)
           animationRef.current = requestAnimationFrame(updateWaveform)
         }
       }
 
-      if (isRecording) {
-        updateWaveform()
-      }
+      animationRef.current = requestAnimationFrame(updateWaveform)
     } catch (error) {
-      console.error("Error accessing microphone:", error)
+      console.error("Error initializing waveform:", error)
     }
+  }, [])
+
+  useEffect(() => {
+    isRecordingRef.current = isRecording
   }, [isRecording])
 
   // Draw waveform on canvas
@@ -128,10 +135,11 @@ export function AdvancedAudioRecorder({ onRecordingComplete, maxDuration = 300, 
       }
 
       mediaRecorder.start(100) // Collect data every 100ms
+      isRecordingRef.current = true
       setIsRecording(true)
       setDuration(0)
 
-      await initializeWaveform()
+      initializeWaveform(stream)
 
       // Start duration timer
       const startTime = Date.now()
@@ -156,17 +164,21 @@ export function AdvancedAudioRecorder({ onRecordingComplete, maxDuration = 300, 
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop()
       setIsRecording(false)
+      isRecordingRef.current = false
 
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current)
+        animationRef.current = null
       }
 
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop())
+        streamRef.current = null
       }
 
       if (audioContextRef.current) {
         audioContextRef.current.close()
+        audioContextRef.current = null
       }
     }
   }
