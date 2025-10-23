@@ -1,0 +1,155 @@
+Overview of the Current Codebase
+The project is a Next.js 14 App Router application written in TypeScript and React 18, styled with Tailwind CSS (v4) and shadcn/ui components, with most UI routed through the app/ directory and shared logic in components/ and hooks/ (for example, components/user-provider.tsx, components/premium-gate.tsx, and hooks/use-user.ts).
+
+Child lesson audio is generated via the script at scripts/fetch-child-lesson-audio.mjs, which writes Base64 payloads into lib/child-class/lesson-audio-data.ts; keep this flow in mind when planning any mobile audio or offline features.
+
+Environment variables enable features like the DeepSpeech inference API route at app/api/deepspeech/transcribe, which shells into the bundled TensorFlow client; you must surface the same variables in your mobile builds if you rely on the transcription pipeline.
+
+High-Level Decision Points
+Choose a mobile strategy:
+
+React Native / Expo rewrite – Best when you want fully native UI, offline audio, and tighter integration with iOS/Android features.
+
+Hybrid WebView wrapper (e.g., Capacitor, Expo Router + Next.js, or Tauri Mobile) – Fastest path using the existing web UI with minimal rewrites, but native integrations are limited.
+
+Inventory shared logic: Extract domain logic (e.g., user context, habit data, premium gating) into platform-neutral modules (/lib, /hooks, lightweight service objects) so both web and mobile code can import them.
+
+Plan for audio and transcription: Determine whether mobile will call your existing Next.js API routes (easiest) or run on-device inference (requires shipping DeepSpeech assets, high app size, and native modules).
+
+Option A – Build a Native App with React Native & Expo
+1. Prepare the Repository
+Create a monorepo layout: Move shared logic into packages/core (for example, user models, quest logic, premium gate checks). Keep web-specific code under apps/web (your current Next.js app) and add apps/mobile for the Expo app.
+
+Abstract shared hooks/components:
+
+Convert components/user-provider.tsx into a platform-agnostic provider that only relies on React context and data objects.
+
+Keep UI-specific elements (shadcn/ui, Tailwind classes) in web-only layers; for mobile, recreate the UI with React Native primitives or libraries like NativeBase.
+
+2. Bootstrap Expo
+Install Expo CLI (npm install -g expo-cli) and run expo init apps/mobile --template expo-template-blank-typescript.
+
+Configure Expo’s Metro bundler to resolve shared packages (e.g., with babel.config.js module-resolver aliases pointing to ../packages/core).
+
+3. Rebuild Screens
+Map Next.js routes to native screens:
+
+app/page.tsx → Landing/Onboarding screen.
+
+app/dashboard → Tab or drawer navigation (consider React Navigation).
+
+app/habits → Habit Quest Arena screen.
+
+Port layout logic:
+
+Reimplement Tailwind-based styling with StyleSheet, twrnc, or nativewind.
+
+Recreate components such as premium gates, navigation sidebars, and toast notifications using React Native alternatives (react-native-toast-message, etc.).
+
+4. Handle Authentication & State
+Reuse the shared context extracted from UserProvider so mobile sees the same profile, stats, and actions.
+
+Integrate secure storage (expo-secure-store) for tokens if you add real auth.
+
+5. Audio & DeepSpeech Integration
+For pronunciation lessons, either:
+
+Stream audio from URLs produced by your Next.js API (requires hosting the Base64 assets as files), or
+
+Bundle selected audio clips as static assets in Expo.
+
+For transcription:
+
+Call the existing /api/deepspeech/transcribe endpoint via fetch (simpler), OR
+
+Use a native module (e.g., react-native-deepspeech or on-device Whisper) if offline scoring is required, which will demand custom native code and larger bundle size.
+
+6. Platform Setup
+Android: Configure app ID, permissions, and splash screens. Run expo prebuild followed by expo run:android to generate an Android project and build .apk/.aab.
+
+iOS: On macOS, run expo run:ios to create an Xcode workspace, set signing, and produce .ipa builds. Use eas build for cloud builds if you lack macOS hardware.
+
+7. Distribution
+Use Expo Application Services (EAS) to automate builds:
+
+eas build -p android --profile production → .aab for Play Store.
+
+eas build -p ios --profile production → .ipa for TestFlight/App Store.
+
+Set environment variables (NEXT_PUBLIC_APP_URL, etc.) in EAS secrets if you’re calling your Next.js APIs.
+
+Option B – Wrap the Web App in a Native Shell (Capacitor or Tauri Mobile)
+1. Optimize the Web Experience
+Ensure the Next.js build is responsive and touch-friendly (app/layout.tsx, components/navigation.tsx) because it will render inside a WebView.
+
+Generate a production build with pnpm build and host it (either locally on-device or as a remote PWA).
+
+2. Integrate Capacitor
+Install Capacitor in the project root (npm install @capacitor/core @capacitor/cli), run npx cap init.
+
+Configure capacitor.config.ts to point to the built web directory (out/ or .next/export if you use static export).
+
+Add platforms:
+
+npx cap add android
+
+npx cap add ios
+
+Sync your build output (pnpm build && npx cap copy) and open native projects with npx cap open android / npx cap open ios.
+
+3. Handle Native Features
+Use Capacitor plugins (Camera, Filesystem, etc.) if you need device capabilities; otherwise, the web app runs as-is.
+
+For audio recording/transcription:
+
+Use Capacitor’s Media plugin to capture audio.
+
+Upload recordings to your existing Next.js /api/deepspeech/transcribe route for scoring.
+
+4. Packaging
+Android: Build in Android Studio to generate signed .aab.
+
+iOS: Open Xcode workspace, configure signing, and create an archive for TestFlight/App Store.
+
+5. Trade-offs
+Pros: Fastest route, preserves existing UI.
+
+Cons: Limited offline capability, heavier reliance on network, WebView performance vs. fully native screens.
+
+Additional Considerations
+Shared Services and State
+Keep business logic in TypeScript modules under packages/core or lib/ to ensure both web and mobile clients remain consistent. For example, the habit completion logic currently lives inside components/user-provider.tsx and can be extracted for reuse.
+
+Environment Management
+Document environment variables (mirroring .env.local) for mobile builds and use platform-specific secure storage or build-time injection (e.g., EAS Secrets, Xcode build settings).
+
+Testing & QA
+For native builds, add integration tests with tools like Detox (React Native) or rely on manual QA via TestFlight/Internal Testing.
+
+Continue running pnpm lint and web-based tests for shared logic before packaging.
+
+Deployment Workflow
+Maintain web app as the canonical source of truth.
+
+Keep shared logic synchronized via monorepo packages.
+
+Automate builds (CI/CD) to produce:
+
+Next.js web deployment (pnpm build).
+
+Expo EAS builds for Android/iOS, or Capacitor builds via native IDEs.
+
+Publish updates to app stores, ensuring audio assets and DeepSpeech endpoints remain accessible.
+
+Suggested Learning Path for Beginners
+Follow Expo’s official “First App” tutorial to understand React Native basics.
+
+Study Capacitor’s “Getting Started” guide if you prefer the hybrid route.
+
+Practice extracting shared logic: move the habit completion rules from components/user-provider.tsx into a reusable module and import it from both web and mobile clients.
+
+Experiment with audio capture: build a simple React Native screen that records audio and POSTs it to app/api/deepspeech/transcribe.
+
+Iterate on UI parity, ensuring key screens (app/dashboard, app/habits, app/billing) have native equivalents with accessible design.
+
+By following these steps, you can transform the existing Next.js project into production-ready Android (.apk/.aab) and iOS (.ipa) applications while preserving core learning experiences and AI-assisted recitation workflows.
