@@ -703,7 +703,7 @@ export default function QuranCompanionWorkspacePage() {
                         onCheckedChange={(checked) => updateReaderProfile({ showTranslation: checked })}
                       />
                       <Label htmlFor="translation-toggle" className="text-sm font-medium text-muted-foreground">
-                        Translation
+                        ENG
                       </Label>
                       <span className="text-xs uppercase tracking-wide text-muted-foreground">
                         {
