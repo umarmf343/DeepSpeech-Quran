@@ -1555,6 +1555,24 @@ const BASE_LESSONS: ChildLesson[] = [
   ...quranVersesResult.lessons,
 ]
 
+const PLACEHOLDER_ARABIC_PATTERN = /^[\s?؟]+$/u
+
+const ensureValidArabicLessons = (lessons: ChildLesson[]): ChildLesson[] => {
+  const invalidLessons = lessons.filter((lesson) =>
+    PLACEHOLDER_ARABIC_PATTERN.test(lesson.arabic.trim()),
+  )
+
+  if (invalidLessons.length > 0) {
+    const details = invalidLessons
+      .map((lesson) => `Day ${lesson.day} - ${lesson.title} (#${lesson.id})`)
+      .join(", ")
+
+    throw new Error(`Placeholder Arabic content detected for lessons: ${details}`)
+  }
+
+  return lessons
+}
+
 const createPracticeLessons = (lessons: ChildLesson[]): ChildLesson[] => {
   if (lessons.length === 0) {
     return []
@@ -1616,7 +1634,7 @@ const createPracticeLessons = (lessons: ChildLesson[]): ChildLesson[] => {
   return expandedLessons
 }
 
-export const LESSONS: ChildLesson[] = createPracticeLessons(BASE_LESSONS)
+export const LESSONS: ChildLesson[] = ensureValidArabicLessons(createPracticeLessons(BASE_LESSONS))
 
 export const getLessonsByDay = (day: number): ChildLesson[] => {
   return LESSONS.filter((lesson) => lesson.day === day)
