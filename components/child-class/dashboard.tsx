@@ -178,10 +178,15 @@ export default function Dashboard({
           {Array.from({ length: totalDays }, (_, i) => i + 1).map((day) => {
             const hasReachedDay = day <= userProgress.currentDay
             const isActive = filterDay === day
-            const unlockedClasses = isActive
-              ? "bg-gradient-to-r from-[#ff4d6d] via-[#ff3f81] to-[#ff1b8d] text-[var(--color-milk)] shadow-[0_18px_40px_rgba(255,63,129,0.35)] ring-2 ring-[rgba(255,63,129,0.45)] scale-105 before:absolute before:inset-[-30%] before:rounded-full before:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.75),_rgba(255,255,255,0)_70%)] before:opacity-90 before:blur-xl before:content-[''] after:absolute after:bottom-[-30%] after:left-1/2 after:h-12 after:w-12 after:-translate-x-1/2 after:rounded-full after:bg-white/30 after:blur-2xl after:content-['']"
-              : "bg-gradient-to-r from-[#ff4d6d]/20 via-[#ff3f81]/15 to-[#ff1b8d]/10 text-[#c81a78] shadow-[0_10px_24px_rgba(255,63,129,0.18)] hover:from-[#ff4d6d]/30 hover:via-[#ff3f81]/25 hover:to-[#ff1b8d]/20 hover:shadow-[0_14px_30px_rgba(255,63,129,0.25)] hover:scale-105 before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.55),_rgba(255,255,255,0)_65%)] before:opacity-0 before:transition-opacity before:duration-300 before:content-[''] hover:before:opacity-80"
-            const upcomingClasses = "bg-gradient-to-r from-gray-300/40 via-gray-200/30 to-gray-100/20 text-gray-400 shadow-[0_6px_14px_rgba(148,163,184,0.25)] hover:from-gray-300/50 hover:via-gray-200/40 hover:to-gray-100/30 hover:shadow-[0_10px_24px_rgba(148,163,184,0.25)] hover:scale-105 before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.4),_rgba(255,255,255,0)_70%)] before:opacity-60"
+
+            const baseClasses =
+              "bg-gradient-to-r from-[#ff4d6d] via-[#ff2d88] to-[#ff1b8d] text-white shadow-[0_12px_32px_rgba(255,45,136,0.3)] hover:from-[#102147] hover:via-[#143166] hover:to-[#1a4286] hover:shadow-[0_16px_36px_rgba(16,33,71,0.45)] hover:scale-105 before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.6),_rgba(255,255,255,0)_60%)] before:opacity-70 before:transition-opacity before:duration-300 before:content-[''] hover:before:opacity-100"
+            const unlockedClasses =
+              "ring-2 ring-white/80 after:absolute after:bottom-[-25%] after:left-1/2 after:h-12 after:w-12 after:-translate-x-1/2 after:rounded-full after:bg-white/30 after:blur-2xl after:content-['']"
+            const upcomingClasses = "opacity-80"
+
+            const heartPalette = ["#ff5c8d", "#ff7aa8", "#ff99c2", "#ff6f91", "#ff8fb8", "#ff4f7b"]
+            const heartColor = heartPalette[(day - 1) % heartPalette.length]
 
             return (
               <button
@@ -190,12 +195,20 @@ export default function Dashboard({
                 onClick={() => {
                   setFilterDay(day)
                 }}
-                className={`relative flex-shrink-0 overflow-hidden rounded-full px-6 py-2 text-sm font-semibold uppercase tracking-wide transition-all duration-300 ${
+                className={`relative flex-shrink-0 overflow-hidden rounded-full px-6 py-2 text-sm font-semibold uppercase tracking-wide transition-all duration-300 ${baseClasses} ${
                   hasReachedDay ? unlockedClasses : upcomingClasses
-                }`}
+                } ${isActive ? "ring-4 ring-white/90" : ""}`}
               >
                 <span className="relative z-[1] flex items-center gap-2">
-                  <span className="text-base">{hasReachedDay ? "✨" : "🌟"}</span>
+                  <span
+                    className="text-lg"
+                    style={{
+                      color: heartColor,
+                      textShadow: "0 0 6px rgba(255,255,255,0.9)",
+                    }}
+                  >
+                    ♥
+                  </span>
                   Day {day}
                 </span>
               </button>
