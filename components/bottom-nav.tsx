@@ -248,16 +248,25 @@ export function BottomNavigation() {
     [reduceMotion],
   )
 
-  const qaidaUpdates = useMemo(
-    () =>
-      notifications.filter((notification) => {
-        if (notification.read) return false
-        if (notification.type === "challenge") return true
-        const text = `${notification.title} ${notification.message}`.toLowerCase()
-        return text.includes("assignment") || text.includes("qaidah")
-      }).length,
-    [notifications],
-  )
+  const qaidaUpdates = useMemo(() => {
+    const allowedTypes = new Set(["system", "reminder"] as const)
+    const assignmentKeywords = ["assignment", "qaidah", "qa'idah", "hotspot"]
+    const teacherKeywords = ["teacher", "ustadha", "ustadh", "ustad"]
+
+    return notifications.filter((notification) => {
+      if (notification.read) return false
+      if (!allowedTypes.has(notification.type)) return false
+
+      const combinedText = `${notification.title} ${notification.message}`.toLowerCase()
+      const mentionsAssignment = assignmentKeywords.some((keyword) => combinedText.includes(keyword))
+      if (!mentionsAssignment) return false
+
+      const mentionsTeacher = teacherKeywords.some((keyword) => combinedText.includes(keyword))
+      const linksToQaidah = notification.actionHref?.toLowerCase().includes("qaidah") ?? false
+
+      return mentionsTeacher || linksToQaidah
+    }).length
+  }, [notifications])
 
   return (
     <nav
