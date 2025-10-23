@@ -210,6 +210,42 @@ const PROTECTED_ROUTE_PREFIXES = [
   "/auth/profile",
 ]
 
+function decodeJwtPayload(token: string) {
+  if (typeof window === "undefined") {
+    return null
+  }
+
+  const segments = token.split(".")
+  if (segments.length < 2) {
+    return null
+  }
+
+  const normalized = segments[1].replace(/-/g, "+").replace(/_/g, "/")
+  const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "=")
+
+  try {
+    const decoded = atob(padded)
+    return JSON.parse(decoded) as { exp?: number }
+  } catch (error) {
+    console.warn("Failed to decode JWT payload", error)
+    return null
+  }
+}
+
+function isJwtExpired(token: string, skewSeconds = 30) {
+  if (typeof window === "undefined") {
+    return false
+  }
+
+  const payload = decodeJwtPayload(token)
+  if (!payload || typeof payload.exp !== "number") {
+    return true
+  }
+
+  const now = Math.floor(Date.now() / 1000)
+  return payload.exp <= now + skewSeconds
+}
+
 const perksByPlan: Record<SubscriptionPlan, string[]> = {
   free: [
     "Daily habit quests",
@@ -296,6 +332,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const sessionRetryAttempted = useRef(false)
+  const tokenRefreshPromise = useRef<Promise<string | null> | null>(null)
 
   const applyUser = useCallback(
     (user: UserRecord, nav?: NavigationLink[]) => {
@@ -394,6 +431,51 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         return null
       }
 
+      const obtainFreshToken = async (options?: { silent?: boolean }) => {
+        if (!tokenRefreshPromise.current) {
+          tokenRefreshPromise.current = (async () => {
+            try {
+              await initializeSession(true, { silent: options?.silent ?? true })
+              return resolveToken()
+            } finally {
+              tokenRefreshPromise.current = null
+            }
+          })()
+        }
+
+        return tokenRefreshPromise.current
+      }
+
+      const ensureValidToken = async () => {
+        let currentToken = resolveToken()
+
+        if (currentToken && isJwtExpired(currentToken)) {
+          if (typeof window !== "undefined") {
+            window.localStorage.removeItem(STORAGE_KEYS.token)
+          }
+          setToken(null)
+          currentToken = null
+        }
+
+        if (!currentToken) {
+          try {
+            currentToken = await obtainFreshToken({ silent: true })
+          } catch {
+            currentToken = null
+          }
+        }
+
+        if (currentToken && isJwtExpired(currentToken)) {
+          try {
+            currentToken = await obtainFreshToken({ silent: true })
+          } catch {
+            currentToken = null
+          }
+        }
+
+        return currentToken
+      }
+
       const execute = async (authToken: string | null) => {
         const headers = new Headers(init.headers)
         if (authToken) {
@@ -422,15 +504,23 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        return await execute(resolveToken())
+        let authToken = resolveToken()
+        if (!authToken || isJwtExpired(authToken)) {
+          authToken = await ensureValidToken()
+        }
+
+        if (!authToken) {
+          throw new HttpError(401, "Unauthorized")
+        }
+
+        return await execute(authToken)
       } catch (error) {
         if (isUnauthorizedError(error) && retryOn401) {
           if (typeof window !== "undefined") {
             window.localStorage.removeItem(STORAGE_KEYS.token)
           }
           setToken(null)
-          await initializeSession(true, { silent: true })
-          const refreshedToken = resolveToken()
+          const refreshedToken = await ensureValidToken()
           if (!refreshedToken) {
             throw error
           }
