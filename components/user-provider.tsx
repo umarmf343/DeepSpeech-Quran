@@ -382,11 +382,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       const { retryOn401 = true } = options
 
       const resolveToken = () => {
+        if (typeof window !== "undefined") {
+          const storedToken = window.localStorage.getItem(STORAGE_KEYS.token)
+          if (storedToken) {
+            return storedToken
+          }
+        }
         if (token) {
           return token
-        }
-        if (typeof window !== "undefined") {
-          return window.localStorage.getItem(STORAGE_KEYS.token)
         }
         return null
       }
