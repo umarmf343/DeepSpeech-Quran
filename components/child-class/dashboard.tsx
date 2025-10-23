@@ -156,8 +156,8 @@ export default function Dashboard({
               onClick={() => setFilterDay(day)}
               className={`rounded-full px-5 py-2 text-sm font-semibold uppercase tracking-wide transition-all ${
                 filterDay === day
-                  ? "bg-gradient-to-r from-maroon to-maroon/85 text-[var(--color-milk)] shadow-lg shadow-maroon/30 scale-105"
-                  : "bg-white/80 text-maroon border border-white/70 hover:border-maroon/40"
+                  ? "bg-gradient-to-r from-[#4c0519] via-[#7f1d1d] to-[#9d174d] text-[var(--color-milk)] shadow-[0_14px_32px_rgba(123,51,96,0.35)] ring-2 ring-white/40 scale-105"
+                  : "bg-gradient-to-r from-maroon/20 via-maroon/10 to-maroon/25 text-maroon shadow-[0_10px_24px_rgba(123,51,96,0.18)] hover:from-maroon/25 hover:via-maroon/15 hover:to-maroon/30 hover:text-maroon"
               }`}
             >
               Day {day}
