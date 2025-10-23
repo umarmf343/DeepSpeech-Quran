@@ -12,8 +12,7 @@ import { BottomNavigation } from "@/components/bottom-nav"
 
 export const metadata: Metadata = {
   title: "AlFawz Qur'an Institute - Excellence in Qur'anic Education",
-  description:
-    "Advanced platform for Qur'an recitation, memorization, and Islamic education with AI-powered feedback and comprehensive teacher tools.",
+  description: "Advanced platform for Qur'an recitation, memorization, and Islamic education with AI-powered feedback and comprehensive teacher tools.",
   generator: "AlFawz Qur'an Institute",
   keywords: ["Quran", "Islamic Education", "Memorization", "Recitation", "Tajweed", "Hifz"],
 }
