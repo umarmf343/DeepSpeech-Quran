@@ -81,9 +81,9 @@ export function EggChallengeWidget({
       role="dialog"
       aria-modal="true"
       aria-label="Celebration"
-      className="pointer-events-auto w-full max-w-md rounded-3xl p-6 shadow-2xl ring-1 ring-amber-200/70 backdrop-blur-xl"
+      className="pointer-events-auto w-full max-w-sm rounded-3xl p-5 shadow-2xl ring-1 ring-amber-200/70 backdrop-blur-xl"
     >
-      <div className="mx-auto mb-4 h-36 w-36">
+      <div className="mx-auto mb-3.5 h-28 w-28">
         <Image
           src="/break-egg-celebration.gif"
           alt="Animated egg cracking celebration"
@@ -93,24 +93,24 @@ export function EggChallengeWidget({
           priority
         />
       </div>
-      <div className="mt-4 flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.35em] text-amber-600">
+      <div className="mt-3.5 flex items-center justify-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.35em] text-amber-600">
         <Sparkles className="h-4 w-4 text-emerald-500" aria-hidden="true" />
         Egg is Broken
         <PartyPopper className="h-4 w-4 text-rose-500" aria-hidden="true" />
       </div>
-      <h3 className="mt-3 text-2xl font-semibold text-maroon-700">Brakllahu Feek!</h3>
-      <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
+      <h3 className="mt-2.5 text-xl font-semibold text-maroon-700">Brakllahu Feek!</h3>
+      <div className="mt-5 flex flex-col justify-center gap-1.5 sm:flex-row">
         <Button
           variant="outline"
           onClick={() => onContinue?.()}
-          className="border-amber-200 bg-white/90 text-amber-700 hover:bg-amber-50"
+          className="border-amber-200 bg-white/90 text-amber-700 hover:bg-amber-50 h-8 px-3 py-1.5 has-[>svg]:px-2.5"
         >
           Continue
         </Button>
         <Button
           variant="ghost"
           onClick={() => onReset?.()}
-          className="bg-emerald-500/90 text-white shadow-lg transition hover:bg-emerald-600"
+          className="bg-emerald-500/90 text-white shadow-lg transition hover:bg-emerald-600 h-8 px-3 py-1.5 has-[>svg]:px-2.5"
         >
           Reset
         </Button>
