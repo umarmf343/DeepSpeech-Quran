@@ -2,6 +2,8 @@
 
 import { useState, useMemo, useEffect, type CSSProperties } from "react"
 import { LESSONS, getLessonsByDay, getTotalDays } from "@/lib/child-class/lessons-data"
+import { AutoFitText } from "@/components/common/AutoFitText"
+import { AudioPlayButton } from "./audio-play-button"
 import { loadGameStats, type GameStats } from "@/lib/child-class/game-stats"
 import { loadStreakData, type StreakData } from "@/lib/child-class/streak-utils"
 import type { DailyChallenge } from "@/lib/child-class/daily-challenge"
@@ -270,20 +272,32 @@ export default function Dashboard({
               }`}
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              <div className="mb-2 flex w-full flex-wrap items-center justify-center gap-2 sm:justify-between">
-                <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-maroon/70 shadow-sm">
-                  Lesson {index + 1}
-                </span>
-                {userProgress.completedLessons.includes(lesson.id) && (
-                  <span className="text-xl animate-bounce sm:text-2xl">✓</span>
-                )}
+              <div className="grid w-full grid-cols-2 gap-3 text-center sm:gap-4">
+                <div className="col-span-2 mb-1 flex w-full flex-wrap items-center justify-center gap-2 sm:justify-between">
+                  <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-maroon/70 shadow-sm">
+                    Lesson {index + 1}
+                  </span>
+                  {userProgress.completedLessons.includes(lesson.id) && (
+                    <span className="text-xl animate-bounce sm:text-2xl">✓</span>
+                  )}
+                </div>
+                <h3 className="col-span-2 text-base font-extrabold text-maroon sm:text-lg">{lesson.title}</h3>
+                <div className="col-span-1 flex min-h-[5.5rem] items-center justify-center">
+                  <AutoFitText maxFontSize={88} minFontSize={44} className="text-black font-black">
+                    {lesson.arabic}
+                  </AutoFitText>
+                </div>
+                <div className="col-span-1 flex items-center justify-center">
+                  <AudioPlayButton
+                    audioSrc={lesson.audioSrc}
+                    fallbackText={lesson.arabic}
+                    label={`Play pronunciation for ${lesson.title}`}
+                    className="h-14 w-14 justify-self-center border border-white/70 bg-white/95 text-maroon shadow-lg"
+                  />
+                </div>
+                <p className="col-span-2 text-sm text-maroon/70 sm:text-base">{lesson.translit}</p>
+                <p className="col-span-2 text-xs uppercase tracking-widest text-maroon/50">{lesson.rule}</p>
               </div>
-              <h3 className="mb-1 text-base font-extrabold text-maroon sm:mb-2 sm:text-lg">{lesson.title}</h3>
-              <div className="mb-2 text-black text-[3.5rem] leading-none sm:mb-3 sm:text-[4.5rem] md:text-[5.5rem] lg:text-[6rem]">
-                {lesson.arabic}
-              </div>
-              <p className="text-sm text-maroon/70 sm:text-base">{lesson.translit}</p>
-              <p className="mt-1 text-xs uppercase tracking-widest text-maroon/50 sm:mt-2">{lesson.rule}</p>
             </div>
           ))}
         </div>
