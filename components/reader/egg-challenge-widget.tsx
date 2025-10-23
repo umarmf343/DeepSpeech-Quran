@@ -11,7 +11,7 @@ import type {
 } from "@/lib/reader/challenges"
 import { cn } from "@/lib/utils"
 
-import { ArrowRight, EggOff, Gift, PartyPopper, Sparkles } from "lucide-react"
+import { ArrowRight, Gift, PartyPopper, Sparkles } from "lucide-react"
 
 interface EggChallengeWidgetProps {
   snapshot: ReaderChallengeSnapshot | null
@@ -209,9 +209,6 @@ export function EggChallengeWidget({
                 className="h-full w-full object-contain"
                 priority
               />
-            </div>
-            <div className="mx-auto mt-2 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-amber-100 via-rose-100 to-emerald-100 shadow-lg ring-4 ring-white/80">
-              <EggOff className="h-9 w-9 text-amber-600" aria-hidden="true" />
             </div>
             <div className="mt-4 flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.35em] text-amber-600">
               <Sparkles className="h-4 w-4 text-emerald-500" aria-hidden="true" />
