@@ -335,65 +335,109 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     [loadPreferencesFromStorage, navigation, persistPreferences],
   )
 
-  const authorizedFetch = useCallback(
-    async (input: RequestInfo, init: RequestInit = {}) => {
-      const headers = new Headers(init.headers)
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`)
-      }
-      if (init.body && !headers.has("Content-Type")) {
-        headers.set("Content-Type", "application/json")
-      }
+  const initializeSession = useCallback(
+    async (forceRefresh = false, options?: { silent?: boolean }) => {
+      const { silent = false } = options ?? {}
+      try {
+        if (!silent) {
+          setIsLoading(true)
+        }
+        const storedToken = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEYS.token) : null
+        if (!forceRefresh && storedToken) {
+          setToken(storedToken)
+          return
+        }
 
-      const response = await fetch(input, {
-        ...init,
-        headers,
-        credentials: init.credentials ?? "include",
-      })
-      if (!response.ok) {
-        throw new HttpError(response.status, response.statusText || undefined)
+        const loginResponse = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ role: "student" }),
+        })
+        if (!loginResponse.ok) {
+          throw new Error(`Login failed with status ${loginResponse.status}`)
+        }
+        const loginData = await loginResponse.json()
+        setToken(loginData.token)
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(STORAGE_KEYS.token, loginData.token)
+        }
+        applyUser(loginData.user, loginData.navigation)
+      } catch (error) {
+        console.error("Failed to initialize session", error)
+        if (!silent) {
+          setIsLoading(false)
+        }
       }
-      if (response.status === 204) {
-        return null
-      }
-      const contentType = response.headers.get("Content-Type")
-      if (contentType && contentType.includes("application/json")) {
-        return response.json()
-      }
-      return response.text()
     },
-    [token],
+    [applyUser],
   )
 
-  const initializeSession = useCallback(async (forceRefresh = false) => {
-    try {
-      setIsLoading(true)
-      const storedToken = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEYS.token) : null
-      if (!forceRefresh && storedToken) {
-        setToken(storedToken)
-        return
+  const authorizedFetch = useCallback(
+    async (
+      input: RequestInfo | URL,
+      init: RequestInit = {},
+      options: { retryOn401?: boolean } = {},
+    ) => {
+      const { retryOn401 = true } = options
+
+      const resolveToken = () => {
+        if (token) {
+          return token
+        }
+        if (typeof window !== "undefined") {
+          return window.localStorage.getItem(STORAGE_KEYS.token)
+        }
+        return null
       }
 
-      const loginResponse = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ role: "student" }),
-      })
-      if (!loginResponse.ok) {
-        throw new Error(`Login failed with status ${loginResponse.status}`)
+      const execute = async (authToken: string | null) => {
+        const headers = new Headers(init.headers)
+        if (authToken) {
+          headers.set("Authorization", `Bearer ${authToken}`)
+        }
+        if (init.body && !headers.has("Content-Type")) {
+          headers.set("Content-Type", "application/json")
+        }
+
+        const response = await fetch(input, {
+          ...init,
+          headers,
+          credentials: init.credentials ?? "include",
+        })
+        if (!response.ok) {
+          throw new HttpError(response.status, response.statusText || undefined)
+        }
+        if (response.status === 204) {
+          return null
+        }
+        const contentType = response.headers.get("Content-Type")
+        if (contentType && contentType.includes("application/json")) {
+          return response.json()
+        }
+        return response.text()
       }
-      const loginData = await loginResponse.json()
-      setToken(loginData.token)
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(STORAGE_KEYS.token, loginData.token)
+
+      try {
+        return await execute(resolveToken())
+      } catch (error) {
+        if (isUnauthorizedError(error) && retryOn401) {
+          if (typeof window !== "undefined") {
+            window.localStorage.removeItem(STORAGE_KEYS.token)
+          }
+          setToken(null)
+          await initializeSession(true, { silent: true })
+          const refreshedToken = resolveToken()
+          if (!refreshedToken) {
+            throw error
+          }
+          return execute(refreshedToken)
+        }
+        throw error
       }
-      applyUser(loginData.user, loginData.navigation)
-    } catch (error) {
-      console.error("Failed to initialize session", error)
-      setIsLoading(false)
-    }
-  }, [applyUser])
+    },
+    [initializeSession, token],
+  )
 
   const isProtectedRoute = useMemo(() => {
     if (!pathname) return false
