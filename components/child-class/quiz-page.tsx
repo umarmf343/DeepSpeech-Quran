@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { QUIZ_QUESTIONS } from "@/lib/child-class/quiz-data"
 import { playSound } from "@/lib/child-class/sound-effects"
 import { loadSettings, type UserSettings } from "@/lib/child-class/settings-utils"
+import { renderTextWithArabicCard } from "./arabic-letter-card"
 import type { QuizQuestion } from "@/types/child-class"
 
 interface QuizPageProps {
@@ -134,7 +135,9 @@ export default function QuizPage({ onComplete, onBack }: QuizPageProps) {
       {/* Question Card */}
       <div className="relative z-10 mx-auto max-w-3xl">
         <div className="kid-card p-8 md:p-12 animate-slide-up">
-          <h2 className="mb-10 text-center text-2xl md:text-3xl font-extrabold text-maroon">{question.question}</h2>
+          <h2 className="mb-10 text-center text-2xl md:text-3xl font-extrabold text-maroon">
+            {renderTextWithArabicCard(question.question)}
+          </h2>
 
           {question.type === "multiple-choice" && (
             <div className="grid grid-cols-1 gap-4 mb-8">
@@ -188,7 +191,7 @@ export default function QuizPage({ onComplete, onBack }: QuizPageProps) {
                 feedbackType === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
               }`}
             >
-              <div className="text-2xl font-bold">{feedbackMessage}</div>
+              <div className="text-2xl font-bold">{renderTextWithArabicCard(feedbackMessage)}</div>
             </div>
           )}
         </div>

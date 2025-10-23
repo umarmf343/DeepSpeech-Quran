@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { renderTextWithArabicCard } from "./arabic-letter-card"
 import { playSound } from "@/lib/child-class/sound-effects"
 import { loadSettings, type UserSettings } from "@/lib/child-class/settings-utils"
 import type { ChildLesson } from "@/types/child-class"
@@ -252,7 +253,9 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[4].title}</h2>
               <div className="kid-card p-8 mb-8">
-                <p className="text-lg text-maroon mb-6">What is the transliteration of {lesson.arabic}?</p>
+                <p className="text-lg text-maroon mb-6 flex flex-wrap items-center justify-center gap-2 text-center">
+                  {renderTextWithArabicCard(`What is the transliteration of ${lesson.arabic}?`)}
+                </p>
                 <div className="grid grid-cols-2 gap-4">
                   {[lesson.translit, "Ba", "Ta", "Tha"].map((option, idx) => (
                     <button
