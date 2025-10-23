@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, type ReactNode } from "react"
 import { renderTextWithArabicCard } from "./arabic-letter-card"
 import { playSound } from "@/lib/child-class/sound-effects"
 import { loadSettings, type UserSettings } from "@/lib/child-class/settings-utils"
@@ -11,6 +11,29 @@ interface LessonPageProps {
   lesson: ChildLesson
   onComplete: (score: number) => void
   onBack: () => void
+}
+
+const renderLessonTitle = (title: string): ReactNode => {
+  const practiceMatch = title.match(/^(.*?)(Practice)(\s+)(\d+)$/i)
+
+  if (!practiceMatch) {
+    return title
+  }
+
+  const [, prefix, practiceLabel, , practiceNumber] = practiceMatch
+  const cleanedPrefix = prefix.trim()
+
+  return (
+    <>
+      {cleanedPrefix}
+      {cleanedPrefix && " "}
+      {practiceLabel}
+      {" "}
+      <span className="ml-1 inline-flex items-center justify-center rounded-full bg-white/80 px-3 py-1 text-[0.95em] font-black text-maroon shadow-inner ring-1 ring-maroon/10">
+        {practiceNumber}
+      </span>
+    </>
+  )
 }
 
 export default function LessonPage({ lesson, onComplete, onBack }: LessonPageProps) {
@@ -226,7 +249,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
           </button>
           <div className="text-center">
             <p className="text-xs uppercase tracking-[0.4em] text-maroon/60">Lesson Spotlight</p>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-maroon">{lesson.title}</h1>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-maroon">{renderLessonTitle(lesson.title)}</h1>
           </div>
           <div className="justify-self-end rounded-full bg-white/80 px-5 py-2 text-2xl font-black text-maroon shadow-inner">
             {score} pts
@@ -291,7 +314,9 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
           {currentStep === 2 && (
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[2].title}</h2>
-              <p className="text-lg text-maroon/70 mb-10">Which one is {lesson.title}?</p>
+              <p className="text-lg text-maroon/70 mb-10">
+                Which one is {renderLessonTitle(lesson.title)}?
+              </p>
               <div className="grid grid-cols-2 gap-6 mb-8">
                 {[lesson.arabic, "ب", "ت", "ث"].map((letter, idx) => {
                   const optionKey = `practice-${currentStep}-${idx}`
