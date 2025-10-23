@@ -28,7 +28,6 @@ interface ReaderTogglePanelProps {
   profile: ReaderProfile
   onProfileChange: (update: Partial<ReaderProfile>) => void
   translationOptions: EditionOption[]
-  transliterationOptions: EditionOption[]
   reciterOptions: { edition: string; label: string }[]
 }
 
@@ -41,7 +40,6 @@ export function ReaderTogglePanel({
   profile,
   onProfileChange,
   translationOptions,
-  transliterationOptions,
   reciterOptions,
 }: ReaderTogglePanelProps) {
   const isMobile = useIsMobile()
@@ -59,10 +57,6 @@ export function ReaderTogglePanel({
   const translationLabel = useMemo(() => {
     return translationOptions.find((option) => option.edition === profile.translationEdition)?.label
   }, [profile.translationEdition, translationOptions])
-
-  const transliterationLabel = useMemo(() => {
-    return transliterationOptions.find((option) => option.edition === profile.transliterationEdition)?.label
-  }, [profile.transliterationEdition, transliterationOptions])
 
   const panelContent = (
     <div
@@ -156,25 +150,6 @@ export function ReaderTogglePanel({
           <p className="text-xs text-muted-foreground">Currently showing {translationLabel ?? "selected edition"}.</p>
         </div>
 
-        <div className="space-y-1">
-          <Label className="text-xs uppercase tracking-wide text-muted-foreground">Transliteration Scheme</Label>
-          <Select
-            value={profile.transliterationEdition}
-            onValueChange={(value) => onProfileChange({ transliterationEdition: value })}
-          >
-            <SelectTrigger className="bg-white/90 dark:bg-slate-900/60">
-              <SelectValue placeholder="Transliteration" aria-live="polite" />
-            </SelectTrigger>
-            <SelectContent>
-              {transliterationOptions.map((option) => (
-                <SelectItem key={option.edition} value={option.edition}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-muted-foreground">{transliterationLabel ?? "Choose a transliteration"}</p>
-        </div>
       </div>
 
       <div className="space-y-3" role="group" aria-label="Audio preferences">
