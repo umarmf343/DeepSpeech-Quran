@@ -169,7 +169,7 @@ export function alfawz_get_nav_tabs(role: UserRole): TabDefinition[] {
 
 function renderIcon(name: string) {
   const Icon = iconMap[name] ?? Sparkles
-  return <Icon className="h-5 w-5" aria-hidden="true" />
+  return <Icon className="h-[0.833rem] w-[0.833rem]" aria-hidden="true" />
 }
 
 export function BottomNavigation() {
@@ -287,7 +287,11 @@ export function BottomNavigation() {
         aria-expanded={!isCollapsed}
       >
         {isCollapsed ? <span>Expand menu</span> : null}
-        {isCollapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        {isCollapsed ? (
+          <ChevronUp className="h-[0.667rem] w-[0.667rem]" />
+        ) : (
+          <ChevronDown className="h-[0.667rem] w-[0.667rem]" />
+        )}
       </button>
       <div
         id="alfawz-mobile-nav-content"
@@ -315,7 +319,7 @@ export function BottomNavigation() {
             aria-label="Scroll navigation left"
             onClick={() => scrollBy("left")}
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-[0.667rem] w-[0.667rem]" />
           </button>
         </div>
         <div
@@ -348,7 +352,7 @@ export function BottomNavigation() {
               >
                 <span
                   className={cn(
-                    "relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-maroon-600 text-white transition-all duration-300 shadow-[0_10px_25px_rgba(190,24,93,0.35)]",
+                    "relative flex h-[1.667rem] w-[1.667rem] items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-maroon-600 text-white transition-all duration-300 shadow-[0_10px_25px_rgba(190,24,93,0.35)]",
                     isActive
                       ? "scale-110 shadow-[0_14px_32px_rgba(190,24,93,0.45)] ring-2 ring-white/40"
                       : "group-hover:scale-110 group-hover:shadow-[0_14px_32px_rgba(251,191,36,0.45)]",
@@ -391,7 +395,7 @@ export function BottomNavigation() {
             aria-label="Scroll navigation right"
             onClick={() => scrollBy("right")}
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-[0.667rem] w-[0.667rem]" />
           </button>
         </div>
       </div>
