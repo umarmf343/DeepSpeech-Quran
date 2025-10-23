@@ -59,7 +59,15 @@ export function useFitText<TElement extends HTMLElement>({
         }
       }
 
-      element.style.fontSize = `${best}px`;
+      const mobileBreakpoint = 640;
+      const mobileScaleFactor = 1.2;
+
+      const adjustedFontSize =
+        typeof window !== "undefined" && window.innerWidth <= mobileBreakpoint
+          ? Math.max(minFontSize / mobileScaleFactor, best / mobileScaleFactor)
+          : best;
+
+      element.style.fontSize = `${adjustedFontSize}px`;
     };
 
     adjustFontSize();

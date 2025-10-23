@@ -24,7 +24,10 @@ export function AutoFitText({
   return (
     <span
       ref={textRef}
-      className={clsx("block w-full whitespace-nowrap leading-none", className)}
+      className={clsx(
+        "block w-full whitespace-nowrap leading-none text-center",
+        className,
+      )}
     >
       {children}
     </span>
