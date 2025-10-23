@@ -6,6 +6,7 @@ import Link from "next/link"
 
 import { HasanatCelebration } from "@/components/reader/hasanat-celebration"
 import { MilestoneCelebration } from "@/components/reader/milestone-celebration"
+import { SurahCompletionCelebration } from "@/components/reader/surah-completion-celebration"
 import { GwaniSurahPlayer } from "@/components/reader/gwani-surah-player"
 import { MushafView } from "@/components/reader/mushaf-view"
 import { NightModeToggle } from "@/components/reader/night-mode-toggle"
@@ -72,6 +73,8 @@ export default function AlfawzReaderPage() {
   const [error, setError] = useState<string | null>(null)
   const [versesCompleted, setVersesCompleted] = useState(0)
   const [shouldCelebrate, setShouldCelebrate] = useState(false)
+  const [surahCelebrationVisible, setSurahCelebrationVisible] = useState(false)
+  const [hasCelebratedSurah, setHasCelebratedSurah] = useState(false)
   const [showMushafView, setShowMushafView] = useState(false)
   const [translationOptions, setTranslationOptions] = useState(DEFAULT_TRANSLATION_OPTIONS)
   const [transliterationOptions, setTransliterationOptions] = useState(DEFAULT_TRANSLITERATION_OPTIONS)
@@ -254,6 +257,8 @@ export default function AlfawzReaderPage() {
     let active = true
     setError(null)
     setVersesCompleted(0)
+    setHasCelebratedSurah(false)
+    setSurahCelebrationVisible(false)
 
     ;(async () => {
       try {
@@ -355,19 +360,32 @@ export default function AlfawzReaderPage() {
     setSelectedAyahNumber(ayahNumber)
   }, [])
 
-  const markAyahCompleted = useCallback(() => {
-    setVersesCompleted((previous) => {
-      if (previous >= dailyGoal) {
-        return previous
+  const markAyahCompleted = useCallback(
+    (completedAyah?: number) => {
+      setVersesCompleted((previous) => {
+        if (previous >= dailyGoal) {
+          return previous
+        }
+
+        const next = previous + 1
+        if (next >= dailyGoal) {
+          setShouldCelebrate(true)
+        }
+        return next
+      })
+
+      if (completedAyah == null || hasCelebratedSurah || !ayahList.length) {
+        return
       }
 
-      const next = previous + 1
-      if (next >= dailyGoal) {
-        setShouldCelebrate(true)
+      const lastAyahNumber = ayahList[ayahList.length - 1]?.numberInSurah
+      if (lastAyahNumber && completedAyah >= lastAyahNumber) {
+        setHasCelebratedSurah(true)
+        setSurahCelebrationVisible(true)
       }
-      return next
-    })
-  }, [dailyGoal])
+    },
+    [ayahList, dailyGoal, hasCelebratedSurah],
+  )
 
   const handleNextAyah = useCallback(
     (currentAyah: Ayah | null, nextAyah: Ayah | null) => {
@@ -393,7 +411,7 @@ export default function AlfawzReaderPage() {
       })
 
       if (result) {
-        markAyahCompleted()
+        markAyahCompleted(currentAyah.numberInSurah)
       }
 
       void recordChallengeVerse(1)
@@ -402,10 +420,16 @@ export default function AlfawzReaderPage() {
         setSelectedAyahNumber(nextAyah.numberInSurah)
       }
 
+      if (!nextAyah && !hasCelebratedSurah) {
+        setHasCelebratedSurah(true)
+        setSurahCelebrationVisible(true)
+      }
+
       return true
     },
     [
       dailyGoal,
+      hasCelebratedSurah,
       markAyahCompleted,
       recordChallengeVerse,
       recordRecitation,
@@ -415,9 +439,56 @@ export default function AlfawzReaderPage() {
     ],
   )
 
+  useEffect(() => {
+    if (!ayahList.length || selectedAyahNumber == null || hasCelebratedSurah) {
+      return
+    }
+
+    const lastAyahNumber = ayahList[ayahList.length - 1]?.numberInSurah
+    if (lastAyahNumber && selectedAyahNumber === lastAyahNumber) {
+      setHasCelebratedSurah(true)
+      setSurahCelebrationVisible(true)
+    }
+  }, [ayahList, hasCelebratedSurah, selectedAyahNumber])
+
   const closeCelebration = useCallback(() => {
     setShouldCelebrate(false)
   }, [])
+
+  const closeSurahCelebration = useCallback(() => {
+    setSurahCelebrationVisible(false)
+  }, [])
+
+  const hasNextSurah = useMemo(() => {
+    if (!selectedSurahNumber) {
+      return false
+    }
+    const currentIndex = surahs.findIndex((surah) => surah.number === selectedSurahNumber)
+    return currentIndex !== -1 && currentIndex < surahs.length - 1
+  }, [selectedSurahNumber, surahs])
+
+  const handleNextSurah = useCallback(() => {
+    if (!selectedSurahNumber) {
+      setSurahCelebrationVisible(false)
+      return
+    }
+
+    const currentIndex = surahs.findIndex((surah) => surah.number === selectedSurahNumber)
+    if (currentIndex === -1) {
+      setSurahCelebrationVisible(false)
+      return
+    }
+
+    const nextSurah = surahs[currentIndex + 1]
+    if (!nextSurah) {
+      setSurahCelebrationVisible(false)
+      return
+    }
+
+    setSurahCelebrationVisible(false)
+    setSelectedSurahNumber(nextSurah.number)
+    setSelectedAyahNumber(null)
+  }, [selectedSurahNumber, surahs])
 
   const nightModeBackground = nightMode ? "bg-slate-950 text-slate-100" : "bg-gradient-cream text-slate-900"
   const cardBackground = nightMode ? "border-slate-700 bg-slate-900/70" : "border-border/50 bg-white/90"
@@ -425,6 +496,14 @@ export default function AlfawzReaderPage() {
 
   return (
     <div className={cn("min-h-screen pb-16 transition-colors", nightModeBackground)}>
+      <SurahCompletionCelebration
+        visible={surahCelebrationVisible}
+        surahName={surahMeta?.englishName ?? surahMeta?.name}
+        surahNumber={surahMeta?.number}
+        onClose={closeSurahCelebration}
+        onNextSurah={handleNextSurah}
+        hasNextSurah={hasNextSurah}
+      />
       <HasanatCelebration celebration={hasanatCelebration} onClose={dismissCelebration} nightMode={nightMode} />
       <MilestoneCelebration
         show={shouldCelebrate}
