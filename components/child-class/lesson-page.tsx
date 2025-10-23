@@ -160,7 +160,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
           {currentStep === 0 && (
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[0].title}</h2>
-              <div className="text-black text-[16rem] mb-8 animate-float">{lesson.arabic}</div>
+              <div className="text-black text-[16rem] mb-4 animate-float">{lesson.arabic}</div>
               <p className="text-lg text-maroon/70 mb-8">{lesson.description}</p>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="kid-pill rounded-3xl p-6 text-left shadow-lg">
@@ -178,7 +178,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
           {currentStep === 1 && (
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-maroon mb-8">{steps[1].title}</h2>
-              <div className="text-black text-[16rem] mb-12 animate-float">{lesson.arabic}</div>
+              <div className="text-black text-[16rem] mb-6 animate-float">{lesson.arabic}</div>
               <button
                 onClick={handlePronounce}
                 className="inline-block rounded-3xl bg-gradient-to-r from-maroon via-maroon/90 to-maroon/80 px-12 py-6 text-2xl font-extrabold text-[var(--color-milk)] shadow-[0_12px_30px_rgba(123,51,96,0.25)] transition-transform duration-300 hover:scale-[1.04]"
@@ -221,7 +221,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
               <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[3].title}</h2>
               <p className="text-lg text-maroon/70 mb-8">Trace the letter below</p>
               <div className="kid-card p-12 mb-8 text-center">
-                <div className="text-black text-[16rem] mb-8 opacity-20">{lesson.arabic}</div>
+                <div className="text-black text-[16rem] mb-4 opacity-20">{lesson.arabic}</div>
                 <p className="text-maroon/70 mb-8">Try to write the letter in the space above</p>
                 <button
                   onClick={() => {
