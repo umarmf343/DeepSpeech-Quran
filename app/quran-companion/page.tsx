@@ -69,14 +69,6 @@ const DEFAULT_TRANSLITERATION_OPTIONS = [
 
 const TRANSLATION_LANGUAGES = new Set(["en", "ur", "id", "fr", "sw"])
 
-const TRANSLATION_LANGUAGE_LABELS: Record<string, string> = {
-  en: "ENG",
-  ur: "URD",
-  id: "IND",
-  fr: "FRA",
-  sw: "SWA",
-}
-
 export default function QuranCompanionWorkspacePage() {
   const { preferences, stats, updatePreferences } = useUser()
 
@@ -706,10 +698,7 @@ export default function QuranCompanionWorkspacePage() {
                         ENG
                       </Label>
                       <span className="text-xs uppercase tracking-wide text-muted-foreground">
-                        {
-                          TRANSLATION_LANGUAGE_LABELS[profile.translationLanguage ?? "en"] ??
-                          (profile.translationLanguage ?? "eng").toUpperCase()
-                        }
+                        {profile.showTranslation ? "On" : "Off"}
                       </span>
                     </div>
                     <div className="flex w-full items-center gap-2 rounded-md border bg-background px-3 py-1.5 shadow-xs dark:border-input dark:bg-input/30 sm:w-auto sm:justify-self-end">
