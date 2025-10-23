@@ -17,6 +17,9 @@ const FONT_SCALE = 560 / CANVAS_SIZE
 const BRUSH_SIZE = 18.7
 const MAX_MISTAKES = 3
 export const COMPLETION_THRESHOLD = 0.72
+const TARGET_LETTER_COVERAGE = 0.78
+const MAX_SCALE_STEP_UP = 1.12
+const MIN_SCALE_STEP_DOWN = 0.88
 
 export function TracingCanvas({
   letter,
@@ -80,6 +83,7 @@ export function TracingCanvas({
       maskCtx.textBaseline = "middle"
 
       const edgeBuffer = Math.max(2, Math.round(ratio * 4))
+      const desiredPadding = Math.max(edgeBuffer * 2, maskCanvas.width * ((1 - TARGET_LETTER_COVERAGE) / 2))
       const maxFontAdjustments = 10
       let fontSize = nextDisplaySize * FONT_SCALE * ratio
       let finalMaskData: ImageData | null = null
@@ -124,13 +128,31 @@ export function TracingCanvas({
           maxX >= maskCanvas.width - 1 - edgeBuffer ||
           maxY >= maskCanvas.height - 1 - edgeBuffer
 
-        if (!touchesEdge || attempt === maxFontAdjustments - 1) {
+        const letterWidth = maxX - minX + 1
+        const letterHeight = maxY - minY + 1
+        const maxLetterWidth = Math.max(1, maskCanvas.width - desiredPadding * 2)
+        const maxLetterHeight = Math.max(1, maskCanvas.height - desiredPadding * 2)
+        const widthScale = maxLetterWidth / Math.max(letterWidth, 1)
+        const heightScale = maxLetterHeight / Math.max(letterHeight, 1)
+        const proposedScale = Math.min(widthScale, heightScale)
+        const clampedScale = touchesEdge
+          ? Math.min(proposedScale, 0.97)
+          : Math.min(Math.max(proposedScale, MIN_SCALE_STEP_DOWN), MAX_SCALE_STEP_UP)
+
+        if (!touchesEdge && Math.abs(proposedScale - 1) < 0.02) {
           finalMaskData = maskData
           finalTotalPixels = Math.max(total, 1)
           break
         }
 
-        fontSize *= 0.94
+        const nextFontSize = fontSize * clampedScale
+        if (attempt === maxFontAdjustments - 1) {
+          finalMaskData = maskData
+          finalTotalPixels = Math.max(total, 1)
+          break
+        }
+
+        fontSize = Math.max(1, nextFontSize)
       }
 
       if (finalMaskData) {
@@ -231,8 +253,6 @@ export function TracingCanvas({
 
     const imageData = ctx.getImageData(minX, minY, width, height)
     const pixelData = imageData.data
-    const redAlpha = Math.round(0.85 * 255)
-
     let insidePixelCount = 0
     let paintedPixelCount = 0
 
@@ -263,7 +283,7 @@ export function TracingCanvas({
           pixelData[dataIndex] = 220
           pixelData[dataIndex + 1] = 38
           pixelData[dataIndex + 2] = 38
-          pixelData[dataIndex + 3] = redAlpha
+          pixelData[dataIndex + 3] = 255
         }
       }
     }
@@ -356,7 +376,7 @@ export function TracingCanvas({
   }
 
   return (
-    <div className="relative mx-auto h-[420px] w-full max-w-[420px]">
+    <div className="relative mx-auto aspect-square w-full max-w-[420px]">
       <div className="pointer-events-none absolute inset-0 select-none rounded-[36px] border-4 border-dashed border-black/10 bg-white/70 backdrop-blur-sm"></div>
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden rounded-[36px]">
         <span
