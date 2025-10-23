@@ -215,13 +215,29 @@ export function TracingCanvas({
     const canvasWidth = canvas.width
     const canvasHeight = canvas.height
 
-    const ix = Math.round(x)
-    const iy = Math.round(y)
-    const inside = (() => {
-      if (ix < 0 || iy < 0 || ix >= canvasWidth || iy >= canvasHeight) return false
-      const index = (iy * canvasWidth + ix) * 4 + 3
-      return maskData[index] > 0
-    })()
+    const radius = Math.max(1, Math.ceil((BRUSH_SIZE / 2) * ratio))
+    const radiusSq = radius * radius
+    const minX = Math.max(0, Math.floor(x - radius))
+    const maxX = Math.min(canvasWidth - 1, Math.ceil(x + radius))
+    const minY = Math.max(0, Math.floor(y - radius))
+    const maxY = Math.min(canvasHeight - 1, Math.ceil(y + radius))
+
+    let hasOverlap = false
+    for (let yy = minY; yy <= maxY; yy++) {
+      for (let xx = minX; xx <= maxX; xx++) {
+        const dx = xx - x
+        const dy = yy - y
+        if (dx * dx + dy * dy > radiusSq) continue
+        const alphaIndex = (yy * canvasWidth + xx) * 4 + 3
+        if (maskData[alphaIndex] > 0) {
+          hasOverlap = true
+          break
+        }
+      }
+      if (hasOverlap) break
+    }
+
+    const inside = hasOverlap
 
     ctx.fillStyle = inside ? "#000" : "rgba(220,38,38,0.85)"
     ctx.beginPath()
@@ -229,17 +245,11 @@ export function TracingCanvas({
     ctx.fill()
 
     if (inside) {
-      const radius = Math.ceil((BRUSH_SIZE / 2) * ratio)
-      const minX = Math.max(0, ix - radius)
-      const maxX = Math.min(canvasWidth - 1, ix + radius)
-      const minY = Math.max(0, iy - radius)
-      const maxY = Math.min(canvasHeight - 1, iy + radius)
-
       for (let yy = minY; yy <= maxY; yy++) {
         for (let xx = minX; xx <= maxX; xx++) {
           const dx = xx - x
           const dy = yy - y
-          if (dx * dx + dy * dy > radius * radius) continue
+          if (dx * dx + dy * dy > radiusSq) continue
           const pixelIndex = yy * canvasWidth + xx
           const alphaIndex = pixelIndex * 4 + 3
           if (maskData[alphaIndex] === 0) continue
