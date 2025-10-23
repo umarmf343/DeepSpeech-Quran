@@ -1,9 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
+
 import { playSound } from "@/lib/child-class/sound-effects"
 import { loadSettings, type UserSettings } from "@/lib/child-class/settings-utils"
 import type { ChildLesson } from "@/types/child-class"
+import LetterTracingCanvas from "./letter-tracing-canvas"
 
 interface LessonPageProps {
   lesson: ChildLesson
@@ -19,10 +21,15 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
   const [feedbackType, setFeedbackType] = useState<"success" | "error">("success")
   const [settings, setSettings] = useState<UserSettings | null>(null)
   const [showCompletion, setShowCompletion] = useState<boolean>(false)
+  const [hasAwardedTracing, setHasAwardedTracing] = useState<boolean>(false)
 
   useEffect(() => {
     setSettings(loadSettings())
   }, [])
+
+  useEffect(() => {
+    setHasAwardedTracing(false)
+  }, [lesson.id])
 
   const steps = [
     {
@@ -220,21 +227,40 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[3].title}</h2>
               <p className="text-lg text-maroon/70 mb-8">Trace the letter below</p>
-              <div className="kid-card p-12 mb-8 text-center">
-                <div className="text-9xl mb-8 opacity-20">{lesson.arabic}</div>
-                <p className="text-maroon/70 mb-8">Try to write the letter in the space above</p>
-                <button
-                  onClick={() => {
-                    setScore((prev) => prev + 25)
-                    setFeedbackMessage("Perfect tracing! 🎉")
-                    setFeedbackType("success")
-                    setShowFeedback(true)
-                    setTimeout(() => setShowFeedback(false), 1500)
+              <div className="kid-card p-8 mb-8 text-center">
+                <LetterTracingCanvas
+                  letter={lesson.arabic}
+                  onSuccess={() => {
+                    if (!hasAwardedTracing) {
+                      setHasAwardedTracing(true)
+                      setScore((prev) => prev + 25)
+                      setFeedbackMessage("Perfect tracing! 🎉")
+                      setFeedbackType("success")
+                      setShowFeedback(true)
+                      if (settings?.soundEnabled) {
+                        playSound("correct")
+                      }
+                    } else {
+                      setFeedbackMessage("Amazing tracing skills! 🌟")
+                      setFeedbackType("success")
+                      setShowFeedback(true)
+                    }
+                    window.setTimeout(() => setShowFeedback(false), 1500)
                   }}
-                  className="kid-pill rounded-full px-8 py-3 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-[1.05]"
-                >
-                  ✓ I've traced it
-                </button>
+                  onFailure={() => {
+                    setFeedbackMessage("Let's stay on the lines and try again! ✨")
+                    setFeedbackType("error")
+                    setShowFeedback(true)
+                    if (settings?.soundEnabled) {
+                      playSound("incorrect")
+                    }
+                    window.setTimeout(() => setShowFeedback(false), 2000)
+                  }}
+                  onReset={() => {
+                    setShowFeedback(false)
+                  }}
+                />
+                <p className="mt-6 text-maroon/70">Stay inside the glowing letter. Three mistakes will restart the activity.</p>
               </div>
               {showFeedback && (
                 <div
