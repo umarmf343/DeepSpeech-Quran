@@ -706,17 +706,6 @@ export default function AlfawzReaderPage() {
               <MorphologyBreakdown ayahReference={`${selectedSurahNumber}:${selectedAyahNumber}`} />
             ) : null}
 
-            <Card className={cn("border border-emerald-200/60 bg-emerald-50/70", nightMode && "border-emerald-600/40 bg-emerald-900/20") }>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-emerald-800 dark:text-emerald-200">Today's Milestone</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-slate-700 dark:text-slate-200">
-                <p>Complete {dailyGoal} focused repetitions with tajweed-aware tracking.</p>
-                <p>Playback speed: <strong>{profile.playbackSpeed.toFixed(2)}x</strong></p>
-                <p>Preferred reciter: <strong>{RECITER_OPTIONS.find((reciter) => reciter.edition === profile.reciterEdition)?.label}</strong></p>
-              </CardContent>
-            </Card>
-
             <Card className={cn("border border-amber-200 bg-amber-50/80", nightMode && "border-amber-500/50 bg-amber-900/30") }>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-amber-800 dark:text-amber-200">Daily progress</CardTitle>
