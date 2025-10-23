@@ -176,30 +176,26 @@ export default function Dashboard({
         </div>
         <div className="flex gap-3 overflow-x-auto pb-2">
           {Array.from({ length: totalDays }, (_, i) => i + 1).map((day) => {
-            const isUnlocked = day <= userProgress.currentDay
+            const hasReachedDay = day <= userProgress.currentDay
             const isActive = filterDay === day
             const unlockedClasses = isActive
               ? "bg-gradient-to-r from-[#ff4d6d] via-[#ff3f81] to-[#ff1b8d] text-[var(--color-milk)] shadow-[0_18px_40px_rgba(255,63,129,0.35)] ring-2 ring-[rgba(255,63,129,0.45)] scale-105 before:absolute before:inset-[-30%] before:rounded-full before:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.75),_rgba(255,255,255,0)_70%)] before:opacity-90 before:blur-xl before:content-[''] after:absolute after:bottom-[-30%] after:left-1/2 after:h-12 after:w-12 after:-translate-x-1/2 after:rounded-full after:bg-white/30 after:blur-2xl after:content-['']"
               : "bg-gradient-to-r from-[#ff4d6d]/20 via-[#ff3f81]/15 to-[#ff1b8d]/10 text-[#c81a78] shadow-[0_10px_24px_rgba(255,63,129,0.18)] hover:from-[#ff4d6d]/30 hover:via-[#ff3f81]/25 hover:to-[#ff1b8d]/20 hover:shadow-[0_14px_30px_rgba(255,63,129,0.25)] hover:scale-105 before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.55),_rgba(255,255,255,0)_65%)] before:opacity-0 before:transition-opacity before:duration-300 before:content-[''] hover:before:opacity-80"
-            const lockedClasses = "bg-gradient-to-r from-gray-300/40 via-gray-200/30 to-gray-100/20 text-gray-400 shadow-[0_6px_14px_rgba(148,163,184,0.25)] cursor-not-allowed before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.4),_rgba(255,255,255,0)_70%)] before:opacity-60"
+            const upcomingClasses = "bg-gradient-to-r from-gray-300/40 via-gray-200/30 to-gray-100/20 text-gray-400 shadow-[0_6px_14px_rgba(148,163,184,0.25)] hover:from-gray-300/50 hover:via-gray-200/40 hover:to-gray-100/30 hover:shadow-[0_10px_24px_rgba(148,163,184,0.25)] hover:scale-105 before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.4),_rgba(255,255,255,0)_70%)] before:opacity-60"
 
             return (
               <button
                 key={day}
                 type="button"
-                disabled={!isUnlocked}
                 onClick={() => {
-                  if (isUnlocked) {
-                    setFilterDay(day)
-                  }
+                  setFilterDay(day)
                 }}
                 className={`relative flex-shrink-0 overflow-hidden rounded-full px-6 py-2 text-sm font-semibold uppercase tracking-wide transition-all duration-300 ${
-                  isUnlocked ? unlockedClasses : lockedClasses
+                  hasReachedDay ? unlockedClasses : upcomingClasses
                 }`}
-                aria-disabled={!isUnlocked}
               >
                 <span className="relative z-[1] flex items-center gap-2">
-                  <span className="text-base">{isUnlocked ? "✨" : "🔒"}</span>
+                  <span className="text-base">{hasReachedDay ? "✨" : "🌟"}</span>
                   Day {day}
                 </span>
               </button>
