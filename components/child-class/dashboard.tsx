@@ -199,7 +199,7 @@ export default function Dashboard({
       </div>
 
       {/* Quiz Section */}
-      <div className="relative z-10 mb-8">
+      <div className="relative z-10 mb-8 flex flex-col">
         <div className="kid-card flex flex-col gap-6 rounded-3xl p-8 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-2xl font-extrabold text-maroon">Daily Quiz</h2>
@@ -209,7 +209,7 @@ export default function Dashboard({
         </div>
         <button
           onClick={onStartQuiz}
-          className="mt-6 w-full rounded-3xl bg-gradient-to-r from-maroon via-maroon/90 to-maroon/80 py-4 text-lg font-extrabold text-[var(--color-milk)] shadow-[0_15px_35px_rgba(123,51,96,0.25)] transition-transform duration-300 hover:scale-[1.03]"
+          className="mt-4 self-end rounded-3xl bg-gradient-to-r from-amber-400 via-rose-500 to-indigo-500 px-6 py-2 text-sm font-extrabold text-white shadow-[0_12px_28px_rgba(244,114,182,0.35)] transition-transform duration-300 hover:scale-105"
         >
           Start Quiz
         </button>
