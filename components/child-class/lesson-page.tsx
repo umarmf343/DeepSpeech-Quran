@@ -120,6 +120,136 @@ const renderLessonTitle = (title: string): ReactNode => {
   )
 }
 
+const useAutoFitText = (
+  containerRef: React.RefObject<HTMLElement>,
+  textRef: React.RefObject<HTMLElement>,
+  {
+    minFontSize = 36,
+    maxFontSize = 120,
+  }: {
+    minFontSize?: number
+    maxFontSize?: number
+  },
+  content: string,
+) => {
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof ResizeObserver === "undefined") {
+      return
+    }
+
+    const container = containerRef.current
+    const textElement = textRef.current
+
+    if (!container || !textElement) {
+      return
+    }
+
+    let animationFrame: number | null = null
+
+    const fitText = () => {
+      if (!container || !textElement) {
+        return
+      }
+
+      textElement.style.fontSize = `${maxFontSize}px`
+      textElement.style.lineHeight = "1.1"
+      textElement.style.whiteSpace = "normal"
+      textElement.style.wordBreak = "break-word"
+      textElement.style.overflowWrap = "anywhere"
+
+      const computedStyle = window.getComputedStyle(container)
+      const paddingX =
+        Number.parseFloat(computedStyle.paddingLeft || "0") +
+        Number.parseFloat(computedStyle.paddingRight || "0")
+      const paddingY =
+        Number.parseFloat(computedStyle.paddingTop || "0") +
+        Number.parseFloat(computedStyle.paddingBottom || "0")
+
+      const availableWidth = Math.max(container.clientWidth - paddingX, 0)
+      const availableHeight = Math.max(container.clientHeight - paddingY, 0)
+
+      let low = minFontSize
+      let high = maxFontSize
+      let bestFit = minFontSize
+
+      while (low <= high) {
+        const mid = Math.floor((low + high) / 2)
+        textElement.style.fontSize = `${mid}px`
+
+        const fitsWithinCard =
+          textElement.scrollWidth <= availableWidth + 0.5 &&
+          textElement.scrollHeight <= availableHeight + 0.5
+
+        if (fitsWithinCard) {
+          bestFit = mid
+          low = mid + 1
+        } else {
+          high = mid - 1
+        }
+      }
+
+      textElement.style.fontSize = `${bestFit}px`
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      if (animationFrame !== null) {
+        cancelAnimationFrame(animationFrame)
+      }
+      animationFrame = window.requestAnimationFrame(fitText)
+    })
+
+    resizeObserver.observe(container)
+    fitText()
+
+    return () => {
+      resizeObserver.disconnect()
+      if (animationFrame !== null) {
+        cancelAnimationFrame(animationFrame)
+      }
+    }
+  }, [containerRef, textRef, minFontSize, maxFontSize, content])
+}
+
+interface PracticeOptionButtonProps {
+  letter: string
+  gradientClass: string
+  selectionClass: string
+  onClick: () => void
+}
+
+const PracticeOptionButton = ({
+  letter,
+  gradientClass,
+  selectionClass,
+  onClick,
+}: PracticeOptionButtonProps) => {
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const textRef = useRef<HTMLSpanElement>(null)
+
+  useAutoFitText(
+    buttonRef,
+    textRef,
+    {
+      minFontSize: 32,
+      maxFontSize: 120,
+    },
+    letter,
+  )
+
+  return (
+    <button
+      ref={buttonRef}
+      type="button"
+      onClick={onClick}
+      className={`kid-card ${gradientClass} flex items-center justify-center p-8 text-black font-black transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] ${selectionClass}`.trim()}
+    >
+      <span ref={textRef} className="inline-block text-center leading-tight">
+        {letter}
+      </span>
+    </button>
+  )
+}
+
 export default function LessonPage({ lesson, onComplete, onBack }: LessonPageProps) {
   const [currentStep, setCurrentStep] = useState<number>(0)
   const [score, setScore] = useState<number>(0)
@@ -529,13 +659,13 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                     : ""
 
                   return (
-                    <button
+                    <PracticeOptionButton
                       key={idx}
+                      letter={letter}
+                      gradientClass={practiceCardGradients[idx % practiceCardGradients.length]}
+                      selectionClass={selectionClass}
                       onClick={() => handlePracticeAnswer(letter === lesson.arabic, optionKey)}
-                      className={`kid-card ${practiceCardGradients[idx % practiceCardGradients.length]} p-8 text-black text-[7.5rem] font-black transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] ${selectionClass}`.trim()}
-                    >
-                      {letter}
-                    </button>
+                    />
                   )
                 })}
               </div>
