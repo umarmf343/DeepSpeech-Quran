@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { QUIZ_QUESTIONS } from "@/lib/child-class/quiz-data"
 import { playSound } from "@/lib/child-class/sound-effects"
 import { loadSettings, type UserSettings } from "@/lib/child-class/settings-utils"
 import { renderTextWithArabicCard } from "./arabic-letter-card"
 import type { QuizQuestion } from "@/types/child-class"
+import { shuffleArray } from "@/lib/utils"
 
 interface QuizPageProps {
   onComplete: (score: number) => void
@@ -32,6 +33,10 @@ export default function QuizPage({ onComplete, onBack }: QuizPageProps) {
   }, [])
 
   const question: QuizQuestion = QUIZ_QUESTIONS[currentQuestion]
+  const shuffledOptions = useMemo(
+    () => shuffleArray(question.options),
+    [question.options],
+  )
 
   const handleAnswer = (option: string) => {
     if (answered) return
@@ -141,7 +146,7 @@ export default function QuizPage({ onComplete, onBack }: QuizPageProps) {
 
           {question.type === "multiple-choice" && (
             <div className="grid grid-cols-1 gap-4 mb-8">
-              {question.options.map((option, idx) => (
+              {shuffledOptions.map((option, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleAnswer(option)}
@@ -168,7 +173,7 @@ export default function QuizPage({ onComplete, onBack }: QuizPageProps) {
 
           {question.type === "matching" && (
             <div className="grid grid-cols-2 gap-4 mb-8">
-              {question.options.map((option, idx) => (
+              {shuffledOptions.map((option, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleAnswer(option)}
