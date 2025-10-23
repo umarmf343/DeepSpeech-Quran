@@ -216,11 +216,7 @@ export function EggChallengeWidget({
               <PartyPopper className="h-4 w-4 text-rose-500" aria-hidden="true" />
             </div>
             <h3 className="mt-3 text-2xl font-semibold text-maroon-700">Brakllahu Feek!</h3>
-            <p className="mt-2 text-sm text-slate-600">
-              {celebration?.challengeTitle
-                ? `You completed ${celebration.challengeTitle}.`
-                : "You cracked the challenge with radiant focus."}
-            </p>
+            {/* Celebration message removed as per updated requirements */}
             <p className="mt-1 text-xs text-slate-500">
               {celebration?.roundsTarget
                 ? `Round ${celebration.completedRound} of ${celebration.roundsTarget} is now complete.`
