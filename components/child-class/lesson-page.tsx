@@ -356,7 +356,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
                   {!tracingComplete && (
                     <button
                       onClick={handleResetTracing}
-                      className="kid-button kid-button-bubblegum mt-2 w-full px-6 py-2 text-sm font-semibold sm:w-auto"
+                      className="self-start mt-4 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-500 px-4 py-1 text-xs font-bold text-white shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg"
                     >
                       Start Over
                     </button>
