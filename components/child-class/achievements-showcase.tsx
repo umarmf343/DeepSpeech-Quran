@@ -8,7 +8,7 @@ interface AchievementsShowcaseProps {
 
 export function AchievementsShowcase({ unlockedIds }: AchievementsShowcaseProps) {
   return (
-    <div className="kid-card p-8">
+    <div className="kid-card kid-gradient-bubblegum p-8">
       <h2 className="mb-6 text-3xl font-extrabold text-maroon">All Achievements</h2>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {ACHIEVEMENT_DEFINITIONS.map((achievement) => {
@@ -16,10 +16,8 @@ export function AchievementsShowcase({ unlockedIds }: AchievementsShowcaseProps)
           return (
             <div
               key={achievement.id}
-              className={`rounded-2xl p-6 transition-all duration-300 ${
-                isUnlocked
-                  ? "bg-gradient-to-br from-amber-100 to-orange-100 shadow-lg"
-                  : "bg-white/70 text-maroon/50 shadow-inner"
+              className={`kid-card p-6 transition-all duration-300 ${
+                isUnlocked ? "kid-gradient-sunny" : "kid-gradient-mint ring-2 ring-white/60"
               }`}
             >
               <div className="text-5xl mb-3">{achievement.icon}</div>
