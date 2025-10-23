@@ -1,5 +1,6 @@
 
 import type { ChildLesson } from "@/types/child-class"
+import { registerLessonAudio } from "./lessons-audio"
 
 const ORDINALS = [
   "First",
@@ -1402,11 +1403,23 @@ const createLetterLessons = (): { lessons: ChildLesson[]; nextId: number } => {
   const lessons: ChildLesson[] = []
   let id = 1
 
+  const addLesson = (lesson: Omit<ChildLesson, "id">) => {
+    const lessonId = id++
+    const audioSrc = `/audio/child-lessons/${lessonId}.mp3`
+    const lessonWithAudio: ChildLesson = {
+      ...lesson,
+      id: lessonId,
+      audioSrc,
+    }
+
+    lessons.push(lessonWithAudio)
+    registerLessonAudio(lesson.arabic, audioSrc)
+  }
+
   for (const definition of LETTER_DEFINITIONS) {
     const ordinal = ORDINALS[definition.day - 1] ?? `${definition.day}th`
 
-    lessons.push({
-      id: id++,
+    addLesson({
       day: definition.day,
       title: `${definition.name} - Introduction`,
       level: "Beginner",
@@ -1416,8 +1429,7 @@ const createLetterLessons = (): { lessons: ChildLesson[]; nextId: number } => {
       description: definition.description,
     })
 
-    lessons.push({
-      id: id++,
+    addLesson({
       day: definition.day,
       title: `${definition.name} with Fatha`,
       level: "Beginner",
@@ -1427,8 +1439,7 @@ const createLetterLessons = (): { lessons: ChildLesson[]; nextId: number } => {
       description: `${definition.name} with the fatha vowel sound`,
     })
 
-    lessons.push({
-      id: id++,
+    addLesson({
       day: definition.day,
       title: `${definition.name} with Kasrah`,
       level: "Beginner",
@@ -1438,8 +1449,7 @@ const createLetterLessons = (): { lessons: ChildLesson[]; nextId: number } => {
       description: `${definition.name} with the kasrah vowel sound`,
     })
 
-    lessons.push({
-      id: id++,
+    addLesson({
       day: definition.day,
       title: `${definition.name} with Dhamma`,
       level: "Beginner",
@@ -1449,8 +1459,7 @@ const createLetterLessons = (): { lessons: ChildLesson[]; nextId: number } => {
       description: `${definition.name} with the dhamma vowel sound`,
     })
 
-    lessons.push({
-      id: id++,
+    addLesson({
       day: definition.day,
       title: `${definition.name} with Sukoon`,
       level: "Beginner",
@@ -1460,8 +1469,7 @@ const createLetterLessons = (): { lessons: ChildLesson[]; nextId: number } => {
       description: `${definition.name} with a resting sound`,
     })
 
-    lessons.push({
-      id: id++,
+    addLesson({
       day: definition.day,
       title: `${definition.name} Joining`,
       level: "Beginner",
@@ -1471,8 +1479,7 @@ const createLetterLessons = (): { lessons: ChildLesson[]; nextId: number } => {
       description: definition.joining.description,
     })
 
-    lessons.push({
-      id: id++,
+    addLesson({
       day: definition.day,
       title: `${definition.name} Practice Word`,
       level: "Beginner",
