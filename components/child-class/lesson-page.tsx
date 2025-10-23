@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef, type ReactNode } from "react"
 import { renderTextWithArabicCard } from "./arabic-letter-card"
 import { AudioPlayButton } from "./audio-play-button"
+import TraceSelectionArea from "./trace-selection-area"
 import { AutoFitText } from "@/components/common/AutoFitText"
 import { playSound } from "@/lib/child-class/sound-effects"
 import { loadSettings, type UserSettings } from "@/lib/child-class/settings-utils"
@@ -140,6 +141,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
   const [celebrationWave, setCelebrationWave] = useState<number>(0)
   const [selectedPracticeOption, setSelectedPracticeOption] = useState<string | null>(null)
   const [selectedPracticeCorrect, setSelectedPracticeCorrect] = useState<boolean | null>(null)
+  const [practiceHighlights, setPracticeHighlights] = useState<Record<string, "success" | "error">>({})
   const celebrationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -205,7 +207,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     {
       type: "practice",
       title: "Practice",
-      content: "Click on the correct letter",
+      content: "Trace a line to the correct letter",
     },
     {
       type: "writing",
@@ -215,7 +217,7 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     {
       type: "quiz",
       title: "Quiz",
-      content: "Test your knowledge",
+      content: "Trace a line to match the correct answer",
     },
   ]
 
@@ -244,9 +246,22 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     </div>
   )
 
-  const handlePracticeAnswer = (isCorrect: boolean, optionKey: string) => {
+  const handlePracticeAnswer = (
+    optionKey: string,
+    isCorrect: boolean,
+    correctOptionKey: string,
+    relatedOptionKeys: string[],
+  ) => {
     setSelectedPracticeOption(optionKey)
     setSelectedPracticeCorrect(isCorrect)
+    setPracticeHighlights(() => {
+      const highlights: Record<string, "success" | "error"> = {}
+      for (const key of relatedOptionKeys) {
+        highlights[key] = key === correctOptionKey ? "success" : "error"
+      }
+      return highlights
+    })
+
     if (isCorrect) {
       setScore((prev) => prev + 25)
       setFeedbackMessage("Excellent! 🎉")
@@ -333,11 +348,18 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
     setTracingResetKey((prev) => prev + 1)
     setShowTracingFailure(false)
     setShowTracingCelebration(false)
+    setPracticeHighlights({})
     if (celebrationTimeoutRef.current) {
       clearTimeout(celebrationTimeoutRef.current)
       celebrationTimeoutRef.current = null
     }
   }, [lesson.id])
+
+  useEffect(() => {
+    setPracticeHighlights({})
+    setSelectedPracticeOption(null)
+    setSelectedPracticeCorrect(null)
+  }, [currentStep])
 
   const tracingCelebrationPieces = useMemo(() => {
     if (!showTracingCelebration) return []
@@ -530,50 +552,80 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
             </div>
           )}
 
-          {currentStep === 2 && (
-            <div className="text-center">
-              <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[2].title}</h2>
-              <p className="text-lg text-maroon/70 mb-10">
-                Which one is {renderLessonTitle(lesson.title)}?
-              </p>
-              <div className="grid grid-cols-2 gap-6 mb-8">
-                {arabicPracticeOptions.map((letter, idx) => {
-                  const optionKey = `practice-${currentStep}-${idx}`
-                  const isSelected = selectedPracticeOption === optionKey
-                  const selectionClass = isSelected
-                    ? selectedPracticeCorrect
-                      ? "kid-card-blink-success"
-                      : "kid-card-blink-error"
-                    : ""
+          {currentStep === 2 && (() => {
+            const optionKeys = arabicPracticeOptions.map((_, idx) => `practice-arabic-${idx}`)
+            const correctIndex = arabicPracticeOptions.indexOf(lesson.arabic)
+            const correctOptionKey = correctIndex >= 0 ? optionKeys[correctIndex] : null
 
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => handlePracticeAnswer(letter === lesson.arabic, optionKey)}
-                      className={`kid-card ${practiceCardGradients[idx % practiceCardGradients.length]} flex min-h-[11rem] items-center justify-center p-8 text-center transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] ${selectionClass}`.trim()}
-                    >
-                      <AutoFitText
-                        maxFontSize={120}
-                        minFontSize={48}
-                        className="font-black text-black leading-none"
-                      >
-                        {letter}
-                      </AutoFitText>
-                    </button>
-                  )
-                })}
+            const handleTraceSelect = (optionKey: string | null) => {
+              if (!optionKey || !correctOptionKey) {
+                setPracticeHighlights({})
+                setSelectedPracticeOption(null)
+                setSelectedPracticeCorrect(null)
+                return
+              }
+
+              const optionIndex = optionKeys.indexOf(optionKey)
+              if (optionIndex === -1) return
+              const isCorrect = arabicPracticeOptions[optionIndex] === lesson.arabic
+              handlePracticeAnswer(optionKey, isCorrect, correctOptionKey, optionKeys)
+            }
+
+            return (
+              <div className="text-center">
+                <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[2].title}</h2>
+                <p className="text-lg text-maroon/70 mb-10">
+                  Which one is {renderLessonTitle(lesson.title)}?
+                </p>
+                <TraceSelectionArea onSelectOption={handleTraceSelect} className="mb-8">
+                  <div className="grid grid-cols-2 gap-6">
+                    {arabicPracticeOptions.map((letter, idx) => {
+                      const optionKey = optionKeys[idx]
+                      const isSelected = selectedPracticeOption === optionKey
+                      const highlightState = practiceHighlights[optionKey]
+                      const stateClass = highlightState
+                        ? highlightState === "success"
+                          ? "kid-card-blink-success"
+                          : "kid-card-blink-error"
+                        : isSelected
+                          ? selectedPracticeCorrect
+                            ? "kid-card-blink-success"
+                            : "kid-card-blink-error"
+                          : ""
+
+                      return (
+                        <button
+                          key={optionKey}
+                          data-option-key={optionKey}
+                          onClick={() =>
+                            handlePracticeAnswer(optionKey, letter === lesson.arabic, correctOptionKey ?? optionKey, optionKeys)
+                          }
+                          className={`kid-card ${practiceCardGradients[idx % practiceCardGradients.length]} flex min-h-[11rem] items-center justify-center p-8 text-center transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] ${stateClass}`.trim()}
+                        >
+                          <AutoFitText
+                            maxFontSize={120}
+                            minFontSize={48}
+                            className="font-black text-black leading-none"
+                          >
+                            {letter}
+                          </AutoFitText>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </TraceSelectionArea>
+                {showFeedback && (
+                  <div
+                    className={`text-2xl font-bold p-4 rounded-lg animate-scale-in ${
+                      feedbackType === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    {feedbackMessage}
+                  </div>
+                )}
               </div>
-              {showFeedback && (
-                <div
-                  className={`text-2xl font-bold p-4 rounded-lg animate-scale-in ${
-                    feedbackType === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {feedbackMessage}
-                </div>
-              )}
-            </div>
-          )}
+            )
+          })()}
 
           {currentStep === 3 && (
             <div className="text-center">
@@ -624,52 +676,87 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
             </div>
           )}
 
-          {currentStep === 4 && (
-            <div className="text-center">
-              <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[4].title}</h2>
-              <div className="kid-card kid-gradient-sunset p-8 mb-8">
-                <p className="text-lg text-maroon mb-6 flex flex-wrap items-center justify-center gap-2 text-center">
-                  {renderTextWithArabicCard(`What is the transliteration of ${lesson.arabic}?`)}
-                </p>
-                <div className="grid grid-cols-2 gap-4">
-                  {transliterationPracticeOptions.map((option, idx) => {
-                    const optionKey = `practice-${currentStep}-${idx}`
-                    const isSelected = selectedPracticeOption === optionKey
-                    const selectionClass = isSelected
-                      ? selectedPracticeCorrect
-                        ? "kid-card-blink-success"
-                        : "kid-card-blink-error"
-                      : ""
+          {currentStep === 4 && (() => {
+            const optionKeys = transliterationPracticeOptions.map((_, idx) => `practice-translit-${idx}`)
+            const correctIndex = transliterationPracticeOptions.indexOf(lesson.translit)
+            const correctOptionKey = correctIndex >= 0 ? optionKeys[correctIndex] : null
 
-                    return (
-                      <button
-                        key={idx}
-                        onClick={() => handlePracticeAnswer(option === lesson.translit, optionKey)}
-                        className={`kid-card ${practiceCardGradients[idx % practiceCardGradients.length]} flex min-h-[7.5rem] items-center justify-center p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] ${selectionClass}`.trim()}
-                      >
-                        <AutoFitText
-                          maxFontSize={48}
-                          minFontSize={20}
-                          className="font-extrabold leading-snug text-black"
-                        >
-                          {option}
-                        </AutoFitText>
-                      </button>
-                    )
-                  })}
+            const handleTraceSelect = (optionKey: string | null) => {
+              if (!optionKey || !correctOptionKey) {
+                setPracticeHighlights({})
+                setSelectedPracticeOption(null)
+                setSelectedPracticeCorrect(null)
+                return
+              }
+
+              const optionIndex = optionKeys.indexOf(optionKey)
+              if (optionIndex === -1) return
+              const isCorrect = transliterationPracticeOptions[optionIndex] === lesson.translit
+              handlePracticeAnswer(optionKey, isCorrect, correctOptionKey, optionKeys)
+            }
+
+            return (
+              <div className="text-center">
+                <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[4].title}</h2>
+                <div className="kid-card kid-gradient-sunset p-8 mb-8">
+                  <p className="text-lg text-maroon mb-6 flex flex-wrap items-center justify-center gap-2 text-center">
+                    {renderTextWithArabicCard(`What is the transliteration of ${lesson.arabic}?`)}
+                  </p>
+                  <TraceSelectionArea onSelectOption={handleTraceSelect}>
+                    <div className="grid grid-cols-2 gap-4">
+                      {transliterationPracticeOptions.map((option, idx) => {
+                        const optionKey = optionKeys[idx]
+                        const isSelected = selectedPracticeOption === optionKey
+                        const highlightState = practiceHighlights[optionKey]
+                        const stateClass = highlightState
+                          ? highlightState === "success"
+                            ? "kid-card-blink-success"
+                            : "kid-card-blink-error"
+                          : isSelected
+                            ? selectedPracticeCorrect
+                              ? "kid-card-blink-success"
+                              : "kid-card-blink-error"
+                            : ""
+
+                        return (
+                          <button
+                            key={optionKey}
+                            data-option-key={optionKey}
+                            onClick={() =>
+                              handlePracticeAnswer(
+                                optionKey,
+                                option === lesson.translit,
+                                correctOptionKey ?? optionKey,
+                                optionKeys,
+                              )
+                            }
+                            className={`kid-card ${practiceCardGradients[idx % practiceCardGradients.length]} flex min-h-[7.5rem] items-center justify-center p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] ${stateClass}`.trim()}
+                          >
+                            <AutoFitText
+                              maxFontSize={48}
+                              minFontSize={20}
+                              className="font-extrabold leading-snug text-black"
+                            >
+                              {option}
+                            </AutoFitText>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </TraceSelectionArea>
                 </div>
+                {showFeedback && (
+                  <div
+                    className={`text-2xl font-bold p-4 rounded-lg animate-scale-in ${
+                      feedbackType === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    {feedbackMessage}
+                  </div>
+                )}
               </div>
-              {showFeedback && (
-                <div
-                  className={`text-2xl font-bold p-4 rounded-lg animate-scale-in ${
-                    feedbackType === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {feedbackMessage}
-                </div>
-              )}
-            </div>
-          )}
+            )
+          })()}
 
           {/* Navigation Buttons */}
           <div className="mt-12 grid grid-cols-2 gap-4">
