@@ -71,80 +71,88 @@ export default function GamesHub({ userProgress, onBack }: GamesHubProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-milk via-milk to-milk/95 px-4 py-8 md:px-8">
+    <div className="relative min-h-screen px-4 py-10 md:px-8">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-16 left-6 h-44 w-44 rounded-full bg-white/45 blur-3xl"></div>
+        <div className="absolute bottom-0 right-12 h-56 w-56 rounded-full bg-gradient-to-br from-maroon/20 via-pink-100/60 to-transparent blur-3xl"></div>
+      </div>
+
       {/* Premium Header */}
-      <div className="flex justify-between items-center mb-12 animate-slide-down">
-        <button
-          onClick={onBack}
-          className="bg-white hover:bg-maroon/10 text-maroon font-bold py-2 px-4 rounded-lg transition-all duration-300 border-2 border-maroon/20"
-        >
-          ← Back
-        </button>
-        <div>
-          <h1 className="text-5xl font-bold text-maroon">Games Hub</h1>
-          <p className="text-maroon/60 mt-2">Learn while having fun!</p>
-        </div>
-        <div className="text-center bg-white px-6 py-3 rounded-lg border-2 border-gold/30">
-          <div className="text-2xl font-bold text-gold">{userProgress.totalPoints}</div>
-          <div className="text-xs text-maroon/60">Total Points</div>
+      <div className="relative z-10 mb-12 animate-slide-down">
+        <div className="kid-card flex flex-col gap-6 rounded-3xl p-8 sm:flex-row sm:items-center sm:justify-between">
+          <button
+            onClick={onBack}
+            className="kid-pill flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-maroon transition-transform duration-300 hover:scale-105"
+          >
+            ← Back
+          </button>
+          <div className="text-center sm:text-left">
+            <p className="text-xs uppercase tracking-[0.4em] text-maroon/60">Playful Practice</p>
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-maroon">Games Hub</h1>
+            <p className="mt-2 text-maroon/70">Learn while having fun!</p>
+          </div>
+          <div className="kid-pill rounded-3xl px-6 py-3 text-center">
+            <div className="text-2xl font-black text-maroon">{userProgress.totalPoints}</div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-maroon/60">Total Points</div>
+          </div>
         </div>
       </div>
 
       {/* Games Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
+      <div className="relative z-10 mx-auto mb-12 grid max-w-6xl grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
         {games.map((game, idx) => (
           <div
             key={game.id}
             onClick={() => setSelectedGame(game.id)}
-            className="card-premium p-8 cursor-pointer transform transition-all duration-300 hover:shadow-2xl hover:scale-105 border-2 border-maroon/10 hover:border-gold/50 animate-slide-up"
+            className="kid-card cursor-pointer p-8 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] animate-slide-up"
             style={{ animationDelay: `${idx * 100}ms` }}
           >
-            <div className={`bg-gradient-to-br ${game.color} rounded-2xl p-6 mb-6 text-6xl text-center`}>
+            <div className={`mb-6 rounded-2xl bg-gradient-to-br ${game.color} p-6 text-center text-6xl`}>
               {game.icon}
             </div>
-            <h2 className="text-2xl font-bold text-maroon mb-3">{game.title}</h2>
-            <p className="text-maroon/70 mb-6">{game.description}</p>
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-bold text-maroon bg-maroon/10 px-3 py-1 rounded-full">
+            <h2 className="mb-3 text-2xl font-extrabold text-maroon">{game.title}</h2>
+            <p className="mb-6 text-maroon/70">{game.description}</p>
+            <div className="flex items-center justify-between">
+              <span className="rounded-full bg-white/80 px-3 py-1 text-sm font-semibold text-maroon/70">
                 {game.difficulty}
               </span>
-              <span className="text-2xl text-gold">→</span>
+              <span className="text-2xl text-maroon">→</span>
             </div>
           </div>
         ))}
       </div>
 
       {/* Game Stats */}
-      <div className="max-w-6xl mx-auto">
-        <div className="card-premium p-8 border-2 border-gold/30">
-          <h2 className="text-2xl font-bold text-maroon mb-8">Your Game Stats</h2>
-          <div className="grid grid-cols-3 gap-6 mb-8">
-            <div className="card-premium p-6 text-center border-2 border-maroon/10">
-              <p className="text-4xl font-bold text-maroon">3</p>
-              <p className="text-sm text-maroon/60 mt-2">Games Available</p>
+      <div className="relative z-10 mx-auto max-w-6xl">
+        <div className="kid-card p-8">
+          <h2 className="mb-8 text-2xl font-extrabold text-maroon">Your Game Stats</h2>
+          <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
+            <div className="kid-pill rounded-3xl p-6 text-center shadow-lg">
+              <p className="text-4xl font-black text-maroon">3</p>
+              <p className="mt-2 text-sm text-maroon/70">Games Available</p>
             </div>
-            <div className="card-premium p-6 text-center border-2 border-gold/30">
-              <p className="text-4xl font-bold text-gold">{gameStats?.gamesCompleted || 0}</p>
-              <p className="text-sm text-maroon/60 mt-2">Games Completed</p>
+            <div className="kid-pill rounded-3xl p-6 text-center shadow-lg">
+              <p className="text-4xl font-black text-maroon">{gameStats?.gamesCompleted || 0}</p>
+              <p className="mt-2 text-sm text-maroon/70">Games Completed</p>
             </div>
-            <div className="card-premium p-6 text-center border-2 border-maroon/10">
-              <p className="text-4xl font-bold text-maroon">{gameScore}</p>
-              <p className="text-sm text-maroon/60 mt-2">Last Score</p>
+            <div className="kid-pill rounded-3xl p-6 text-center shadow-lg">
+              <p className="text-4xl font-black text-maroon">{gameScore}</p>
+              <p className="mt-2 text-sm text-maroon/70">Last Score</p>
             </div>
           </div>
           {gameStats && (
-            <div className="grid grid-cols-3 gap-6">
-              <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl p-6 text-center border-2 border-blue-200">
-                <p className="text-sm text-blue-700 font-semibold mb-2">Best Matching</p>
-                <p className="text-3xl font-bold text-blue-600">{gameStats.bestScores.matching}</p>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+              <div className="rounded-3xl bg-gradient-to-br from-blue-100 to-blue-50 p-6 text-center shadow-lg">
+                <p className="mb-2 text-sm font-semibold text-blue-700">Best Matching</p>
+                <p className="text-3xl font-black text-blue-600">{gameStats.bestScores.matching}</p>
               </div>
-              <div className="bg-gradient-to-br from-purple-100 to-purple-50 rounded-xl p-6 text-center border-2 border-purple-200">
-                <p className="text-sm text-purple-700 font-semibold mb-2">Best Spelling</p>
-                <p className="text-3xl font-bold text-purple-600">{gameStats.bestScores.spelling}</p>
+              <div className="rounded-3xl bg-gradient-to-br from-purple-100 to-purple-50 p-6 text-center shadow-lg">
+                <p className="mb-2 text-sm font-semibold text-purple-700">Best Spelling</p>
+                <p className="text-3xl font-black text-purple-600">{gameStats.bestScores.spelling}</p>
               </div>
-              <div className="bg-gradient-to-br from-pink-100 to-pink-50 rounded-xl p-6 text-center border-2 border-pink-200">
-                <p className="text-sm text-pink-700 font-semibold mb-2">Best Memory</p>
-                <p className="text-3xl font-bold text-pink-600">{gameStats.bestScores.memory}</p>
+              <div className="rounded-3xl bg-gradient-to-br from-pink-100 to-pink-50 p-6 text-center shadow-lg">
+                <p className="mb-2 text-sm font-semibold text-pink-700">Best Memory</p>
+                <p className="text-3xl font-black text-pink-600">{gameStats.bestScores.memory}</p>
               </div>
             </div>
           )}
