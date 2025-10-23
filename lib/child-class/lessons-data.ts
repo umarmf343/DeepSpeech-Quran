@@ -1497,6 +1497,19 @@ const createLetterLessons = (): { lessons: ChildLesson[]; nextId: number } => {
   return { lessons, nextId: id }
 }
 
+const STAGE_ARABIC_LABELS: Record<string, string> = {
+  "Two-Letter Words": "الكلمات ذات حرفين",
+  "Three-Letter Words": "الكلمات ذات ثلاثة أحرف",
+  "Four-Letter Words": "الكلمات ذات أربعة أحرف",
+  "Five-Letter Words": "الكلمات ذات خمسة أحرف",
+  "Six-Letter Words": "الكلمات ذات ستة أحرف",
+  "Quran Words": "كلمات قرآنية",
+  "Quran Verses": "آيات قرآنية",
+}
+
+const getStageArabicLabel = (stage: string): string =>
+  STAGE_ARABIC_LABELS[stage] ?? stage
+
 const createStageLessons = (
   definitions: StageDefinition[],
   startId: number,
@@ -1510,7 +1523,7 @@ const createStageLessons = (
       day: definition.day,
       title: `${definition.stage} Mission`,
       level: definition.level,
-      arabic: "⭐",
+      arabic: `مهمة ${getStageArabicLabel(definition.stage)}`,
       translit: definition.focus,
       rule: `${definition.stage} Introduction`,
       description: definition.intro,
@@ -1534,7 +1547,7 @@ const createStageLessons = (
       day: definition.day,
       title: `${definition.stage} Review`,
       level: definition.level,
-      arabic: "🎯",
+      arabic: `مراجعة ${getStageArabicLabel(definition.stage)}`,
       translit: "Review",
       rule: definition.reviewRule ?? `${definition.stage} Review`,
       description:
@@ -1566,11 +1579,11 @@ const BASE_LESSONS: ChildLesson[] = [
   ...quranVersesResult.lessons,
 ]
 
-const PLACEHOLDER_ARABIC_PATTERN = /^[\s?؟]+$/u
+const ARABIC_TEXT_PATTERN = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/u
 
 const ensureValidArabicLessons = (lessons: ChildLesson[]): ChildLesson[] => {
   const invalidLessons = lessons.filter((lesson) =>
-    PLACEHOLDER_ARABIC_PATTERN.test(lesson.arabic.trim()),
+    !ARABIC_TEXT_PATTERN.test(lesson.arabic),
   )
 
   if (invalidLessons.length > 0) {
