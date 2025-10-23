@@ -120,17 +120,6 @@ export function ReaderTogglePanel({
             aria-label="Toggle tajweed view"
           />
         </div>
-        <div className="flex items-center justify-between">
-          <Label htmlFor="toggle-telemetry" className="text-xs uppercase tracking-wide text-muted-foreground">
-            Help Improve
-          </Label>
-          <Switch
-            id="toggle-telemetry"
-            checked={profile.telemetryOptIn}
-            onCheckedChange={(checked) => onProfileChange({ telemetryOptIn: checked })}
-            aria-label="Toggle telemetry opt-in"
-          />
-        </div>
       </div>
 
       <div className="space-y-3" role="group" aria-label="Language preferences">
