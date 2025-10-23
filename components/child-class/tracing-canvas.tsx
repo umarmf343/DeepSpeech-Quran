@@ -224,6 +224,11 @@ export function TracingCanvas({
 
     const width = maxX - minX + 1
     const height = maxY - minY + 1
+
+    if (width <= 0 || height <= 0) {
+      return
+    }
+
     const imageData = ctx.getImageData(minX, minY, width, height)
     const pixelData = imageData.data
     const redAlpha = Math.round(0.85 * 255)
