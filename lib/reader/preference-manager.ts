@@ -31,7 +31,7 @@ export const DEFAULT_PROFILE: ReaderProfile = {
   playbackSpeed: 1,
   volume: 0.8,
   fontSizeClass: "text-3xl",
-  lineHeightClass: "leading-relaxed",
+  lineHeightClass: "leading-loose",
   theme: "auto",
   telemetryOptIn: false,
 }
