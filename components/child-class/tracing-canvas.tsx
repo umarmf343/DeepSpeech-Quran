@@ -1,6 +1,8 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+
+import { useIsMobile } from "@/hooks/use-mobile"
 import type { PointerEvent as ReactPointerEvent } from "react"
 
 interface TracingCanvasProps {
@@ -14,7 +16,8 @@ interface TracingCanvasProps {
 
 const CANVAS_SIZE = 420
 const FONT_SCALE = 560 / CANVAS_SIZE
-const BRUSH_SIZE = 18.7
+const BASE_BRUSH_SIZE = 18.7
+const MOBILE_BRUSH_REDUCTION = 1.2
 const MAX_MISTAKES = 3
 export const COMPLETION_THRESHOLD = 0.72
 const TARGET_LETTER_COVERAGE = 0.78
@@ -29,6 +32,7 @@ export function TracingCanvas({
   onMistake,
   resetSignal = 0,
 }: TracingCanvasProps) {
+  const isMobile = useIsMobile()
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const maskCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const maskDataRef = useRef<Uint8ClampedArray | null>(null)
@@ -44,6 +48,10 @@ export function TracingCanvas({
   const [ready, setReady] = useState(false)
   const [letterFontSize, setLetterFontSize] = useState(() => CANVAS_SIZE * 0.8)
   const [letterPreview, setLetterPreview] = useState<string | null>(null)
+  const brushSize = useMemo(
+    () => (isMobile ? BASE_BRUSH_SIZE / MOBILE_BRUSH_REDUCTION : BASE_BRUSH_SIZE),
+    [isMobile],
+  )
 
   const updateLetterPreview = useCallback((width: number, height: number, data: Uint8ClampedArray) => {
     if (typeof window === "undefined") {
@@ -285,7 +293,7 @@ export function TracingCanvas({
     const canvasWidth = canvas.width
     const canvasHeight = canvas.height
 
-    const radius = Math.max(1, Math.ceil((BRUSH_SIZE / 2) * ratio))
+    const radius = Math.max(1, Math.ceil((brushSize / 2) * ratio))
     const radiusSq = radius * radius
     const minX = Math.max(0, Math.floor(x - radius))
     const maxX = Math.min(canvasWidth - 1, Math.ceil(x + radius))
