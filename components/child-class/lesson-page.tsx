@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo, useRef, type ReactNode } from "react"
+import { ArabicAudioButton } from "./arabic-audio-button"
 import { renderTextWithArabicCard } from "./arabic-letter-card"
 import { AutoFitText } from "@/components/common/AutoFitText"
 import { playSound } from "@/lib/child-class/sound-effects"
@@ -216,18 +217,6 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
       content: "Test your knowledge",
     },
   ]
-
-  const handlePronounce = () => {
-    if (typeof window === "undefined") return
-
-    const utterance = new SpeechSynthesisUtterance(lesson.arabic)
-    utterance.lang = "ar-SA"
-    utterance.rate = 0.8
-    window.speechSynthesis.speak(utterance)
-    if (settings?.soundEnabled) {
-      playSound("correct")
-    }
-  }
 
   const handlePracticeAnswer = (isCorrect: boolean, optionKey: string) => {
     setSelectedPracticeOption(optionKey)
@@ -485,6 +474,20 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-maroon mb-6">{steps[0].title}</h2>
               <div className="text-black text-[11.43rem] animate-float">{lesson.arabic}</div>
+              <div className="mt-4 flex justify-center">
+                <ArabicAudioButton
+                  text={lesson.arabic}
+                  variant="primary"
+                  size="lg"
+                  onPlayStart={() => {
+                    if (settings?.soundEnabled) {
+                      playSound("correct")
+                    }
+                  }}
+                >
+                  Listen to Letter
+                </ArabicAudioButton>
+              </div>
               <p className="text-lg text-maroon/70 mb-8">{lesson.description}</p>
               <div className="grid grid-cols-2 gap-4">
                 <div className="kid-pill kid-pill-bubblegum rounded-3xl p-6 text-left shadow-lg">
@@ -503,12 +506,18 @@ export default function LessonPage({ lesson, onComplete, onBack }: LessonPagePro
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-maroon mb-8">{steps[1].title}</h2>
               <div className="text-black text-[11.43rem] animate-float">{lesson.arabic}</div>
-              <button
-                onClick={handlePronounce}
-                className="kid-button kid-button-sunset inline-flex px-12 py-6 text-2xl font-extrabold"
+              <ArabicAudioButton
+                text={lesson.arabic}
+                variant="primary"
+                size="lg"
+                onPlayStart={() => {
+                  if (settings?.soundEnabled) {
+                    playSound("correct")
+                  }
+                }}
               >
-                🔊 Listen to Pronunciation
-              </button>
+                Listen to Pronunciation
+              </ArabicAudioButton>
               <p className="text-lg text-maroon/70">Click the button to hear the correct pronunciation</p>
             </div>
           )}
