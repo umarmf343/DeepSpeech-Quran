@@ -79,7 +79,15 @@ const TAB_REGISTRY: Record<TabSlug, TabDefinition> = {
 }
 
 const ROLE_TAB_MAP: Record<UserRole, TabSlug[]> = {
-  visitor: ["dashboard", "reader", "kid-class", "memorization", "qaidah", "profile"],
+  visitor: [
+    "dashboard",
+    "reader",
+    "kid-class",
+    "memorization",
+    "qaidah",
+    "leaderboard",
+    "profile",
+  ],
   student: [
     "dashboard",
     "reader",
@@ -87,6 +95,7 @@ const ROLE_TAB_MAP: Record<UserRole, TabSlug[]> = {
     "memorization",
     "qaidah",
     "quran-companion",
+    "leaderboard",
     "settings",
     "profile",
   ],
@@ -96,6 +105,7 @@ const ROLE_TAB_MAP: Record<UserRole, TabSlug[]> = {
     "kid-class",
     "memorization",
     "qaidah",
+    "leaderboard",
     "teacher-dashboard",
     "settings",
     "profile",
@@ -112,7 +122,15 @@ const ROLE_TAB_MAP: Record<UserRole, TabSlug[]> = {
     "settings",
     "profile",
   ],
-  parent: ["dashboard", "reader", "kid-class", "qaidah", "settings", "profile"],
+  parent: [
+    "dashboard",
+    "reader",
+    "kid-class",
+    "qaidah",
+    "leaderboard",
+    "settings",
+    "profile",
+  ],
 }
 
 const iconMap: Record<string, ComponentType<{ className?: string }>> = {
