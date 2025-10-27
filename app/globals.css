@@ -1204,3 +1204,9 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-gold);
 }
+
+@layer utilities {
+  .animate-ping-slow {
+    animation: ping 3s linear infinite;
+  }
+}
