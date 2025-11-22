@@ -1646,7 +1646,7 @@ const createPracticeLessons = (lessons: ChildLesson[]): ChildLesson[] => {
       expandedLessons.push({
         ...templateLesson,
         id: maxId,
-        title: `${templateLesson.title} Practice ${i + 1}`,
+        title: `${templateLesson.title} Practice`,
         description: `Additional practice for ${templateLesson.title}`,
         rule: templateLesson.rule.includes("Practice")
           ? templateLesson.rule
